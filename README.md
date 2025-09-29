@@ -10,8 +10,8 @@ Check out Dekaid's GT3HUD and Dinir's Streamliner HUD (they're both much more pr
 
 ### Supported Modes
 
-1. [Single\] Race
-2. Tournament (Which is just a series of [Single\] Races\)
+- [Single\] Race
+- Tournament (Which is just a series of [Single\] Races\)
 
 ### Supported Versions
 - 1.4.0.1
