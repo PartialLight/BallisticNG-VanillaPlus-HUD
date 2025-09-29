@@ -22,7 +22,8 @@ using NgPickups;
 
 namespace ClassLibrary1HUD
 {
-    public class HudRegister : CodeMod
+
+    public class HudRegister : CodeMod //HudRegister should be renamed to RaceHudRegister because it's for the Race mode
 
     {
         string id = "VanillaPlus";
@@ -32,6 +33,10 @@ namespace ClassLibrary1HUD
 
         public override void OnRegistered(string ModLocation)
         {
+            string TestPathString = Path.Combine(ModLocation, "config.ini");
+            INIParser ini = new INIParser();
+            ini.Open(TestPathString);
+
             VanillaPlusHUD = AssetBundle.LoadFromFile(Path.Combine(ModLocation, HudPath));
             CustomHudRegistry.RegisterMod(id);
             CustomHudRegistry.RegisterSceneManager("Race", id, new HudManager());
@@ -42,13 +47,46 @@ namespace ClassLibrary1HUD
             CustomHudRegistry.RegisterWeaponSprite("emergencypack", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/EPack.png")));
             CustomHudRegistry.RegisterWeaponSprite("hellstorm", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Hellstorm.png")));
             CustomHudRegistry.RegisterWeaponSprite("hunter", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Hunter.png")));
+            //switch (VanillaPlusHUDOptions.ModMenuOptions.MissileIconStyle)
+            switch (ini.ReadValue("Settings", "MissileIconStyle_ID", VanillaPlusHUDOptions.ModMenuOptions.MissileIconStyle))
+            {
+                case 0:
+                    CustomHudRegistry.RegisterWeaponSprite("missile", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Missile.png")));
+                    break;
+                case 1:
+                    CustomHudRegistry.RegisterWeaponSprite("missile", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/MissileInscribedTriangle.png")));
+                    break;
+            }
             CustomHudRegistry.RegisterWeaponSprite("mines", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Mines.png")));
-            CustomHudRegistry.RegisterWeaponSprite("missile", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Missile.png")));
             CustomHudRegistry.RegisterWeaponSprite("plasma", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Plasma.png")));
             CustomHudRegistry.RegisterWeaponSprite("tremor", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Quake.png")));
-            CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Rockets.png")));
+            //switch (VanillaPlusHUDOptions.ModMenuOptions.RocketsIconStyle)
+            switch (ini.ReadValue("Settings", "RocketsIconStyle_ID", VanillaPlusHUDOptions.ModMenuOptions.RocketsIconStyle))
+            {
+                case 0:
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Rockets.png")));
+                    break;
+                case 1:
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/RocketsTrefoil.png")));
+                    break;
+                case 2:
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/RocketsTrefoilUp.png")));
+                    break;
+                case 3:
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/RocketsHorizontal.png")));
+                    break;
+                case 4:
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/RocketsVertical.png")));
+                    break;
+                case 5:
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/RocketsTetrahedronNet.png")));
+                    break;
+            }
+            
             CustomHudRegistry.RegisterWeaponSprite("shield", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Shield.png")));
             CustomHudRegistry.RegisterWeaponSprite("turbo", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Turbo.png")));
+
+            ini.Close();
         }
     }
 
@@ -61,17 +99,57 @@ namespace ClassLibrary1HUD
             RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
             RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
             RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
-            RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarToggle && Race.AfterburnerEnabled)
+            {
+                RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
+            }
+
             RegisterHud<Lap_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Counter FIeld.prefab");
-            RegisterHud<Speedpad_Timer>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Timer Bar.prefab");
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 2)
+            {
+                RegisterHud<Speedpad_Timer>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Timer Bar.prefab");
+            }
+
             RegisterHud<Position_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Position Counter Field.prefab");
-            RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
             RegisterHud<Best_Time_Field>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Best Time FIeld.prefab");
-            RegisterHud<Pitlane_Indicator>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pitlane Indicator.prefab");
-            RegisterHud<Speedpad_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Counter Field.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.PitlaneIndicatorStyle == 0)
+            {
+                RegisterHud<Pitlane_Indicator>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pitlane Indicator.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("PitlaneIndicator"); //Internal Pitlane Indicator
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 2)
+            {
+                RegisterHud<Speedpad_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Counter Field.prefab");
+            }
+            
             RegisterHud<Lap_Time_Field>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Time Field.prefab");
-            RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
-            RegisterHud<Relative_Time_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Relative Time Display.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RelativeTimeDisplayToggle)
+            {
+                RegisterHud<Relative_Time_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Relative Time Display.prefab");
+            }
 
             //RegisterHud<>(HudRegister.VanillaPlusHUD, "");
             RegisterInternalHud("NetworkNameTags"); //Nametags
@@ -86,8 +164,6 @@ namespace ClassLibrary1HUD
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
             }
             RegisterInternalHud("NetworkRaceFinish"); //Race finishes in 30 seconds
-            //RegisterInternalHud("PitlaneIndicator"); //Pitlane Indicator
-            //RegisterInternalHud("NowPlaying"); //Internal MusicDisplay
 
         }
     }
@@ -104,6 +180,8 @@ namespace ClassLibrary1HUD
         public Image Right_Pitlane_Indicator_Arrow_3;
         public int Pitlane_Indicator_Section_Index;
         public int Pitlane_Side;
+        public int Pitlane_Current_Section;
+        public int Pitlane_Previous_Section;
         public List<Image> Pitlane_Arrows;
         public List<int> Pitlane_Indicator_Section_Indices;
         public List<int> Pitlane_Sides;
@@ -371,19 +449,28 @@ namespace ClassLibrary1HUD
         public override void Update()
         {
             base.Update();
-            if (Pitlane_Indicator_Section_Indices.Contains(TargetShip.CurrentSection.index))
+
+            Pitlane_Current_Section = TargetShip.CurrentSection.index;
+
+            if (Pitlane_Current_Section > Pitlane_Previous_Section)
             {
-                Pitlane_Side = Pitlane_Sides[Pitlane_Indicator_Section_Indices.IndexOf(TargetShip.CurrentSection.index)];
-                if (Pitlane_Side == 1)
+                if (Pitlane_Indicator_Section_Indices.Contains(TargetShip.CurrentSection.index))
                 {
-                    Pitlane_Arrows = new List<Image> { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
+                    Pitlane_Side = Pitlane_Sides[Pitlane_Indicator_Section_Indices.IndexOf(TargetShip.CurrentSection.index)];
+                    if (Pitlane_Side == 1)
+                    {
+                        Pitlane_Arrows = new List<Image> { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
+                    }
+                    else if (Pitlane_Side == -1)
+                    {
+                        Pitlane_Arrows = new List<Image> { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
+                    }
+                    StartCoroutine(Pitlane_Indicator_Animation());
                 }
-                else if (Pitlane_Side == -1)
-                {
-                    Pitlane_Arrows = new List<Image> { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
-                }
-                StartCoroutine(Pitlane_Indicator_Animation());
             }
+            
+            Pitlane_Previous_Section = Pitlane_Current_Section;
+
         }
     }
 
@@ -679,6 +766,14 @@ namespace ClassLibrary1HUD
         public Image Hyperthrust_Bar_Image;
         public string Hyperthrust_Units_String;
 
+        public Vector2 Hyperthrust_Bar_Lowered_Adjust_Vector;
+
+        public Vector2 HyperThrust_Bar_Numeric_Readout_Default_Position;
+        public Vector2 Hyperthrust_Bar_Background_Default_Position;
+        public Vector2 Hyperthrust_Bar_Whiteout_Default_Position;
+        public Vector2 Hyperthrust_Bar_Image_Default_Position;
+
+
         public override void Start()
         {
             base.Start();
@@ -687,6 +782,22 @@ namespace ClassLibrary1HUD
             Hyperthrust_Bar_Background = CustomComponents.GetById<Image>("HyperthrustBarBackground");
             Hyperthrust_Bar_Whiteout = CustomComponents.GetById<Image>("HyperthrustBarWhiteout");
             Hyperthrust_Bar_Image = CustomComponents.GetById<Image>("HyperthrustBar");
+
+            HyperThrust_Bar_Numeric_Readout_Default_Position = Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition;
+            Hyperthrust_Bar_Background_Default_Position = Hyperthrust_Bar_Background.rectTransform.anchoredPosition;
+            Hyperthrust_Bar_Whiteout_Default_Position = Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition;
+            Hyperthrust_Bar_Image_Default_Position = Hyperthrust_Bar_Image.rectTransform.anchoredPosition;
+
+            Hyperthrust_Bar_Lowered_Adjust_Vector = new Vector2(-302f, -500f);
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarPosition == 1)
+            {
+                Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+                Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+                Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+                Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+            }
+
         }
 
         public override void Update()
@@ -715,6 +826,13 @@ namespace ClassLibrary1HUD
         public float Speedpad_Counter_Previous_Speedpad_Time_2280;
         public float Speedpad_Counter_2280;
 
+        public Vector2 Speedpad_Counter_Lowered_Adjust_Vector;
+
+        public Vector2 Speedpad_Count_Numeric_Readout_Default_Position;
+        public Vector2 Speedpad_Counter_Background_Default_Position;
+        public Vector2 Speedpad_Counter_Whiteout_Default_Position;
+        public Vector2 Speedpad_Counter_Image_Default_Position;
+
         public override void Start()
         {
             base.Start();
@@ -723,17 +841,31 @@ namespace ClassLibrary1HUD
             Speedpad_Counter_Background = CustomComponents.GetById<Image>("SpeedpadCounterBackground");
             Speedpad_Counter_Whiteout = CustomComponents.GetById<Image>("SpeedpadCounterWhiteout");
             Speedpad_Counter_Image = CustomComponents.GetById<Image>("SpeedpadCounter");
+
+            Speedpad_Count_Numeric_Readout_Default_Position = Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition;
+            Speedpad_Counter_Background_Default_Position = Speedpad_Counter_Background.rectTransform.anchoredPosition;
+            Speedpad_Counter_Whiteout_Default_Position = Speedpad_Counter_Whiteout.rectTransform.anchoredPosition;
+            Speedpad_Counter_Image_Default_Position = Speedpad_Counter_Image.rectTransform.anchoredPosition;
+
+            Speedpad_Counter_Lowered_Adjust_Vector = new Vector2(287, -502);
+            if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 1)
+            {
+                Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
+                Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
+                Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
+                Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
+            }
         }
 
         public override void Update()
         {
             base.Update();
 
-            if (Cheats.ModernPhysics)
+            if (Cheats.IntFromPhysicsMod() == 1) //Formerly if (Cheats.ModernPhysics)
             {
                 Speedpad_Counter_Current_Speedpad_Time_2280 = TargetShip.PysSim.modernPadPushTimer;
 
-                if ((Speedpad_Counter_Current_Speedpad_Time_2280 > Speedpad_Counter_Previous_Speedpad_Time_2280) && (Speedpad_Counter_2280 < 3))
+                if ((Speedpad_Counter_Current_Speedpad_Time_2280 > Speedpad_Counter_Previous_Speedpad_Time_2280)) // && (Speedpad_Counter_2280 < 3))
                 {
                     Speedpad_Counter_2280 += 1f;
                 }
@@ -775,6 +907,13 @@ namespace ClassLibrary1HUD
         public Image Speedpad_Timer_Image;
         public string Speedpad_Timer_Units_String;
 
+        public Vector2 Speedpad_Timer_Numeric_Readout_Default_Position;
+        public Vector2 Speedpad_Timer_Background_Default_Position;
+        public Vector2 Speedpad_Timer_Whiteout_Default_Position;
+        public Vector2 Speedpad_Timer_Image_Default_Position;
+
+        public Vector2 Speedpad_Timer_Lowered_Adjust_Vector;
+
         public override void Start()
         {
             base.Start();
@@ -783,12 +922,26 @@ namespace ClassLibrary1HUD
             Speedpad_Timer_Background = CustomComponents.GetById<Image>("SpeedpadTimerBackground");
             Speedpad_Timer_Whiteout = CustomComponents.GetById<Image>("SpeedpadTimerWhiteout");
             Speedpad_Timer_Image = CustomComponents.GetById<Image>("SpeedpadTimer");
+
+            Speedpad_Timer_Numeric_Readout_Default_Position = Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition;
+            Speedpad_Timer_Background_Default_Position = Speedpad_Timer_Background.rectTransform.anchoredPosition;
+            Speedpad_Timer_Whiteout_Default_Position = Speedpad_Timer_Whiteout.rectTransform.anchoredPosition;
+            Speedpad_Timer_Image_Default_Position = Speedpad_Timer_Image.rectTransform.anchoredPosition;
+
+            Speedpad_Timer_Lowered_Adjust_Vector = new Vector2(287, -502);
+            if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 1)
+            {
+                Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+                Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+                Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+                Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+            }
         }
 
         public override void Update()
         {
             base.Update();
-            if (Cheats.ModernPhysics)
+            if (Cheats.IntFromPhysicsMod() == 1) //Formerly if (Cheats.ModernPhysics)
             {
                 Speedpad_Timer_Image.fillAmount = TargetShip.PysSim.modernPadPushTimer / 0.24f;
                 Speedpad_Timer_Units_String = string.Format("{0:N2}", TargetShip.PysSim.modernPadPushTimer);
@@ -988,6 +1141,12 @@ namespace ClassLibrary1HUD
             Lap_Texts = new List<Text> { Lap_Time_1, Lap_Time_2, Lap_Time_3, Lap_Time_4, Lap_Time_5 };
             Lap_Images = new List<Image> { Lap_Time_Arrow_1, Lap_Time_Arrow_2, Lap_Time_Arrow_3, Lap_Time_Arrow_4, Lap_Time_Arrow_5 };
 
+            for (int i = 1; i <= 4; i++)
+            {
+                Lap_Images[i].enabled = true;
+                Lap_Texts[i].enabled = true;
+            }
+
         }
 
         public override void Update()
@@ -1004,6 +1163,15 @@ namespace ClassLibrary1HUD
                 Lap_Texts[2].text = "–:––.––";
                 Lap_Texts[3].text = "–:––.––";
                 Lap_Texts[4].text = "–:––.––";
+            }
+
+            if (((TargetShip.CurrentLap % 5 == 1) || (TargetShip.CurrentLap == 0)) && ((Race.MaxLaps - TargetShip.CurrentLap) <= 4))
+            {
+                for (int i = ((TargetShip.CurrentLap % 5) + (Race.MaxLaps - TargetShip.CurrentLap)); i <= 4; i++)
+                {
+                    Lap_Images[i].enabled = false;
+                    Lap_Texts[i].enabled = false;
+                }
             }
 
             if (TargetShip.CurrentLap % 5 == 0 && TargetShip.CurrentLap != 0)
@@ -1067,7 +1235,15 @@ namespace ClassLibrary1HUD
             Thrust_Bar_Image.fillAmount = TargetShip.HudSpeed * (1f / 1400f);
             //Engine_Force_Text.text = TargetShip.HudSpeed.ToString();
             Engine_Force_Units = TargetShip.PysSim.engineThrust;
-            Engine_Force_Units_String = string.Format("{0:N1}", Engine_Force_Units);
+            switch (VanillaPlusHUDOptions.ModMenuOptions.SpeedometerReadoutStyle)
+            {
+                case 0:
+                    Engine_Force_Units_String = string.Format("{0:N1}", Engine_Force_Units);
+                    break;
+                case 1:
+                    Engine_Force_Units_String = string.Format("{0:N0}", TargetShip.HudSpeed);
+                    break;
+            }
 
             //Engine_Force_Text.text = TargetShip.NetworkedVelocity.magnitude.ToString();
             Engine_Force_Text.text = Engine_Force_Units_String;
@@ -1230,7 +1406,27 @@ namespace ClassLibrary1HUD
             base.Update();
 
             Energy_Bar_Image.fillAmount = TargetShip.ShieldIntegrity * 0.01f;
-            Shield_Integrity_Numeric_Readout.text = TargetShip.ShieldIntegrity.ToString();
+            switch (VanillaPlusHUDOptions.ModMenuOptions.EnergyBarReadoutDecimalPrecision)
+            {
+                case 0:
+                    Shield_Integrity_Numeric_Readout.text = TargetShip.ShieldIntegrity.ToString();
+                    break;
+                case 1:
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N4}", TargetShip.ShieldIntegrity);
+                    break;
+                case 2:
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N3}", TargetShip.ShieldIntegrity);
+                    break;
+                case 3:
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N2}", TargetShip.ShieldIntegrity);
+                    break;
+                case 4:
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N1}", TargetShip.ShieldIntegrity);
+                    break;
+                case 5:
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N0}", TargetShip.ShieldIntegrity);
+                    break;
+            }
 
             if (TargetShip.ShieldIntegrity > 71.15920f)
                 Energy_Bar_Image.color = Color_Breakpoint_5; //White
@@ -1396,9 +1592,13 @@ namespace ClassLibrary1HUD
             Rotation_Time = 2f;
 
 
-            StartCoroutine(WaitAFrame());
-            //Other logic can go in between these two
-            StartCoroutine(RenderFrame());
+            
+            if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
+            {
+                StartCoroutine(WaitAFrame());
+                //Other logic can go in between these two
+                StartCoroutine(RenderFrame());
+            }
         }
 
         IEnumerator WaitAFrame()
@@ -1438,13 +1638,55 @@ namespace ClassLibrary1HUD
             //Rear_View_Mirror_Camera.enabled = true;
             if (TargetShip.CamSim.CameraMode == 2 && !TargetShip.FinishedEvent)
             {
-                TargetShip.ShipCamera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 1.25f; //same camera height as 2159 Internal Camera
+                if ((Cheats.IntFromPhysicsMod() == 1) && VanillaPlusHUDOptions.ModMenuOptions.CanopyCameraAdjustment2280 == 0)
+                {
+                    TargetShip.ShipCamera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 1.25f; //Raise the 2280 Internal Camera to the same camera height as 2159 Internal Camera
+                }
             }
 
             if (TargetShip.CamSim.CameraMode == 3 && !TargetShip.FinishedEvent)
             {
-                TargetShip.ShipCamera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 1.25f; //(26f / 15f); //same camera height as 2159 Internal Camera
-                TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (174f/60f); //174f/60f seems to be the magic number, maybe higher, also recall 68/15f
+
+
+                if ((Cheats.IntFromPhysicsMod() == 1))
+                {
+                    if (VanillaPlusHUDOptions.ModMenuOptions.CockpitCameraAdjustment2280 == 0) //RAISED COCKPIT CAMERA
+                    {
+
+                        TargetShip.ShipCamera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 1.25f; //(26f / 15f); //Raise the 2280 Cockpit Camera to the same camera height as 2159 Internal Camera
+
+                        if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0)) //NOSECAM MESH
+                        {
+                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (174f / 60f); //Raise the 2280 Cockpit Mesh 174f/60f (-132f/60f for default camera height) seems to be the magic number, maybe higher, also recall 68/15f
+                        }
+                        else //INTERIOR COCKPIT MESH
+                        {
+                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 1.25f;
+                        }
+                    }
+                    else //INTERNAL COCKPIT CAMERA
+                    {
+                        if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0)) //NOSECAM MESH
+                        {
+                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (-132f / 60f);
+                        }
+                        else //INTERIOR COCKPIT MESH
+                        {
+                            //Do Nothing
+                        }
+                    }
+                }
+                else if (((Cheats.IntFromPhysicsMod() == 0) || ((Cheats.IntFromPhysicsMod() == 2))))
+                {
+                    if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0)) //NOSECAM MESH
+                    {
+                        TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (-132f / 60f);
+                    }
+                    else //INTERIOR COCKPIT MESH
+                    {
+                        //Do Nothing
+                    }
+                }
             }
 
 
@@ -1456,10 +1698,11 @@ namespace ClassLibrary1HUD
             Intermediate_Rotation_Quaternion = TargetShip.RBody.transform.rotation;
 
             //TargetShip.ModernPhysicsGroundedForce = 4f;
-            
 
 
-            if (Cheats.ModernPhysics && !TargetShip.OnMaglock && !TargetShip.FinishedEvent)
+
+            //if (Cheats.ModernPhysics && (!TargetShip.OnMaglock || !TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent) //2280 TILT LOCK BEHAVIOR
+            if ((Cheats.IntFromPhysicsMod() == 1) && (!TargetShip.OnMaglock && !TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent && VanillaPlusHUDOptions.ModMenuOptions.TiltLock2280) //2280 TILT LOCK BEHAVIOR
             {
 
                 if (!TargetShip.CamSim.LookingBehind)
@@ -1472,7 +1715,8 @@ namespace ClassLibrary1HUD
                 }
             }
 
-            else if (Cheats.ModernPhysics && TargetShip.OnMaglock && !TargetShip.FinishedEvent)
+            //else if (Cheats.ModernPhysics && (TargetShip.OnMaglock || TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent) //2280 TILT LOCK BEHAVIOR ON SECTIONS WITH NOTILTLOCK OR ON MAGLOCK SECTIONS/TRACKS THAT FORCE FLOORHUGGER
+            else if ((Cheats.IntFromPhysicsMod() == 1) && (TargetShip.OnMaglock || TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent && VanillaPlusHUDOptions.ModMenuOptions.TiltLock2280) //2280 TILT LOCK BEHAVIOR ON SECTIONS WITH NOTILTLOCK OR ON MAGLOCK SECTIONS/TRACKS THAT FORCE FLOORHUGGER
             {
 
                 if (!TargetShip.CamSim.LookingBehind)
@@ -1493,10 +1737,11 @@ namespace ClassLibrary1HUD
                 Rear_View_Mirror_Camera.transform.localPosition = -Vector3.forward * TargetShip.ShipToShipCollider.size.z / 2;
                 Rear_View_Mirror_Camera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 2;
                 Rear_View_Mirror_Camera.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-                if (!Cheats.ModernPhysics) //if (!Cheats.ModernPhysics || Cheats.ModernPhysics)
-                {
-                    RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
-                }
+                //if (!Cheats.ModernPhysics) //if (!Cheats.ModernPhysics || Cheats.ModernPhysics)
+                //{
+                    //RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
+                //}
+                RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
                 
             }
             else
@@ -1507,10 +1752,11 @@ namespace ClassLibrary1HUD
                 Rear_View_Mirror_Camera.transform.localPosition = Vector3.forward * TargetShip.ShipToShipCollider.size.z / 2;
                 Rear_View_Mirror_Camera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 2;
                 Rear_View_Mirror_Camera.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
-                if (!Cheats.ModernPhysics)
-                {
-                    RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
-                }
+                //if (!Cheats.ModernPhysics)
+                //{
+                    //RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
+                //}
+                RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
             }
 
             if (Rear_View_Mirror_Camera != null && Rear_View_Mirror_Feed != null)
