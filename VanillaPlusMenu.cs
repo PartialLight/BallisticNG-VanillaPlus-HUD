@@ -31,6 +31,8 @@ namespace VanillaPlusHUDOptions
         //private string _settingsIni;
         private string _configPath;
 
+        public static bool WeaponMirrorPositionSwap;
+
         //public static bool MusicDisplayStyle;
         //public static bool PitlaneIndicatorStyle;
         public static int MusicDisplayStyle;
@@ -63,7 +65,7 @@ namespace VanillaPlusHUDOptions
         public static int CanopyCameraAdjustment2280;
         public static int CockpitCameraAdjustment2280;
         public static int CockpitMeshAdjustment;
-        public static bool TiltLock2280;
+        public static int CameraBehavior2280;
 
         public override void OnRegistered(string ModLocation)
         {
@@ -86,6 +88,7 @@ namespace VanillaPlusHUDOptions
         {
             string ModID = "Vanilla Plus";
 
+            string SelectorCategory0 = "Shared Settings";
             string SelectorCategory1 = "Music Display | Pitlane Indicator";
             string SelectorCategory2 = "Weapon Icons";
             string SelectorCategory3 = "Rear View Mirror";
@@ -94,6 +97,17 @@ namespace VanillaPlusHUDOptions
             string SelectorCategory6 = "Hyperthrust Bar";
             string SelectorCategory7 = "Speed Pad Elements";
             string SelectorCategory8 = "Experimental Camera Adjustments";
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "WeaponMirrorPositionSwap_ID",
+                selector =>
+                {
+                    selector.Configure("Weapon-Mirror Position Swap", "Whether to swap the positions of the rear view mirror and weapon pickup display. If enabled, this option will lower the position of the pickup display even if the rear view mirror is disabled.",
+                        WeaponMirrorPositionSwap, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    WeaponMirrorPositionSwap = selector.ToBool();
+                });
 
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory1, "MusicDisplayStyle_ID",
                 selector =>
@@ -230,8 +244,8 @@ namespace VanillaPlusHUDOptions
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory6, "HyperThrustBarPosition_ID",
                 selector =>
                 {
-                    selector.Configure("Hyperthrust Bar Position", "Whether to display the hyperthrust (afterburner) bar next to the rear view mirror or towards the bottom of the screen.",
-                        HyperThrustBarPosition, null, "Default", "Lowered");
+                    selector.Configure("Hyperthrust Bar Position", "Whether to display the hyperthrust (afterburner) bar next to the rear view mirror, towards the bottom of the screen, or in the middle of the screen.",
+                        HyperThrustBarPosition, null, "Default", "Lowered", "Centered");
                 },
                 selector =>
                 {
@@ -263,8 +277,8 @@ namespace VanillaPlusHUDOptions
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory7, "SpeedPadElementsPosition_ID",
                 selector =>
                 {
-                    selector.Configure("Speed Pad Elements Position", "Whether to display the speed pad counter and timer next to the rear view mirror or towards the bottom of the screen.",
-                        SpeedPadElementsPosition, null, "Default", "Lowered");
+                    selector.Configure("Speed Pad Elements Position", "Whether to display the speed pad counter and timer next to the rear view mirror, towards the bottom of the screen, or in the middle of the screen.",
+                        SpeedPadElementsPosition, null, "Default", "Lowered", "Centered");
                 },
                 selector =>
                 {
@@ -304,15 +318,15 @@ namespace VanillaPlusHUDOptions
                     CockpitMeshAdjustment = selector.Value;
                 });
 
-            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory8, "TiltLock2280_ID",
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory8, "CameraBehavior2280_ID",
                 selector =>
                 {
-                    selector.Configure("2280 Tilt Lock", "Whether to lock the camera's tilt in 2280.",
-                        TiltLock2280, EBooleanDisplayType.EnabledDisabled);
+                    selector.Configure("2280 Camera Behavior", "Internal\n    2280 cameras will behave as normal.\n\n2280 Tilt Lock\n    2280 cameras will have their tilt locked to Z=0 degrees, similar to 2159.\n\nPseudohugger 2280 cameras will align to the tilt of the track surface.\nWARNING: On a small number of tracks, Pseudohugger behavior will be jarring at breaks in the track surface.",
+                        CameraBehavior2280, null, "Internal", "Tilt Lock", "Pseudohugger");
                 },
                 selector =>
                 {
-                    TiltLock2280 = selector.ToBool();
+                    CameraBehavior2280 = selector.Value;
                 });
         }
 
@@ -389,6 +403,8 @@ namespace VanillaPlusHUDOptions
             //ini.Open(_settingsIni);
             ini.Open(_configPath);
 
+            WeaponMirrorPositionSwap = ini.ReadValue("Settings", "WeaponMirrorPositionSwap_ID", WeaponMirrorPositionSwap);
+
             MusicDisplayStyle = ini.ReadValue("Settings", "MusicDisplayStyle_ID", MusicDisplayStyle);
             PitlaneIndicatorStyle = ini.ReadValue("Settings", "PitlaneIndicatorStyle_ID", PitlaneIndicatorStyle);
 
@@ -415,7 +431,7 @@ namespace VanillaPlusHUDOptions
             CanopyCameraAdjustment2280 = ini.ReadValue("Settings", "CanopyCameraAdjustment2280_ID", CanopyCameraAdjustment2280);
             CockpitCameraAdjustment2280 = ini.ReadValue("Settings", "CockpitCameraAdjustment2280_ID", CockpitCameraAdjustment2280);
             CockpitMeshAdjustment = ini.ReadValue("Settings", "CockpitMeshAdjustment_ID", CockpitMeshAdjustment);
-            TiltLock2280 = ini.ReadValue("Settings", "TiltLock2280_ID", TiltLock2280);
+            CameraBehavior2280 = ini.ReadValue("Settings", "CameraBehavior2280_ID", CameraBehavior2280);
 
             ini.Close();
         }
@@ -426,6 +442,8 @@ namespace VanillaPlusHUDOptions
             INIParser ini = new INIParser();
             //ini.Open(_settingsIni);
             ini.Open(_configPath);
+
+            ini.WriteValue("Settings", "WeaponMirrorPositionSwap_ID", WeaponMirrorPositionSwap);
 
             ini.WriteValue("Settings", "MusicDisplayStyle_ID", MusicDisplayStyle);
             ini.WriteValue("Settings", "PitlaneIndicatorStyle_ID", PitlaneIndicatorStyle);
@@ -453,7 +471,7 @@ namespace VanillaPlusHUDOptions
             ini.WriteValue("Settings", "CanopyCameraAdjustment2280_ID", CanopyCameraAdjustment2280);
             ini.WriteValue("Settings", "CockpitCameraAdjustment2280_ID", CockpitCameraAdjustment2280);
             ini.WriteValue("Settings", "CockpitMeshAdjustment_ID", CockpitMeshAdjustment);
-            ini.WriteValue("Settings", "TiltLock2280_ID", TiltLock2280);
+            ini.WriteValue("Settings", "CameraBehavior2280_ID", CameraBehavior2280);
 
             ini.Close();
         }

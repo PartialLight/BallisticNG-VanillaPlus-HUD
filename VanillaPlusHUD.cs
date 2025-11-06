@@ -767,6 +767,7 @@ namespace ClassLibrary1HUD
         public string Hyperthrust_Units_String;
 
         public Vector2 Hyperthrust_Bar_Lowered_Adjust_Vector;
+        public Vector2 Hyperthrust_Bar_Centered_Adjust_Vector;
 
         public Vector2 HyperThrust_Bar_Numeric_Readout_Default_Position;
         public Vector2 Hyperthrust_Bar_Background_Default_Position;
@@ -789,6 +790,7 @@ namespace ClassLibrary1HUD
             Hyperthrust_Bar_Image_Default_Position = Hyperthrust_Bar_Image.rectTransform.anchoredPosition;
 
             Hyperthrust_Bar_Lowered_Adjust_Vector = new Vector2(-302f, -500f);
+            Hyperthrust_Bar_Centered_Adjust_Vector = new Vector2(-302f, -367f);
 
             if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarPosition == 1)
             {
@@ -796,6 +798,13 @@ namespace ClassLibrary1HUD
                 Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
                 Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
                 Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+            }
+            else if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarPosition == 2)
+            {
+                Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
+                Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
+                Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
+                Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
             }
 
         }
@@ -827,6 +836,7 @@ namespace ClassLibrary1HUD
         public float Speedpad_Counter_2280;
 
         public Vector2 Speedpad_Counter_Lowered_Adjust_Vector;
+        public Vector2 Speedpad_Counter_Centered_Adjust_Vector;
 
         public Vector2 Speedpad_Count_Numeric_Readout_Default_Position;
         public Vector2 Speedpad_Counter_Background_Default_Position;
@@ -848,6 +858,8 @@ namespace ClassLibrary1HUD
             Speedpad_Counter_Image_Default_Position = Speedpad_Counter_Image.rectTransform.anchoredPosition;
 
             Speedpad_Counter_Lowered_Adjust_Vector = new Vector2(287, -502);
+            Speedpad_Counter_Centered_Adjust_Vector = new Vector2(287, -371);
+
             if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 1)
             {
                 Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
@@ -855,6 +867,14 @@ namespace ClassLibrary1HUD
                 Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
                 Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
             }
+            else if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 2)
+            {
+                Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
+                Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
+                Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
+                Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
+            }
+
         }
 
         public override void Update()
@@ -913,6 +933,7 @@ namespace ClassLibrary1HUD
         public Vector2 Speedpad_Timer_Image_Default_Position;
 
         public Vector2 Speedpad_Timer_Lowered_Adjust_Vector;
+        public Vector2 Speedpad_Timer_Centered_Adjust_Vector;
 
         public override void Start()
         {
@@ -929,12 +950,21 @@ namespace ClassLibrary1HUD
             Speedpad_Timer_Image_Default_Position = Speedpad_Timer_Image.rectTransform.anchoredPosition;
 
             Speedpad_Timer_Lowered_Adjust_Vector = new Vector2(287, -502);
+            Speedpad_Timer_Centered_Adjust_Vector = new Vector2(287, -371);
+
             if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 1)
             {
                 Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
                 Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
                 Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
                 Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+            }
+            else if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 2)
+            {
+                Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
+                Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
+                Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
+                Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
             }
         }
 
@@ -955,7 +985,7 @@ namespace ClassLibrary1HUD
             }
             else
             {
-                Speedpad_Timer_Image.fillAmount = TargetShip.BoostTimer / 5f;
+                Speedpad_Timer_Image.fillAmount = TargetShip.BoostTimer / 4.5f; //First 3 speedpads hit grant 1.5 seconds each, 4th and beyond grant 0.5 seconds each. Formerly this value was 5f
                 Speedpad_Timer_Units_String = string.Format("{0:N2}", TargetShip.BoostTimer);
 
                 if (TargetShip.BoostTimer < 0.01f)
@@ -1258,6 +1288,8 @@ namespace ClassLibrary1HUD
         public Text Absorb_Text;
         public Text Weapon_Text;
 
+        public Vector2 Weapon_Display_Adjust_Vector;
+
         public override void Update()
         {
             base.Update();
@@ -1287,6 +1319,17 @@ namespace ClassLibrary1HUD
             Weapon_Background.enabled = false;
             Weapon_Text.text = "";
             Absorb_Text.text = "";
+
+            Weapon_Display_Adjust_Vector = new Vector2(0, -178);
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.WeaponMirrorPositionSwap)
+            {
+                Weapon_Icon.rectTransform.anchoredPosition = Weapon_Icon.rectTransform.anchoredPosition + Weapon_Display_Adjust_Vector;
+                Weapon_Text.rectTransform.anchoredPosition = Weapon_Text.rectTransform.anchoredPosition + Weapon_Display_Adjust_Vector;
+                Weapon_Background.rectTransform.anchoredPosition = Weapon_Background.rectTransform.anchoredPosition + Weapon_Display_Adjust_Vector;
+                Absorb_Text.rectTransform.anchoredPosition = Absorb_Text.rectTransform.anchoredPosition + Weapon_Display_Adjust_Vector;
+            }
+
         }
 
         public void SetPickup(PickupBase pickup, ShipController ship)
@@ -1575,6 +1618,8 @@ namespace ClassLibrary1HUD
         public float Non_Maglock_Interpolation_Ratio;
         public float Aerial_Interpolation_Ratio;
 
+        public Vector2 Rear_View_Mirror_Adjust_Vector;
+
         public override void Start()
         {
             base.Start();
@@ -1591,7 +1636,7 @@ namespace ClassLibrary1HUD
 
             Rotation_Time = 2f;
 
-
+            Rear_View_Mirror_Adjust_Vector = new Vector2(0, 223);
             
             if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
             {
@@ -1599,6 +1644,12 @@ namespace ClassLibrary1HUD
                 //Other logic can go in between these two
                 StartCoroutine(RenderFrame());
             }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.WeaponMirrorPositionSwap)
+            {
+                RearViewMirror.rectTransform.anchoredPosition = RearViewMirror.rectTransform.anchoredPosition + Rear_View_Mirror_Adjust_Vector;
+            }
+
         }
 
         IEnumerator WaitAFrame()
@@ -1653,15 +1704,15 @@ namespace ClassLibrary1HUD
                     if (VanillaPlusHUDOptions.ModMenuOptions.CockpitCameraAdjustment2280 == 0) //RAISED COCKPIT CAMERA
                     {
 
-                        TargetShip.ShipCamera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 1.25f; //(26f / 15f); //Raise the 2280 Cockpit Camera to the same camera height as 2159 Internal Camera
+                        TargetShip.ShipCamera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (341f / 180f); //(26f / 15f); //Raise the 2280 Cockpit Camera to the same camera height as 2159 Internal Camera
 
                         if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0)) //NOSECAM MESH
                         {
-                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (174f / 60f); //Raise the 2280 Cockpit Mesh 174f/60f (-132f/60f for default camera height) seems to be the magic number, maybe higher, also recall 68/15f
+                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (820f / 60f); //Raise the 2280 Cockpit Mesh 174f/60f (-132f/60f for default camera height) seems to be the magic number, maybe higher, also recall 68/15f
                         }
                         else //INTERIOR COCKPIT MESH
                         {
-                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 1.25f;
+                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (341f / 180f);
                         }
                     }
                     else //INTERNAL COCKPIT CAMERA
@@ -1673,6 +1724,7 @@ namespace ClassLibrary1HUD
                         else //INTERIOR COCKPIT MESH
                         {
                             //Do Nothing
+                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.zero;
                         }
                     }
                 }
@@ -1685,6 +1737,7 @@ namespace ClassLibrary1HUD
                     else //INTERIOR COCKPIT MESH
                     {
                         //Do Nothing
+                        TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.zero;
                     }
                 }
             }
@@ -1693,16 +1746,20 @@ namespace ClassLibrary1HUD
 
             Target_Rotation = TargetShip.ShipCamera.transform.rotation.eulerAngles;
             //Next_Rotation_Quaternion = Quaternion.LookRotation(TargetShip.ForwardOnSection(TargetShip.CurrentSection), TargetShip.InterpolatedSection.Up);
+            Next_Rotation_Quaternion = Quaternion.LookRotation(TargetShip.ShipCamera.transform.forward, TargetShip.InterpolatedSection.Up);
             Correct_Rotation_Quaternion = Quaternion.Euler(Target_Rotation.x, Target_Rotation.y, 0f);
             Maglock_Rotation_Quaternion = Quaternion.Euler(Target_Rotation.x, Target_Rotation.y, Next_Rotation_Quaternion.eulerAngles.z);
             Intermediate_Rotation_Quaternion = TargetShip.RBody.transform.rotation;
 
             //TargetShip.ModernPhysicsGroundedForce = 4f;
 
-
+            if ((Cheats.IntFromPhysicsMod() == 1) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.CameraBehavior2280 == 2)) //2280 PSEUDOHUGGER BEHAVIOR
+            {
+                TargetShip.ShipCamera.transform.rotation = Next_Rotation_Quaternion;
+            }
 
             //if (Cheats.ModernPhysics && (!TargetShip.OnMaglock || !TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent) //2280 TILT LOCK BEHAVIOR
-            if ((Cheats.IntFromPhysicsMod() == 1) && (!TargetShip.OnMaglock && !TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent && VanillaPlusHUDOptions.ModMenuOptions.TiltLock2280) //2280 TILT LOCK BEHAVIOR
+            if ((Cheats.IntFromPhysicsMod() == 1) && (!TargetShip.OnMaglock && !TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.CameraBehavior2280 == 1)) //2280 TILT LOCK BEHAVIOR
             {
 
                 if (!TargetShip.CamSim.LookingBehind)
@@ -1716,7 +1773,7 @@ namespace ClassLibrary1HUD
             }
 
             //else if (Cheats.ModernPhysics && (TargetShip.OnMaglock || TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent) //2280 TILT LOCK BEHAVIOR ON SECTIONS WITH NOTILTLOCK OR ON MAGLOCK SECTIONS/TRACKS THAT FORCE FLOORHUGGER
-            else if ((Cheats.IntFromPhysicsMod() == 1) && (TargetShip.OnMaglock || TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent && VanillaPlusHUDOptions.ModMenuOptions.TiltLock2280) //2280 TILT LOCK BEHAVIOR ON SECTIONS WITH NOTILTLOCK OR ON MAGLOCK SECTIONS/TRACKS THAT FORCE FLOORHUGGER
+            else if ((Cheats.IntFromPhysicsMod() == 1) && (TargetShip.OnMaglock || TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.CameraBehavior2280 == 1)) //2280 TILT LOCK BEHAVIOR ON SECTIONS WITH NOTILTLOCK OR ON MAGLOCK SECTIONS/TRACKS THAT FORCE FLOORHUGGER
             {
 
                 if (!TargetShip.CamSim.LookingBehind)
