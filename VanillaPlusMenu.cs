@@ -244,8 +244,8 @@ namespace VanillaPlusHUDOptions
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory6, "HyperThrustBarPosition_ID",
                 selector =>
                 {
-                    selector.Configure("Hyperthrust Bar Position", "Whether to display the hyperthrust (afterburner) bar next to the rear view mirror, towards the bottom of the screen, or in the middle of the screen.",
-                        HyperThrustBarPosition, null, "Default", "Lowered", "Centered");
+                    selector.Configure("Hyperthrust Bar Position", "Whether to display the hyperthrust (afterburner) bar next to the rear view mirror, towards the bottom of the screen, or in the middle of the screen. Options labelled '-Wide' preserve default horizontal spacing.",
+                        HyperThrustBarPosition, null, "Default", "Lowered", "Centered", "Lowered-Wide", "Centered-Wide");
                 },
                 selector =>
                 {
@@ -277,8 +277,8 @@ namespace VanillaPlusHUDOptions
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory7, "SpeedPadElementsPosition_ID",
                 selector =>
                 {
-                    selector.Configure("Speed Pad Elements Position", "Whether to display the speed pad counter and timer next to the rear view mirror, towards the bottom of the screen, or in the middle of the screen.",
-                        SpeedPadElementsPosition, null, "Default", "Lowered", "Centered");
+                    selector.Configure("Speed Pad Elements Position", "Whether to display the speed pad counter and timer next to the rear view mirror, towards the bottom of the screen, or in the middle of the screen. Options labelled '-Wide' preserve default horizontal spacing.",
+                        SpeedPadElementsPosition, null, "Default", "Lowered", "Centered", "Lowered-Wide", "Centered-Wide");
                 },
                 selector =>
                 {
