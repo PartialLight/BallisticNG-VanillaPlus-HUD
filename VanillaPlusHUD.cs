@@ -100,6 +100,16 @@ namespace ClassLibrary1HUD
             RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
             RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
 
+            if (VanillaPlusHUDOptions.ModMenuOptions.LastAttackerToggle)
+            {
+                RegisterHud<Last_Attacker>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Last Attacker.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumToggle)
+            {
+                RegisterHud<Recharge_Sum>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Recharge Sum.prefab");
+            }
+
             if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarToggle && Race.AfterburnerEnabled)
             {
                 RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
@@ -152,9 +162,18 @@ namespace ClassLibrary1HUD
             }
 
             //RegisterHud<>(HudRegister.VanillaPlusHUD, "");
-            RegisterInternalHud("NetworkNameTags"); //Nametags
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceNameTags)
+            {
+                RegisterInternalHud("NetworkNameTags"); //Nametags
+            }
+            
             RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
-            RegisterInternalHud("Eliminator"); //Shield bars
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceShieldBars)
+            {
+                RegisterInternalHud("Eliminator"); //Shield bars
+            }
+            
             RegisterInternalHud("NetworkPeerList"); //Positionboard on the right side of the screen
             RegisterInternalHud("KnockoutShipTracker"); //The position/lap progress tracker on the left side of the screen
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
@@ -165,6 +184,118 @@ namespace ClassLibrary1HUD
             }
             RegisterInternalHud("NetworkRaceFinish"); //Race finishes in 30 seconds
 
+        }
+    }
+
+    public class Last_Attacker : ScriptableHud
+    {
+        public Text Last_Attacker_Name;
+
+        public override void Start()
+        {
+            base.Start();
+
+            Last_Attacker_Name = CustomComponents.GetById<Text>("LastAttackerName");
+            Last_Attacker_Name.text = "";
+            Last_Attacker_Name.enabled = false;
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            Last_Attacker_Name.enabled = true;
+
+            if (TargetShip.LastAttacker.IsAi)
+            {
+                Last_Attacker_Name.text = TargetShip.LastAttacker.ShipName;
+            }
+            else
+            {
+                Last_Attacker_Name.text = TargetShip.LastAttacker.PlayerName;
+            }
+            
+        }
+    }
+
+    public class Recharge_Sum : ScriptableHud
+    {
+        public Text Recharge_Sum_Readout;
+        public float Time_Spent_Recharging;
+        public float Potential_Energy_Recharge;
+        public float Energy_Before_Recharge;
+        public float Energy_Difference;
+        public string Recharge_Sum_Readout_String;
+
+        public override void Start()
+        {
+            base.Start();
+
+            Recharge_Sum_Readout = CustomComponents.GetById<Text>("RechargeSumReadout");
+            Recharge_Sum_Readout.text = "";
+            Recharge_Sum_Readout.enabled = false;
+            
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            if (TargetShip.IsRecharging)
+            {
+                Recharge_Sum_Readout.enabled = true;
+
+                Time_Spent_Recharging += Time.deltaTime;
+                Potential_Energy_Recharge = Time_Spent_Recharging * 20f;
+
+                StartCoroutine(Recharge_Sum_Duration());
+            }
+            else
+            {
+                Energy_Before_Recharge = TargetShip.ShieldIntegrity;
+            }
+        }
+
+        IEnumerator Recharge_Sum_Duration()
+        {
+
+            while (TargetShip.IsRecharging)
+            {
+                if (TargetShip.ShieldIntegrity < 100)
+                {
+                    Energy_Difference = TargetShip.ShieldIntegrity - Energy_Before_Recharge;
+                    Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Energy_Difference);
+                }
+                else if (TargetShip.ShieldIntegrity >= 100)
+                {
+                    Recharge_Sum_Readout.text = "∆" + string.Format("{0:N1}", Mathf.Max(Energy_Difference, Potential_Energy_Recharge));
+                }
+
+                yield return new WaitForEndOfFrame();
+            }
+
+            float Recharge_Linger_Start_Time = Time.time;
+            float Recharge_Linger_End_Time = Time.time + 1.5f;
+
+            while (Recharge_Linger_Start_Time <= Recharge_Linger_End_Time)
+            {
+                Recharge_Linger_Start_Time += Time.deltaTime;
+
+                if (TargetShip.ShieldIntegrity < 100)
+                {
+                    Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Energy_Difference);
+                }
+                else if (TargetShip.ShieldIntegrity >= 100)
+                {
+                    Recharge_Sum_Readout.text = "∆" + string.Format("{0:N1}", Mathf.Max(Energy_Difference, Potential_Energy_Recharge));
+                }
+
+                yield return new WaitForEndOfFrame();
+            }
+            Recharge_Sum_Readout.text = "";
+            Time_Spent_Recharging = 0f;
+            Energy_Difference = 0f;
+            Recharge_Sum_Readout.enabled = false;
         }
     }
 
@@ -797,33 +928,37 @@ namespace ClassLibrary1HUD
             Hyperthrust_Bar_Lowered_Wide_Adjust_Vector = new Vector2(0f, -500f);
             Hyperthrust_Bar_Centered_Wide_Adjust_Vector = new Vector2(0f, -367f);
 
-            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarPosition == 1)
+            switch (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarPosition)
             {
-                Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
-                Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
-                Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
-                Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+                case 1:
+                    Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+                    Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+                    Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+                    Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+                    break;
+                case 2:
+                    Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
+                    Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
+                    Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
+                    Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
+                    break;
+                case 3:
+                    Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
+                    Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
+                    Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
+                    Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
+                    break;
+                case 4:
+                    Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
+                    Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
+                    Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
+                    Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
+                    break;
             }
-            else if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarPosition == 2)
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarTextToggle == false)
             {
-                Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
-                Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
-                Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
-                Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
-            }
-            else if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarPosition == 3)
-            {
-                Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
-                Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
-                Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
-                Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
-            }
-            else if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarPosition == 4)
-            {
-                Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
-                Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
-                Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
-                Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
+                Hyperthrust_Bar_Numeric_Readout.enabled = false;
             }
 
         }
@@ -883,33 +1018,37 @@ namespace ClassLibrary1HUD
             Speedpad_Counter_Lowered_Wide_Adjust_Vector = new Vector2(0, -502);
             Speedpad_Counter_Centered_Wide_Adjust_Vector = new Vector2(0, -371);
 
-            if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 1)
+            switch (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition)
             {
-                Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
-                Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
-                Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
-                Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
+                case 1:
+                    Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
+                    Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
+                    Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
+                    Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
+                    break;
+                case 2:
+                    Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
+                    Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
+                    Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
+                    Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
+                    break;
+                case 3:
+                    Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
+                    Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
+                    Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
+                    Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
+                    break;
+                case 4:
+                    Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
+                    Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
+                    Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
+                    Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
+                    break;
             }
-            else if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 2)
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterTextToggle == false)
             {
-                Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
-                Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
-                Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
-                Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
-            }
-            else if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 3)
-            {
-                Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
-                Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
-                Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
-                Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
-            }
-            else if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 4)
-            {
-                Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
-                Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
-                Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
-                Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
+                Speedpad_Count_Numeric_Readout.enabled = false;
             }
 
         }
@@ -993,34 +1132,39 @@ namespace ClassLibrary1HUD
             Speedpad_Timer_Lowered_Wide_Adjust_Vector = new Vector2(0, -502);
             Speedpad_Timer_Centered_Wide_Adjust_Vector = new Vector2(0, -371);
 
-            if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 1)
+            switch (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition)
             {
-                Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
-                Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
-                Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
-                Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+                case 1:
+                    Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+                    Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+                    Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+                    Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+                    break;
+                case 2:
+                    Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
+                    Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
+                    Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
+                    Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
+                    break;
+                case 3:
+                    Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
+                    Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
+                    Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
+                    Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
+                    break;
+                case 4:
+                    Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
+                    Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
+                    Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
+                    Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
+                    break;
             }
-            else if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 2)
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerTextToggle == false)
             {
-                Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
-                Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
-                Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
-                Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
+                Speedpad_Timer_Numeric_Readout.enabled = false;
             }
-            else if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 3)
-            {
-                Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
-                Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
-                Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
-                Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
-            }
-            else if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition == 4)
-            {
-                Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
-                Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
-                Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
-                Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
-            }
+
         }
 
         public override void Update()
@@ -1327,6 +1471,9 @@ namespace ClassLibrary1HUD
                     break;
                 case 1:
                     Engine_Force_Units_String = string.Format("{0:N0}", TargetShip.HudSpeed);
+                    break;
+                case 2:
+                    Engine_Force_Units_String = string.Format("{0:N1}", TargetShip.RBody.velocity.magnitude);
                     break;
             }
 

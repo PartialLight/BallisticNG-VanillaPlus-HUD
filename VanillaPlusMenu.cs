@@ -32,6 +32,8 @@ namespace VanillaPlusHUDOptions
         private string _configPath;
 
         public static bool WeaponMirrorPositionSwap;
+        public static bool ForceShieldBars;
+        public static bool ForceNameTags;
 
         //public static bool MusicDisplayStyle;
         //public static bool PitlaneIndicatorStyle;
@@ -51,13 +53,18 @@ namespace VanillaPlusHUDOptions
 
         public static bool DamageFlasherToggle;
         public static bool RelativeTimeDisplayToggle;
+        public static bool RechargeSumToggle;
+        public static bool LastAttackerToggle;
 
         public static bool HyperThrustBarToggle;
         //public static bool HyperThrustBarPosition;
         public static int HyperThrustBarPosition;
+        public static bool HyperThrustBarTextToggle;
 
         public static int SpeedPadCounterToggle;
+        public static bool SpeedPadCounterTextToggle;
         public static int SpeedPadTimerToggle;
+        public static bool SpeedPadTimerTextToggle;
 
         //public static bool SpeedPadElementsPosition;
         public static int SpeedPadElementsPosition;
@@ -107,6 +114,28 @@ namespace VanillaPlusHUDOptions
                 selector =>
                 {
                     WeaponMirrorPositionSwap = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "ForceShieldBars_ID",
+                selector =>
+                {
+                    selector.Configure("Force Shield Bars", "Whether to force shield bars.",
+                        ForceShieldBars, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    ForceShieldBars = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "ForceNameTags_ID",
+                selector =>
+                {
+                    selector.Configure("Force Name Tags", "Whether to force name tags.",
+                        ForceNameTags, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    ForceNameTags = selector.ToBool();
                 });
 
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory1, "MusicDisplayStyle_ID",
@@ -189,8 +218,8 @@ namespace VanillaPlusHUDOptions
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory4, "SpeedometerReadoutStyle_ID",
                 selector =>
                 {
-                    selector.Configure("Speedometer Readout Style", "Whether to display ship speed in Engine Force or KPH/MPH.",
-                        SpeedometerReadoutStyle, null, "Engine Force", "Metric/Imperial");
+                    selector.Configure("Speedometer Readout Style", "Whether to display ship speed in Engine Force, KPH/MPH, or Unity world units per second.",
+                        SpeedometerReadoutStyle, null, "Engine Force", "Metric/Imperial", "Unity World Units");
                 },
                 selector =>
                 {
@@ -206,6 +235,17 @@ namespace VanillaPlusHUDOptions
                 selector =>
                 {
                     EnergyBarReadoutDecimalPrecision = selector.Value;
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory4, "RechargeSumToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Energy Recharge Sum", "Whether to display the amount of shield energy recharged based on time spent in the pitlane.",
+                        RechargeSumToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    RechargeSumToggle = selector.ToBool();
                 });
 
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory5, "DamageFlasherToggle_ID",
@@ -230,6 +270,17 @@ namespace VanillaPlusHUDOptions
                     RelativeTimeDisplayToggle = selector.ToBool();
                 });
 
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory5, "LastAttackerToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Last Attacker Display", "Whether to enable the last attacker display.",
+                        LastAttackerToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    LastAttackerToggle = selector.ToBool();
+                });
+
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory6, "HyperThrustBarToggle_ID",
                 selector =>
                 {
@@ -240,6 +291,18 @@ namespace VanillaPlusHUDOptions
                 {
                     HyperThrustBarToggle = selector.ToBool();
                 });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory6, "HyperThrustBarTextToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Hyperthrust Bar Text", "Whether to display the hyperthrust bar's text readout.",
+                        HyperThrustBarTextToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    HyperThrustBarTextToggle = selector.ToBool();
+                });
+
 
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory6, "HyperThrustBarPosition_ID",
                 selector =>
@@ -263,6 +326,17 @@ namespace VanillaPlusHUDOptions
                     SpeedPadCounterToggle = selector.Value;
                 });
 
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory7, "SpeedPadCounterTextToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Speed Pad Counter Text", "Whether to display the speed pad counter's text readout.",
+                        SpeedPadCounterTextToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    SpeedPadCounterTextToggle = selector.ToBool();
+                });
+
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory7, "SpeedPadTimerToggle_ID",
                 selector =>
                 {
@@ -272,6 +346,17 @@ namespace VanillaPlusHUDOptions
                 selector =>
                 {
                     SpeedPadTimerToggle = selector.Value;
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory7, "SpeedPadTimerTextToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Speed Pad Timer Text", "Whether to display the speed pad timer's text readout.",
+                        SpeedPadTimerTextToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    SpeedPadTimerTextToggle = selector.ToBool();
                 });
 
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory7, "SpeedPadElementsPosition_ID",
@@ -321,7 +406,7 @@ namespace VanillaPlusHUDOptions
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory8, "CameraBehavior2280_ID",
                 selector =>
                 {
-                    selector.Configure("2280 Camera Behavior", "Internal\n    2280 cameras will behave as normal.\n\n2280 Tilt Lock\n    2280 cameras will have their tilt locked to Z=0 degrees, similar to 2159.\n\nPseudohugger 2280 cameras will align to the tilt of the track surface.\nWARNING: On a small number of tracks, Pseudohugger behavior will be jarring at breaks in the track surface.",
+                    selector.Configure("2280 Camera Behavior", "Internal\n    2280 cameras will behave as normal.\n\n2280 Tilt Lock\n    2280 cameras will have their tilt locked to Z=0 degrees, \n    similar to 2159.\n\nPseudohugger\n    2280 cameras will align to the tilt of the track surface.\n    WARNING: On a small number of tracks, Pseudohugger\n    behavior will be jarring at breaks in the track surface.",
                         CameraBehavior2280, null, "Internal", "Tilt Lock", "Pseudohugger");
                 },
                 selector =>
@@ -404,6 +489,8 @@ namespace VanillaPlusHUDOptions
             ini.Open(_configPath);
 
             WeaponMirrorPositionSwap = ini.ReadValue("Settings", "WeaponMirrorPositionSwap_ID", WeaponMirrorPositionSwap);
+            ForceShieldBars = ini.ReadValue("Settings", "ForceShieldBars_ID", ForceShieldBars);
+            ForceNameTags = ini.ReadValue("Settings", "ForceNameTags_ID", ForceNameTags);
 
             MusicDisplayStyle = ini.ReadValue("Settings", "MusicDisplayStyle_ID", MusicDisplayStyle);
             PitlaneIndicatorStyle = ini.ReadValue("Settings", "PitlaneIndicatorStyle_ID", PitlaneIndicatorStyle);
@@ -420,12 +507,18 @@ namespace VanillaPlusHUDOptions
 
             DamageFlasherToggle = ini.ReadValue("Settings", "DamageFlasherToggle_ID", DamageFlasherToggle);
             RelativeTimeDisplayToggle = ini.ReadValue("Settings", "RelativeTimeDisplayToggle_ID", RelativeTimeDisplayToggle);
+            RechargeSumToggle = ini.ReadValue("Settings", "RechargeSumToggle_ID", RechargeSumToggle);
+            LastAttackerToggle = ini.ReadValue("Settings", "LastAttackerToggle_ID", LastAttackerToggle);
 
             HyperThrustBarToggle = ini.ReadValue("Settings", "HyperThrustBarToggle_ID", HyperThrustBarToggle);
+            HyperThrustBarTextToggle = ini.ReadValue("Settings", "HyperThrustBarTextToggle_ID", HyperThrustBarTextToggle);
             HyperThrustBarPosition = ini.ReadValue("Settings", "HyperThrustBarPosition_ID", HyperThrustBarPosition);
 
             SpeedPadCounterToggle = ini.ReadValue("Settings", "SpeedPadCounterToggle_ID", SpeedPadCounterToggle);
+            SpeedPadCounterTextToggle = ini.ReadValue("Settings", "SpeedPadCounterTextToggle_ID", SpeedPadCounterTextToggle);
             SpeedPadTimerToggle = ini.ReadValue("Settings", "SpeedPadTimerToggle_ID", SpeedPadTimerToggle);
+            SpeedPadTimerTextToggle = ini.ReadValue("Settings", "SpeedPadTimerTextToggle_ID", SpeedPadTimerTextToggle);
+
             SpeedPadElementsPosition = ini.ReadValue("Settings", "SpeedPadElementsPosition_ID", SpeedPadElementsPosition);
 
             CanopyCameraAdjustment2280 = ini.ReadValue("Settings", "CanopyCameraAdjustment2280_ID", CanopyCameraAdjustment2280);
@@ -444,6 +537,8 @@ namespace VanillaPlusHUDOptions
             ini.Open(_configPath);
 
             ini.WriteValue("Settings", "WeaponMirrorPositionSwap_ID", WeaponMirrorPositionSwap);
+            ini.WriteValue("Settings", "ForceShieldBars_ID", ForceShieldBars);
+            ini.WriteValue("Settings", "ForceNameTags_ID", ForceNameTags);
 
             ini.WriteValue("Settings", "MusicDisplayStyle_ID", MusicDisplayStyle);
             ini.WriteValue("Settings", "PitlaneIndicatorStyle_ID", PitlaneIndicatorStyle);
@@ -460,12 +555,17 @@ namespace VanillaPlusHUDOptions
 
             ini.WriteValue("Settings", "DamageFlasherToggle_ID", DamageFlasherToggle);
             ini.WriteValue("Settings", "RelativeTimeDisplayToggle_ID", RelativeTimeDisplayToggle);
+            ini.WriteValue("Settings", "RechargeSumToggle_ID", RechargeSumToggle);
+            ini.WriteValue("Settings", "LastAttackerToggle_ID", LastAttackerToggle);
 
             ini.WriteValue("Settings", "HyperThrustBarToggle_ID", HyperThrustBarToggle);
+            ini.WriteValue("Settings", "HyperThrustBarTextToggle_ID", HyperThrustBarTextToggle);
             ini.WriteValue("Settings", "HyperThrustBarPosition_ID", HyperThrustBarPosition);
 
             ini.WriteValue("Settings", "SpeedPadCounterToggle_ID", SpeedPadCounterToggle);
+            ini.WriteValue("Settings", "SpeedPadCounterTextToggle_ID", SpeedPadCounterTextToggle);
             ini.WriteValue("Settings", "SpeedPadTimerToggle_ID", SpeedPadTimerToggle);
+            ini.WriteValue("Settings", "SpeedPadTimerTextToggle_ID", SpeedPadTimerTextToggle);
             ini.WriteValue("Settings", "SpeedPadElementsPosition_ID", SpeedPadElementsPosition);
 
             ini.WriteValue("Settings", "CanopyCameraAdjustment2280_ID", CanopyCameraAdjustment2280);
