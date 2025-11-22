@@ -212,7 +212,7 @@ namespace ClassLibrary1HUD
             }
             else
             {
-                Last_Attacker_Name.text = TargetShip.LastAttacker.PlayerName;
+                Last_Attacker_Name.text = TargetShip.LastAttacker.ShipName;
             }
             
         }
@@ -281,14 +281,14 @@ namespace ClassLibrary1HUD
             {
                 Recharge_Linger_Start_Time += Time.deltaTime;
 
-                if (TargetShip.ShieldIntegrity < 100)
-                {
-                    Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Energy_Difference);
-                }
-                else if (TargetShip.ShieldIntegrity >= 100)
-                {
-                    Recharge_Sum_Readout.text = "∆" + string.Format("{0:N1}", Mathf.Max(Energy_Difference, Potential_Energy_Recharge));
-                }
+                //if (TargetShip.ShieldIntegrity < 100)
+                //{
+                    //Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Energy_Difference);
+                //}
+                //else if (TargetShip.ShieldIntegrity >= 100)
+                //{
+                    //Recharge_Sum_Readout.text = "∆" + string.Format("{0:N1}", Mathf.Max(Energy_Difference, Potential_Energy_Recharge));
+                //}
 
                 yield return new WaitForEndOfFrame();
             }
