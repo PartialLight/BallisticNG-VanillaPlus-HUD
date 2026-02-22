@@ -34,6 +34,7 @@ namespace VanillaPlusHUDOptions
         public static bool WeaponMirrorPositionSwap;
         public static bool ForceShieldBars;
         public static bool ForceNameTags;
+        public static bool MultiplayerCountdownEndSound;
 
         //public static bool MusicDisplayStyle;
         //public static bool PitlaneIndicatorStyle;
@@ -136,6 +137,17 @@ namespace VanillaPlusHUDOptions
                 selector =>
                 {
                     ForceNameTags = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "MultiplayerCountdownEndSound_ID",
+                selector =>
+                {
+                    selector.Configure("Multiplayer Countdown End Sound", "Whether to enable playback of a custom fourth sound at the end of the multiplayer lobby countdown sequence.",
+                        MultiplayerCountdownEndSound, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    MultiplayerCountdownEndSound = selector.ToBool();
                 });
 
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory1, "MusicDisplayStyle_ID",
@@ -491,6 +503,7 @@ namespace VanillaPlusHUDOptions
             WeaponMirrorPositionSwap = ini.ReadValue("Settings", "WeaponMirrorPositionSwap_ID", WeaponMirrorPositionSwap);
             ForceShieldBars = ini.ReadValue("Settings", "ForceShieldBars_ID", ForceShieldBars);
             ForceNameTags = ini.ReadValue("Settings", "ForceNameTags_ID", ForceNameTags);
+            MultiplayerCountdownEndSound = ini.ReadValue("Settings", "MultiplayerCountdownEndSound_ID", MultiplayerCountdownEndSound);
 
             MusicDisplayStyle = ini.ReadValue("Settings", "MusicDisplayStyle_ID", MusicDisplayStyle);
             PitlaneIndicatorStyle = ini.ReadValue("Settings", "PitlaneIndicatorStyle_ID", PitlaneIndicatorStyle);
@@ -539,6 +552,7 @@ namespace VanillaPlusHUDOptions
             ini.WriteValue("Settings", "WeaponMirrorPositionSwap_ID", WeaponMirrorPositionSwap);
             ini.WriteValue("Settings", "ForceShieldBars_ID", ForceShieldBars);
             ini.WriteValue("Settings", "ForceNameTags_ID", ForceNameTags);
+            ini.WriteValue("Settings", "MultiplayerCountdownEndSound_ID", MultiplayerCountdownEndSound);
 
             ini.WriteValue("Settings", "MusicDisplayStyle_ID", MusicDisplayStyle);
             ini.WriteValue("Settings", "PitlaneIndicatorStyle_ID", PitlaneIndicatorStyle);

@@ -1,0 +1,9 @@
+You can replace the audio contents of mpcountdownend.wav with whatever you'd like, note that the file provided with the mod zip has 1 second of silence at the beginning.
+This is because the sound actually starts playing when the lobby countdown reaches 1, not when it says 'starting...', so you need to delay it by 1 second for things to sound right and not overlap.
+I couldn't figure out a good way to achieve this delay in code, but adding 1 second of padding to the beginning of an audio file is easy so whatever. I recommend using Audacity's "Generate Silence" tool to do this.
+
+The only thing needed for your own replacement sound to work is for the filename to remain as 'mpcountdownend.wav' and for it to actually be a wav file.
+This is required because the codemod loads mpcountdownend.wav into an AudioClip by finding an audio file of type WAV at the location specified by BallisticNG\User\Mods\Code Mods\VanillaPlus\Audio\mpcountdownend.wav
+
+If you want to change the 3 preceding beeps/sounds for the lobby countdown, you can do so through a regular soundpack.
+Find a sound you like, convert it to .wav if it's not already in that format, and place it in BallisticNG\User\Mods\Sounds\YourSoundpackName with the filename 'mpcountdown.wav', and enable the soundpack in the in-game settings menus.

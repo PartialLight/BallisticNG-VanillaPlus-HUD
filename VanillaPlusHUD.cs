@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using BallisticModding;
 using BallisticUnityTools.Placeholders;
 using BallisticUnityTools;
@@ -23,70 +24,121 @@ using NgPickups;
 namespace ClassLibrary1HUD
 {
 
-    public class HudRegister : CodeMod //HudRegister should be renamed to RaceHudRegister because it's for the Race mode
+    public class HudRegister : CodeMod
 
     {
         string id = "VanillaPlus";
         string HudPath = "vanillaplushud.hud";
 
+        public NgNetworkBase New_Network;
+        public int StartGameCounter;
+        public AudioClip End_Beep;
+
         public static AssetBundle VanillaPlusHUD;
 
-        public override void OnRegistered(string ModLocation)
+        public override void OnRegistered(string modPath)
         {
-            string TestPathString = Path.Combine(ModLocation, "config.ini");
+            NgNetworkBase.OnNetworkStart += ConnectToLobby;
+            End_Beep = LoadWavFile((modPath + "\\Audio\\mpcountdownend.wav"));
+
+            string TestPathString = Path.Combine(modPath, "config.ini");
             INIParser ini = new INIParser();
             ini.Open(TestPathString);
 
-            VanillaPlusHUD = AssetBundle.LoadFromFile(Path.Combine(ModLocation, HudPath));
+            VanillaPlusHUD = AssetBundle.LoadFromFile(Path.Combine(modPath, HudPath));
             CustomHudRegistry.RegisterMod(id);
             CustomHudRegistry.RegisterSceneManager("Race", id, new HudManager());
 
-            CustomHudRegistry.RegisterWeaponSprite("autopilot", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/AutoPilot.png")));
-            CustomHudRegistry.RegisterWeaponSprite("cannon", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Cannon.png")));
-            CustomHudRegistry.RegisterWeaponSprite("energywall", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/EnergyWall.png")));
-            CustomHudRegistry.RegisterWeaponSprite("emergencypack", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/EPack.png")));
-            CustomHudRegistry.RegisterWeaponSprite("hellstorm", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Hellstorm.png")));
-            CustomHudRegistry.RegisterWeaponSprite("hunter", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Hunter.png")));
+            CustomHudRegistry.RegisterWeaponSprite("autopilot", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/AutoPilot.png")));
+            CustomHudRegistry.RegisterWeaponSprite("cannon", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Cannon.png")));
+            CustomHudRegistry.RegisterWeaponSprite("energywall", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/EnergyWall.png")));
+            CustomHudRegistry.RegisterWeaponSprite("emergencypack", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/EPack.png")));
+            CustomHudRegistry.RegisterWeaponSprite("hellstorm", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Hellstorm.png")));
+            CustomHudRegistry.RegisterWeaponSprite("hunter", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Hunter.png")));
             //switch (VanillaPlusHUDOptions.ModMenuOptions.MissileIconStyle)
             switch (ini.ReadValue("Settings", "MissileIconStyle_ID", VanillaPlusHUDOptions.ModMenuOptions.MissileIconStyle))
             {
                 case 0:
-                    CustomHudRegistry.RegisterWeaponSprite("missile", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Missile.png")));
+                    CustomHudRegistry.RegisterWeaponSprite("missile", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Missile.png")));
                     break;
                 case 1:
-                    CustomHudRegistry.RegisterWeaponSprite("missile", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/MissileInscribedTriangle.png")));
+                    CustomHudRegistry.RegisterWeaponSprite("missile", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/MissileInscribedTriangle.png")));
                     break;
             }
-            CustomHudRegistry.RegisterWeaponSprite("mines", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Mines.png")));
-            CustomHudRegistry.RegisterWeaponSprite("plasma", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Plasma.png")));
-            CustomHudRegistry.RegisterWeaponSprite("tremor", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Quake.png")));
+            CustomHudRegistry.RegisterWeaponSprite("mines", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Mines.png")));
+            CustomHudRegistry.RegisterWeaponSprite("plasma", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Plasma.png")));
+            CustomHudRegistry.RegisterWeaponSprite("tremor", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Quake.png")));
             //switch (VanillaPlusHUDOptions.ModMenuOptions.RocketsIconStyle)
             switch (ini.ReadValue("Settings", "RocketsIconStyle_ID", VanillaPlusHUDOptions.ModMenuOptions.RocketsIconStyle))
             {
                 case 0:
-                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Rockets.png")));
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Rockets.png")));
                     break;
                 case 1:
-                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/RocketsTrefoil.png")));
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/RocketsTrefoil.png")));
                     break;
                 case 2:
-                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/RocketsTrefoilUp.png")));
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/RocketsTrefoilUp.png")));
                     break;
                 case 3:
-                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/RocketsHorizontal.png")));
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/RocketsHorizontal.png")));
                     break;
                 case 4:
-                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/RocketsVertical.png")));
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/RocketsVertical.png")));
                     break;
                 case 5:
-                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/RocketsTetrahedronNet.png")));
+                    CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/RocketsTetrahedronNet.png")));
                     break;
             }
             
-            CustomHudRegistry.RegisterWeaponSprite("shield", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Shield.png")));
-            CustomHudRegistry.RegisterWeaponSprite("turbo", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(ModLocation, "Weapons/Turbo.png")));
+            CustomHudRegistry.RegisterWeaponSprite("shield", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Shield.png")));
+            CustomHudRegistry.RegisterWeaponSprite("turbo", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Turbo.png")));
 
             ini.Close();
+        }
+
+        public AudioClip LoadWavFile(string filePath)
+        {
+            if (!File.Exists(filePath)) return null;
+
+            WWW www = new WWW("file:///" + filePath);
+            while (!www.isDone) 
+            { 
+                //Do Nothing
+            }
+            return www.GetAudioClip(false, false, AudioType.WAV);
+        }
+
+        public void ConnectToLobby(bool iServer)
+        {
+            New_Network = NgNetworkBase.CurrentNetwork;
+            New_Network.OnCountdownStarted += MultiplayerCountdownStarted;
+            New_Network.OnCountdownCanceled += MultiplayerCountdownCanceled;
+            StartGameCounter = 0;
+        }
+
+        public void MultiplayerCountdownStarted(NgMp.Packets.NgCountdownHeaders type)
+        {
+            if (type.ToString() == "StartGameSound")
+            {
+                StartGameCounter += 1;
+            }
+
+            //DebugConsole.Log(type.ToString() + " " + StartGameCounter.ToString());
+
+            if (StartGameCounter == 3)
+            {
+                if (VanillaPlusHUDOptions.ModMenuOptions.MultiplayerCountdownEndSound)
+                {
+                    NgAudio.NgSound.PlayVoice(End_Beep);
+                }
+                StartGameCounter = 0;
+            }
+        }
+
+        public void MultiplayerCountdownCanceled(NgMp.Packets.NgCountdownHeaders type)
+        {
+            StartGameCounter = 0;
         }
     }
 
@@ -225,7 +277,6 @@ namespace ClassLibrary1HUD
         public float Potential_Energy_Recharge;
         public float Energy_Before_Recharge;
         public float Energy_Difference;
-        public string Recharge_Sum_Readout_String;
 
         public override void Start()
         {
@@ -281,15 +332,6 @@ namespace ClassLibrary1HUD
             {
                 Recharge_Linger_Start_Time += Time.deltaTime;
 
-                //if (TargetShip.ShieldIntegrity < 100)
-                //{
-                    //Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Energy_Difference);
-                //}
-                //else if (TargetShip.ShieldIntegrity >= 100)
-                //{
-                    //Recharge_Sum_Readout.text = "∆" + string.Format("{0:N1}", Mathf.Max(Energy_Difference, Potential_Energy_Recharge));
-                //}
-
                 yield return new WaitForEndOfFrame();
             }
             Recharge_Sum_Readout.text = "";
@@ -301,7 +343,6 @@ namespace ClassLibrary1HUD
 
     public class Pitlane_Indicator : ScriptableHud
     {
-        //CustomComponents.GetById<Image>("");
         public Text Pitlane_Indicator_Field_Name;
         public Image Left_Pitlane_Indicator_Arrow_1;
         public Image Left_Pitlane_Indicator_Arrow_2;
@@ -309,13 +350,14 @@ namespace ClassLibrary1HUD
         public Image Right_Pitlane_Indicator_Arrow_1;
         public Image Right_Pitlane_Indicator_Arrow_2;
         public Image Right_Pitlane_Indicator_Arrow_3;
+
         public int Pitlane_Indicator_Section_Index;
         public int Pitlane_Side;
         public int Pitlane_Current_Section;
         public int Pitlane_Previous_Section;
+
         public List<Image> Pitlane_Arrows;
-        public List<int> Pitlane_Indicator_Section_Indices;
-        public List<int> Pitlane_Sides;
+
         public Vector2 Arrow_1_Start_Position;
         public Vector2 Arrow_2_Start_Position;
         public Vector2 Arrow_3_Start_Position;
@@ -338,6 +380,8 @@ namespace ClassLibrary1HUD
         public float Third_Arrow_Blink_Off_Time;
         public float Third_Arrow_Blink_On_2_Time;
 
+        public float First_Arrow_Pre_Blink_Time;
+
         public float First_Arrow_End_Animation_Time_1;
         public float First_Arrow_End_Animation_Time_2;
         public float First_Arrow_End_Animation_Time_3;
@@ -353,34 +397,37 @@ namespace ClassLibrary1HUD
 
         IEnumerator Pitlane_Indicator_Animation()
         {
-            Pitlane_Indicator_Animation_Duration = 4.25f;
+            Pitlane_Indicator_Animation_Duration = 4.35f;
             Pitlane_Indicator_Animation_Start_Time = Time.time;
             Pitlane_Indicator_Animation_End_Time = Pitlane_Indicator_Animation_Start_Time + Pitlane_Indicator_Animation_Duration;
 
-            First_Arrow_Blink_On_1_Time = Pitlane_Indicator_Animation_Start_Time + 0.25f;
-            First_Arrow_Blink_Off_Time = Pitlane_Indicator_Animation_Start_Time + 0.5f;
-            First_Arrow_Blink_On_2_Time = Pitlane_Indicator_Animation_Start_Time + 0.75f;
+            First_Arrow_Blink_On_1_Time = Pitlane_Indicator_Animation_Start_Time + 0.15f;
+            First_Arrow_Blink_Off_Time = Pitlane_Indicator_Animation_Start_Time + 0.3f;
+            First_Arrow_Blink_On_2_Time = Pitlane_Indicator_Animation_Start_Time + 0.45f;
 
-            Second_Arrow_Blink_On_1_Time = Pitlane_Indicator_Animation_Start_Time + 1f;
-            Second_Arrow_Blink_Off_Time = Pitlane_Indicator_Animation_Start_Time + 1.25f;
-            Second_Arrow_Blink_On_2_Time = Pitlane_Indicator_Animation_Start_Time + 1.5f;
+            Second_Arrow_Blink_On_1_Time = Pitlane_Indicator_Animation_Start_Time + 0.6f;
+            Second_Arrow_Blink_Off_Time = Pitlane_Indicator_Animation_Start_Time +0.75f;
+            Second_Arrow_Blink_On_2_Time = Pitlane_Indicator_Animation_Start_Time + 0.9f;
 
-            Third_Arrow_Blink_On_1_Time = Pitlane_Indicator_Animation_Start_Time + 1.75f;
-            Third_Arrow_Blink_Off_Time = Pitlane_Indicator_Animation_Start_Time + 2f;
-            Third_Arrow_Blink_On_2_Time = Pitlane_Indicator_Animation_Start_Time + 2.25f;
+            Third_Arrow_Blink_On_1_Time = Pitlane_Indicator_Animation_Start_Time + 1.05f;
+            Third_Arrow_Blink_Off_Time = Pitlane_Indicator_Animation_Start_Time + 1.2f;
+            Third_Arrow_Blink_On_2_Time = Pitlane_Indicator_Animation_Start_Time + 1.35f;
+
+            //FIRST ARROW PRE-BLINK
+            First_Arrow_Pre_Blink_Time = Pitlane_Indicator_Animation_Start_Time + 2.85f;
 
             //MoveToward and blink off, maybe reduce fill over time
             First_Arrow_End_Animation_Time_1 = Pitlane_Indicator_Animation_Start_Time + 3f;
-            First_Arrow_End_Animation_Time_2 = Pitlane_Indicator_Animation_Start_Time + 3.125f;
-            First_Arrow_End_Animation_Time_3 = Pitlane_Indicator_Animation_Start_Time + 3.25f;
+            First_Arrow_End_Animation_Time_2 = Pitlane_Indicator_Animation_Start_Time + 3.15f;
+            First_Arrow_End_Animation_Time_3 = Pitlane_Indicator_Animation_Start_Time + 3.3f;
 
-            Second_Arrow_End_Animation_Time_1 = Pitlane_Indicator_Animation_Start_Time + 3.375f;
-            Second_Arrow_End_Animation_Time_2 = Pitlane_Indicator_Animation_Start_Time + 3.5f;
-            Second_Arrow_End_Animation_Time_3 = Pitlane_Indicator_Animation_Start_Time + 3.625f;
+            Second_Arrow_End_Animation_Time_1 = Pitlane_Indicator_Animation_Start_Time + 3.45f;
+            Second_Arrow_End_Animation_Time_2 = Pitlane_Indicator_Animation_Start_Time + 3.6f;
+            Second_Arrow_End_Animation_Time_3 = Pitlane_Indicator_Animation_Start_Time + 3.75f;
 
-            Third_Arrow_End_Animation_Time_1 = Pitlane_Indicator_Animation_Start_Time + 3.75f;
-            Third_Arrow_End_Animation_Time_2 = Pitlane_Indicator_Animation_Start_Time + 3.875f;
-            Third_Arrow_End_Animation_Time_3 = Pitlane_Indicator_Animation_Start_Time + 4f;
+            Third_Arrow_End_Animation_Time_1 = Pitlane_Indicator_Animation_Start_Time + 3.9f;
+            Third_Arrow_End_Animation_Time_2 = Pitlane_Indicator_Animation_Start_Time + 4.05f;
+            Third_Arrow_End_Animation_Time_3 = Pitlane_Indicator_Animation_Start_Time + 4.2f;
 
             Arrow_1_Start_Position = Pitlane_Arrows[0].rectTransform.anchoredPosition;
             Arrow_2_Start_Position = Pitlane_Arrows[1].rectTransform.anchoredPosition;
@@ -391,116 +438,121 @@ namespace ClassLibrary1HUD
 
             while (Time.time <= Pitlane_Indicator_Animation_End_Time)
             {
-                //Pitlane_Indicator_Field_Name.enabled = true;
-                //Pitlane_Arrows[0].enabled = true;
                 
-
-                //Pitlane_Arrows[1].enabled = true;
-                
-
-                //Pitlane_Arrows[2].enabled = true;
-
-                //Pitlane_Arrows[0].fillAmount = ((Time.time - Pitlane_Indicator_Animation_Start_Time) / (First_Arrow_Blink_On_2_Time - Pitlane_Indicator_Animation_Start_Time));
-                //Pitlane_Arrows[1].fillAmount = (Time.time / Second_Arrow_Blink_On_2_Time);
-                //Pitlane_Arrows[2].fillAmount = (Time.time / Third_Arrow_Blink_On_2_Time);
 
                 //FIRST ARROW
                 if (Pitlane_Indicator_Animation_Start_Time < Time.time && Time.time <= First_Arrow_Blink_On_1_Time) //Blink first arrow + pit text on
                 {
                     Pitlane_Indicator_Field_Name.enabled = true;
                     Pitlane_Arrows[0].enabled = true;
-                    Pitlane_Arrows[0].fillAmount = ((Time.time - Pitlane_Indicator_Animation_Start_Time) * 3f / (First_Arrow_Blink_On_2_Time - Pitlane_Indicator_Animation_Start_Time));
+                    Pitlane_Arrows[0].fillAmount = ((Time.time - Pitlane_Indicator_Animation_Start_Time) * 1.034f / (First_Arrow_Blink_On_2_Time - Pitlane_Indicator_Animation_Start_Time));
                 }
                 if (First_Arrow_Blink_On_1_Time < Time.time && Time.time <= First_Arrow_Blink_Off_Time) //Blink first arrow + pit text off
                 {
                     Pitlane_Indicator_Field_Name.enabled = false;
                     Pitlane_Arrows[0].enabled = false;
-                    Pitlane_Arrows[0].fillAmount = ((Time.time - Pitlane_Indicator_Animation_Start_Time) * 3f / (First_Arrow_Blink_On_2_Time - Pitlane_Indicator_Animation_Start_Time));
+                    Pitlane_Arrows[0].fillAmount = ((Time.time - Pitlane_Indicator_Animation_Start_Time) * 1.034f / (First_Arrow_Blink_On_2_Time - Pitlane_Indicator_Animation_Start_Time));
                 }
                 if (First_Arrow_Blink_Off_Time < Time.time && Time.time <= First_Arrow_Blink_On_2_Time) //Blink first arrow + pit text back on, first arrow should be finished filling after this completes
                 {
                     Pitlane_Indicator_Field_Name.enabled = true;
                     Pitlane_Arrows[0].enabled = true;
-                    Pitlane_Arrows[0].fillAmount = ((Time.time - Pitlane_Indicator_Animation_Start_Time) * 3f / (First_Arrow_Blink_On_2_Time - Pitlane_Indicator_Animation_Start_Time));
+                    Pitlane_Arrows[0].fillAmount = ((Time.time - Pitlane_Indicator_Animation_Start_Time) * 1.034f / (First_Arrow_Blink_On_2_Time - Pitlane_Indicator_Animation_Start_Time));
                 }
 
                 //SECOND ARROW
                 if (First_Arrow_Blink_On_2_Time < Time.time && Time.time <= Second_Arrow_Blink_On_1_Time) //Blink second arrow on
                 {
                     Pitlane_Arrows[1].enabled = true;
-                    Pitlane_Arrows[1].fillAmount = ((Time.time - First_Arrow_Blink_On_2_Time) * 3f / (Second_Arrow_Blink_On_2_Time - First_Arrow_Blink_On_2_Time));
+                    Pitlane_Arrows[1].fillAmount = ((Time.time - First_Arrow_Blink_On_2_Time) * 1.034f / (Second_Arrow_Blink_On_2_Time - First_Arrow_Blink_On_2_Time));
                 }
                 if (Second_Arrow_Blink_On_1_Time < Time.time && Time.time <= Second_Arrow_Blink_Off_Time) //Blink second arrow off
                 {
                     Pitlane_Arrows[1].enabled = false;
-                    Pitlane_Arrows[1].fillAmount = ((Time.time - First_Arrow_Blink_On_2_Time) * 3f / (Second_Arrow_Blink_On_2_Time - First_Arrow_Blink_On_2_Time));
+                    Pitlane_Arrows[1].fillAmount = ((Time.time - First_Arrow_Blink_On_2_Time) * 1.034f / (Second_Arrow_Blink_On_2_Time - First_Arrow_Blink_On_2_Time));
                 }
                 if (Second_Arrow_Blink_Off_Time < Time.time && Time.time <= Second_Arrow_Blink_On_2_Time) //Blink second arrow back on, second arrow should be finished filling after this completes
                 {
                     Pitlane_Arrows[1].enabled = true;
-                    Pitlane_Arrows[1].fillAmount = ((Time.time - First_Arrow_Blink_On_2_Time) * 3f / (Second_Arrow_Blink_On_2_Time - First_Arrow_Blink_On_2_Time));
+                    Pitlane_Arrows[1].fillAmount = ((Time.time - First_Arrow_Blink_On_2_Time) * 1.034f / (Second_Arrow_Blink_On_2_Time - First_Arrow_Blink_On_2_Time));
                 }
 
                 //THIRD ARROW
                 if (Second_Arrow_Blink_On_2_Time < Time.time && Time.time <= Third_Arrow_Blink_On_1_Time) //Blink third arrow on
                 {
                     Pitlane_Arrows[2].enabled = true;
-                    Pitlane_Arrows[2].fillAmount = ((Time.time - Second_Arrow_Blink_On_2_Time) * 3f / (Third_Arrow_Blink_On_2_Time - Second_Arrow_Blink_On_2_Time));
+                    Pitlane_Arrows[2].fillAmount = ((Time.time - Second_Arrow_Blink_On_2_Time) * 1.034f / (Third_Arrow_Blink_On_2_Time - Second_Arrow_Blink_On_2_Time));
                 }
                 if (Third_Arrow_Blink_On_1_Time < Time.time && Time.time <= Third_Arrow_Blink_Off_Time) //Blink third arrow off
                 {
                     Pitlane_Arrows[2].enabled = false;
-                    Pitlane_Arrows[2].fillAmount = ((Time.time - Second_Arrow_Blink_On_2_Time) * 3f / (Third_Arrow_Blink_On_2_Time - Second_Arrow_Blink_On_2_Time));
+                    Pitlane_Arrows[2].fillAmount = ((Time.time - Second_Arrow_Blink_On_2_Time) * 1.034f / (Third_Arrow_Blink_On_2_Time - Second_Arrow_Blink_On_2_Time));
                 }
                 if (Third_Arrow_Blink_Off_Time < Time.time && Time.time <= Third_Arrow_Blink_On_2_Time) //Blink third arrow back on, third arrow should be finished filling after this completes
                 {
                     Pitlane_Arrows[2].enabled = true;
-                    Pitlane_Arrows[2].fillAmount = ((Time.time - Second_Arrow_Blink_On_2_Time) * 3f / (Third_Arrow_Blink_On_2_Time - Second_Arrow_Blink_On_2_Time));
+                    Pitlane_Arrows[2].fillAmount = ((Time.time - Second_Arrow_Blink_On_2_Time) * 1.034f / (Third_Arrow_Blink_On_2_Time - Second_Arrow_Blink_On_2_Time));
+                }
+
+                //INTERMISSION
+                if (First_Arrow_Pre_Blink_Time < Time.time && Time.time <= First_Arrow_End_Animation_Time_1)
+                {
+                    Pitlane_Arrows[0].enabled = false;
                 }
 
                 //End of the animation, FIRST ARROW
                 if (First_Arrow_End_Animation_Time_1 < Time.time && Time.time <= First_Arrow_End_Animation_Time_2)
                 {
                     Pitlane_Indicator_Field_Name.enabled = false;
-                    Pitlane_Arrows[0].enabled = false;
+                    Pitlane_Arrows[0].enabled = true;
                     Pitlane_Arrows[0].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_1_Start_Position, (Arrow_1_Start_Position + Arrow_Shift_Vector), ((Time.time - First_Arrow_End_Animation_Time_1) / (Second_Arrow_End_Animation_Time_1 - First_Arrow_End_Animation_Time_1)));
+                    Pitlane_Arrows[0].fillAmount = 1f - ((Time.time - First_Arrow_End_Animation_Time_1) / (Second_Arrow_End_Animation_Time_1 - First_Arrow_End_Animation_Time_1));
                 }
                 if (First_Arrow_End_Animation_Time_2 < Time.time && Time.time <= First_Arrow_End_Animation_Time_3)
                 {
                     Pitlane_Indicator_Field_Name.enabled = true;
-                    Pitlane_Arrows[0].enabled = true;
+                    Pitlane_Arrows[0].enabled = false;
                     Pitlane_Arrows[0].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_1_Start_Position, (Arrow_1_Start_Position + Arrow_Shift_Vector), ((Time.time - First_Arrow_End_Animation_Time_1) / (Second_Arrow_End_Animation_Time_1 - First_Arrow_End_Animation_Time_1)));
                 }
                 if (First_Arrow_End_Animation_Time_3 < Time.time && Time.time <= Second_Arrow_End_Animation_Time_1)
                 {
                     Pitlane_Indicator_Field_Name.enabled = false;
-                    Pitlane_Arrows[0].enabled = false;
+                    Pitlane_Arrows[0].enabled = true;
+                    Pitlane_Arrows[1].enabled = false;
                     Pitlane_Arrows[0].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_1_Start_Position, (Arrow_1_Start_Position + Arrow_Shift_Vector), ((Time.time - First_Arrow_End_Animation_Time_1) / (Second_Arrow_End_Animation_Time_1 - First_Arrow_End_Animation_Time_1)));
+                    Pitlane_Arrows[0].fillAmount = 1f - ((Time.time - First_Arrow_End_Animation_Time_1) / (Second_Arrow_End_Animation_Time_1 - First_Arrow_End_Animation_Time_1));
                 }
+                //End of the animation, SECOND ARROW
                 if (Second_Arrow_End_Animation_Time_1 < Time.time && Time.time <= Second_Arrow_End_Animation_Time_2)
                 {
+                    Pitlane_Arrows[0].fillAmount = 0f;
                     Pitlane_Indicator_Field_Name.enabled = true;
-                    Pitlane_Arrows[1].enabled = false;
+                    Pitlane_Arrows[1].enabled = true;
                     Pitlane_Arrows[1].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_2_Start_Position, (Arrow_2_Start_Position + Arrow_Shift_Vector), ((Time.time - Second_Arrow_End_Animation_Time_1) / (Third_Arrow_End_Animation_Time_1 - Second_Arrow_End_Animation_Time_1)));
+                    Pitlane_Arrows[1].fillAmount = 1f - ((Time.time - Second_Arrow_End_Animation_Time_1) / (Third_Arrow_End_Animation_Time_1 - Second_Arrow_End_Animation_Time_1));
                 }
                 if (Second_Arrow_End_Animation_Time_2 < Time.time && Time.time <= Second_Arrow_End_Animation_Time_3)
                 {
                     Pitlane_Indicator_Field_Name.enabled = false;
-                    Pitlane_Arrows[1].enabled = true;
+                    Pitlane_Arrows[1].enabled = false;
                     Pitlane_Arrows[1].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_2_Start_Position, (Arrow_2_Start_Position + Arrow_Shift_Vector), ((Time.time - Second_Arrow_End_Animation_Time_1) / (Third_Arrow_End_Animation_Time_1 - Second_Arrow_End_Animation_Time_1)));
                 }
                 if (Second_Arrow_End_Animation_Time_3 < Time.time && Time.time <= Third_Arrow_End_Animation_Time_1)
                 {
                     Pitlane_Indicator_Field_Name.enabled = true;
-                    Pitlane_Arrows[1].enabled = false;
+                    Pitlane_Arrows[1].enabled = true;
                     Pitlane_Arrows[2].enabled = false;
                     Pitlane_Arrows[1].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_2_Start_Position, (Arrow_2_Start_Position + Arrow_Shift_Vector), ((Time.time - Second_Arrow_End_Animation_Time_1) / (Third_Arrow_End_Animation_Time_1 - Second_Arrow_End_Animation_Time_1)));
+                    Pitlane_Arrows[1].fillAmount = 1f - ((Time.time - Second_Arrow_End_Animation_Time_1) / (Third_Arrow_End_Animation_Time_1 - Second_Arrow_End_Animation_Time_1));
                 }
+                //End of the animation, THIRD ARROW
                 if (Third_Arrow_End_Animation_Time_1 < Time.time && Time.time <= Third_Arrow_End_Animation_Time_2)
                 {
+                    Pitlane_Arrows[1].fillAmount = 0f;
                     Pitlane_Indicator_Field_Name.enabled = false;
                     Pitlane_Arrows[2].enabled = true;
                     Pitlane_Arrows[2].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_3_Start_Position, (Arrow_3_Start_Position + Arrow_Shift_Vector), ((Time.time - Third_Arrow_End_Animation_Time_1) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_1)));
+                    Pitlane_Arrows[2].fillAmount = 1f - ((Time.time - Third_Arrow_End_Animation_Time_1) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_1));
                 }
                 if (Third_Arrow_End_Animation_Time_2 < Time.time && Time.time <= Third_Arrow_End_Animation_Time_3)
                 {
@@ -510,10 +562,10 @@ namespace ClassLibrary1HUD
                 }
                 if (Third_Arrow_End_Animation_Time_3 < Time.time && Time.time <= Pitlane_Indicator_Animation_End_Time)
                 {
-                    Pitlane_Indicator_Field_Name.enabled = true;
+                    Pitlane_Indicator_Field_Name.enabled = false;
                     Pitlane_Arrows[2].enabled = true;
                     Pitlane_Arrows[2].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_3_Start_Position, (Arrow_3_Start_Position + Arrow_Shift_Vector), ((Time.time - Third_Arrow_End_Animation_Time_1) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_1)));
-                    Pitlane_Arrows[2].fillAmount =  1f - ((Time.time - Third_Arrow_End_Animation_Time_3) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_3));
+                    Pitlane_Arrows[2].fillAmount = 1f - ((Time.time - Third_Arrow_End_Animation_Time_1) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_1));
                 }
 
                 yield return new WaitForEndOfFrame();
@@ -531,6 +583,8 @@ namespace ClassLibrary1HUD
         public override void Start()
         {
             base.Start();
+
+            NgTrackData.Triggers.PitlaneIndicator.OnPitlaneIndicatorTriggered += Pitlane_Indicator_Method;
 
             Pitlane_Indicator_Field_Name = CustomComponents.GetById<Text>("Pitlane Indicator Field Name");
             Pitlane_Indicator_Field_Name.enabled = false;
@@ -554,27 +608,7 @@ namespace ClassLibrary1HUD
             Right_Pitlane_Indicator_Arrow_1.fillAmount = 0f;
             Right_Pitlane_Indicator_Arrow_2.fillAmount = 0f;
             Right_Pitlane_Indicator_Arrow_3.fillAmount = 0f;
-
-            Pitlane_Indicator_Section_Indices = new List<int> { };
-            Pitlane_Sides = new List<int> { };
-
-            //Pitlane_Indicator_Section_Index = NgTrackData.TrackManager.Instance.PitlaneIndicators[0].Trigger.TargetSection.index;
-            //Pitlane_Side = NgTrackData.TrackManager.Instance.PitlaneIndicators[0].PitlaneSide;
-
-            foreach (NgTrackData.Triggers.PitlaneIndicator p in NgTrackData.TrackManager.Instance.PitlaneIndicators)
-            {
-                Pitlane_Indicator_Section_Indices.Add(NgTrackData.TrackManager.Instance.PitlaneIndicators[NgTrackData.TrackManager.Instance.PitlaneIndicators.IndexOf(p)].Trigger.TargetSection.index);
-                Pitlane_Sides.Add(NgTrackData.TrackManager.Instance.PitlaneIndicators[NgTrackData.TrackManager.Instance.PitlaneIndicators.IndexOf(p)].PitlaneSide);
-            }            
-
-            //if (Pitlane_Side == 1)
-            //{
-                //Pitlane_Arrows = new List<Image> { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
-            //}
-            //else if (Pitlane_Side == -1)
-            //{
-                //Pitlane_Arrows = new List<Image> { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
-            //}
+            
         }
 
         public override void Update()
@@ -583,25 +617,51 @@ namespace ClassLibrary1HUD
 
             Pitlane_Current_Section = TargetShip.CurrentSection.index;
 
-            if (Pitlane_Current_Section > Pitlane_Previous_Section)
-            {
-                if (Pitlane_Indicator_Section_Indices.Contains(TargetShip.CurrentSection.index))
-                {
-                    Pitlane_Side = Pitlane_Sides[Pitlane_Indicator_Section_Indices.IndexOf(TargetShip.CurrentSection.index)];
-                    if (Pitlane_Side == 1)
-                    {
-                        Pitlane_Arrows = new List<Image> { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
-                    }
-                    else if (Pitlane_Side == -1)
-                    {
-                        Pitlane_Arrows = new List<Image> { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
-                    }
-                    StartCoroutine(Pitlane_Indicator_Animation());
-                }
-            }
+            
             
             Pitlane_Previous_Section = Pitlane_Current_Section;
 
+        }
+
+        public void Pitlane_Indicator_Method(ShipController ship, int side)
+        {
+            if (ship.IsPlayer)
+            {
+                if (side == 1)
+                {
+                    if (NgSettings.Gameplay.MirrorEnabled)
+                    {
+                        Pitlane_Side = -1;
+                        Pitlane_Arrows = new List<Image> { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
+                    }
+                    else
+                    {
+                        Pitlane_Side = 1;
+                        Pitlane_Arrows = new List<Image> { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
+                    }                    
+                }
+
+                else if (side == -1)
+                {
+                    if (NgSettings.Gameplay.MirrorEnabled)
+                    {
+                        Pitlane_Side = 1;
+                        Pitlane_Arrows = new List<Image> { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
+                    }
+                    else
+                    {
+                        Pitlane_Side = -1;
+                        Pitlane_Arrows = new List<Image> { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
+                    }
+                }
+
+                StartCoroutine(Pitlane_Indicator_Animation());
+            }
+        }
+
+        public override void OnDestroy()
+        {
+            NgTrackData.Triggers.PitlaneIndicator.OnPitlaneIndicatorTriggered -= Pitlane_Indicator_Method;
         }
     }
 
@@ -656,10 +716,8 @@ namespace ClassLibrary1HUD
             //Player_Section_Index = TargetShip.CurrentSection.index; //Section the player ship is currently on
             //Second_Place_Index = Ships.FindShipInPlace(2).CurrentSection.index; //Section the second place ship is currently on
 
-            
-
             Player_Lap_Adjust = (TargetShip.CurrentLap - 1); //Multiply Track_Section_Max by this value
-            Second_Place_Lap_Adjust = Ships.FindShipInPlace(2).CurrentLap - 1; //Multiply Track_Section_Max by this value
+            Second_Place_Lap_Adjust = (Ships.FindShipInPlace(2).CurrentLap - 1); //Multiply Track_Section_Max by this value
 
             Player_Section_Index += Player_Lap_Adjust * Track_Section_Max;
             Second_Place_Index += Second_Place_Lap_Adjust * Track_Section_Max;
@@ -704,8 +762,6 @@ namespace ClassLibrary1HUD
     public class Music_Display : ScriptableHud
     {
         public Text Music_Display_Readout;
-        public string Current_Music;
-        public string Previous_Music;
 
         IEnumerator Music_Flasher()
         {
@@ -798,26 +854,13 @@ namespace ClassLibrary1HUD
             Music_Display_Readout.text = "";
         }
 
-        public override void Update()
-        {
-            base.Update();
-
-            //Current_Music = MusicPlayer.Instance.GetSongDisplayName();
-            //Music_Display_Readout.text = MusicPlayer.Instance.GetSongDisplayName();
-
-            if (Current_Music != Previous_Music)
-            {
-                StartCoroutine(Music_Flasher());
-            }
-
-            Previous_Music = Current_Music;
-        }
-
         public void Music_Display_Method(string name)
         {
             Music_Display_Readout.text = name;
-            Current_Music = name;
+
+            StartCoroutine(Music_Flasher());
         }
+
         public override void OnDestroy()
         {
             NgUiEvents.OnNewSongPlaying -= Music_Display_Method;
@@ -983,8 +1026,7 @@ namespace ClassLibrary1HUD
         public Image Speedpad_Counter_Background;
         public Image Speedpad_Counter_Whiteout;
         public Image Speedpad_Counter_Image;
-        public string Speedpad_Counter_Units_String;
-
+        
         public float Speedpad_Counter_Current_Speedpad_Time_2280;
         public float Speedpad_Counter_Previous_Speedpad_Time_2280;
         public float Speedpad_Counter_2280;
@@ -1071,8 +1113,8 @@ namespace ClassLibrary1HUD
                 }
 
                 Speedpad_Counter_Image.fillAmount = Speedpad_Counter_2280 / 3f;
-                Speedpad_Counter_Units_String = Speedpad_Counter_2280.ToString(); //these two lines
-                Speedpad_Count_Numeric_Readout.text = "+" + Speedpad_Counter_Units_String; //can be combined into a single line
+                Speedpad_Count_Numeric_Readout.text = "+" + Speedpad_Counter_2280.ToString();
+
                 if (Speedpad_Counter_2280 == 0f)
                 {
                     Speedpad_Count_Numeric_Readout.text = "";
@@ -1083,16 +1125,17 @@ namespace ClassLibrary1HUD
             else
             {
                 Speedpad_Counter_Image.fillAmount = TargetShip.BoostAcceleration / 12f;
-                Speedpad_Counter_Units_String = TargetShip.BoostAcceleration.ToString(); //these two lines
-                Speedpad_Count_Numeric_Readout.text = "+" + Speedpad_Counter_Units_String; //can be combined into a single line
+                Speedpad_Count_Numeric_Readout.text = "+" + TargetShip.BoostAcceleration.ToString();
+
                 if (TargetShip.BoostAcceleration == 0f)
                 {
                     Speedpad_Count_Numeric_Readout.text = "";
                 }
+
             }
 
-            
         }
+
     }
 
     public class Speedpad_Timer : ScriptableHud
@@ -1572,40 +1615,40 @@ namespace ClassLibrary1HUD
         public bool Energy_Low_Coroutine_Running;
         public bool Energy_Critical_Coroutine_Running;
 
-        //public readonly Vector4 Color_Breakpoint_0 = new Vector4(255, 28, 36, 255); //Red
-        //public readonly Vector4 Color_Breakpoint_1 = new Vector4(255, 127, 39, 255); //Orange
-        //public readonly Vector4 Color_Breakpoint_2 = new Vector4(255, 242, 0, 255); //Yellow
-        //public readonly Vector4 Color_Breakpoint_3 = new Vector4(87, 255, 23, 255); //Green
-        //public readonly Vector4 Color_Breakpoint_4 = new Vector4(0, 162, 232, 255); //Blue
-        //public readonly Vector4 Color_Breakpoint_5 = new Vector4(255, 255, 255, 255); //White
-        public readonly Vector4 Color_Breakpoint_0 = new Vector4(1f, (29f / 256f), (37f / 256f), 1f); //Red
-        public readonly Vector4 Color_Breakpoint_1 = new Vector4(1f, (128f / 256f), (40f / 256f), 1f); //Orange
-        public readonly Vector4 Color_Breakpoint_2 = new Vector4(1f, (243f / 256f), 0f, 1f); //Yellow
-        public readonly Vector4 Color_Breakpoint_3 = new Vector4((88f / 256f), 1f, (24f / 256f), 1f); //Green
-        public readonly Vector4 Color_Breakpoint_4 = new Vector4(0f, (163f / 256f), (233f / 256f), 1f); //Blue
-        public readonly Vector4 Color_Breakpoint_5 = new Vector4(1f, 1f, 1f, 1f); //White
+        //public Vector4 Color_Breakpoint_0 = new Vector4(255, 28, 36, 255); //Red
+        //public Vector4 Color_Breakpoint_1 = new Vector4(255, 127, 39, 255); //Orange
+        //public Vector4 Color_Breakpoint_2 = new Vector4(255, 242, 0, 255); //Yellow
+        //public Vector4 Color_Breakpoint_3 = new Vector4(87, 255, 23, 255); //Green
+        //public Vector4 Color_Breakpoint_4 = new Vector4(0, 162, 232, 255); //Blue
+        //public Vector4 Color_Breakpoint_5 = new Vector4(255, 255, 255, 255); //White
+        public Vector4 Color_Breakpoint_0 = new Vector4(1f, (29f / 256f), (37f / 256f), 1f); //Red
+        public Vector4 Color_Breakpoint_1 = new Vector4(1f, (128f / 256f), (40f / 256f), 1f); //Orange
+        public Vector4 Color_Breakpoint_2 = new Vector4(1f, (243f / 256f), 0f, 1f); //Yellow
+        public Vector4 Color_Breakpoint_3 = new Vector4((88f / 256f), 1f, (24f / 256f), 1f); //Green
+        public Vector4 Color_Breakpoint_4 = new Vector4(0f, (163f / 256f), (233f / 256f), 1f); //Blue
+        public Vector4 Color_Breakpoint_5 = new Vector4(1f, 1f, 1f, 1f); //White
         public Vector4 Energy_Bar_Background_Original_Color;
 
-        public Vector4 Salmon = new Vector4(1f, (112f / 255f), (112f / 255f), 0.8f); //Don't have sprites you want to change the color of via script pre-colored and pre-alpha'd outside of Unity because modifying them in script modifies the color channels relative to the colors in the file provided as a sprite rather than absolute colors
+        public Vector4 Clear_Red = new Vector4(1f, 0f, 0f, 0f); //Don't have sprites you want to change the color of via script pre-colored and pre-alpha'd outside of Unity because modifying them in script modifies the color channels relative to the colors in the file provided as a sprite rather than absolute colors
         public Vector4 Dark_Red = new Vector4(1f, 0f, 0f, 0.8f);
 
         IEnumerator EnergyLowColorPulse() //Might have to set the color to the lerp target after Time.time == LerpInTime and after Time.time == EndTime
         {
             Energy_Low_Coroutine_Running = true;
             float Energy_Low_Color_Pulse_Start_Time = Time.time;
-            float Energy_Low_Color_Pulse_End_Time = Energy_Low_Color_Pulse_Start_Time + 0.5f;
+            float Energy_Low_Color_Pulse_End_Time = Energy_Low_Color_Pulse_Start_Time + 0.4f;
 
-            float Energy_Low_Color_Pulse_Lerp_In_Time = Energy_Low_Color_Pulse_Start_Time + 0.25f;
+            float Energy_Low_Color_Pulse_Lerp_In_Time = Energy_Low_Color_Pulse_Start_Time + 0.2f;
 
             while (Time.time < Energy_Low_Color_Pulse_End_Time)
             {
                 if (Energy_Low_Color_Pulse_Start_Time < Time.time && Time.time <= Energy_Low_Color_Pulse_Lerp_In_Time)
                 {
-                    Energy_Bar_Background_Image.color = Color.Lerp(Salmon, Dark_Red, (Time.time - Energy_Low_Color_Pulse_Start_Time) / (Energy_Low_Color_Pulse_Lerp_In_Time - Energy_Low_Color_Pulse_Start_Time));
+                    Energy_Bar_Background_Image.color = Color.Lerp(Clear_Red, Color.red, (Time.time - Energy_Low_Color_Pulse_Start_Time) / (Energy_Low_Color_Pulse_Lerp_In_Time - Energy_Low_Color_Pulse_Start_Time));
                 }
                 if (Energy_Low_Color_Pulse_Lerp_In_Time < Time.time && Time.time <= Energy_Low_Color_Pulse_End_Time)
                 {
-                    Energy_Bar_Background_Image.color = Color.Lerp(Dark_Red, Salmon, (Time.time - Energy_Low_Color_Pulse_Start_Time) / (Energy_Low_Color_Pulse_End_Time - Energy_Low_Color_Pulse_Start_Time));
+                    Energy_Bar_Background_Image.color = Color.Lerp(Color.red, Clear_Red, (Time.time - Energy_Low_Color_Pulse_Start_Time) / (Energy_Low_Color_Pulse_End_Time - Energy_Low_Color_Pulse_Start_Time));
                 }
                 yield return new WaitForEndOfFrame();
             }
@@ -1616,19 +1659,19 @@ namespace ClassLibrary1HUD
         {
             Energy_Critical_Coroutine_Running = true;
             float Energy_Critical_Color_Pulse_Start_Time = Time.time;
-            float Energy_Critical_Color_Pulse_End_Time = Energy_Critical_Color_Pulse_Start_Time + 0.25f;
+            float Energy_Critical_Color_Pulse_End_Time = Energy_Critical_Color_Pulse_Start_Time + 0.2f;
 
-            float Energy_Critical_Color_Pulse_Lerp_In_Time = Energy_Critical_Color_Pulse_Start_Time + 0.125f;
+            float Energy_Critical_Color_Pulse_Lerp_In_Time = Energy_Critical_Color_Pulse_Start_Time + 0.1f;
 
             while (Time.time < Energy_Critical_Color_Pulse_End_Time)
             {
                 if (Energy_Critical_Color_Pulse_Start_Time < Time.time && Time.time <= Energy_Critical_Color_Pulse_Lerp_In_Time)
                 {
-                    Energy_Bar_Background_Image.color = Color.Lerp(Salmon, Color.red, (Time.time - Energy_Critical_Color_Pulse_Start_Time) / (Energy_Critical_Color_Pulse_Lerp_In_Time - Energy_Critical_Color_Pulse_Start_Time));
+                    Energy_Bar_Background_Image.color = Color.Lerp(Clear_Red, Color.red, (Time.time - Energy_Critical_Color_Pulse_Start_Time) / (Energy_Critical_Color_Pulse_Lerp_In_Time - Energy_Critical_Color_Pulse_Start_Time));
                 }
                 if (Energy_Critical_Color_Pulse_Lerp_In_Time < Time.time && Time.time <= Energy_Critical_Color_Pulse_End_Time)
                 {
-                    Energy_Bar_Background_Image.color = Color.Lerp(Color.red, Salmon, (Time.time - Energy_Critical_Color_Pulse_Start_Time) / (Energy_Critical_Color_Pulse_End_Time - Energy_Critical_Color_Pulse_Start_Time));
+                    Energy_Bar_Background_Image.color = Color.Lerp(Color.red, Clear_Red, (Time.time - Energy_Critical_Color_Pulse_Start_Time) / (Energy_Critical_Color_Pulse_End_Time - Energy_Critical_Color_Pulse_Start_Time));
                 }
                 yield return new WaitForEndOfFrame();
             }
@@ -1707,34 +1750,25 @@ namespace ClassLibrary1HUD
         public Image Throttle_Bar_Background_Image;
         public Vector4 Throttle_Bar_Image_Original_Color;
 
-        public float Current_Speedpad_Time;
-        public float Previous_Speedpad_Time;
-
-        public float Current_Speedpad_Time_2280;
-        public float Previous_Speedpad_Time_2280;
-
         IEnumerator SpeedPadColorPulse_Coroutine()
         {
             Vector4 Dark_Blue = new Vector4(0f, (96f / 255f), 1f, 1f);
             Vector4 Light_Blue = new Vector4((154f / 255f), (217f / 255f), 1f, 1f);
 
             float Speed_Pad_Color_Pulse_Start_Time = Time.time;
-            float Speed_Pad_Color_Pulse_End_Time = Speed_Pad_Color_Pulse_Start_Time + 0.625f;
+            float Speed_Pad_Color_Pulse_End_Time = Speed_Pad_Color_Pulse_Start_Time + 0.5f;
 
             //float Speed_Pad_Color_Pulse_Lerp_In_Time = Speed_Pad_Color_Pulse_Start_Time + 0.25f;
 
             while (Time.time < Speed_Pad_Color_Pulse_End_Time)
             {
-                //if (Speed_Pad_Color_Pulse_Start_Time < Time.time && Time.time <= Speed_Pad_Color_Pulse_Lerp_In_Time)
-                //{
-                //Throttle_Bar_Image.color = Color.Lerp(Salmon, Color.red, (Time.time - Speed_Pad_Color_Pulse_Start_Time) / (Speed_Pad_Color_Pulse_Lerp_In_Time - Speed_Pad_Color_Pulse_Start_Time));
-                //}
                 if (Speed_Pad_Color_Pulse_Start_Time < Time.time && Time.time <= Speed_Pad_Color_Pulse_End_Time)
                 {
                     Throttle_Bar_Image.color = Color.Lerp(Dark_Blue, Light_Blue, (Time.time - Speed_Pad_Color_Pulse_Start_Time) / (Speed_Pad_Color_Pulse_End_Time - Speed_Pad_Color_Pulse_Start_Time));
                 }
                 yield return new WaitForEndOfFrame();
             }
+
             Throttle_Bar_Image.color = Throttle_Bar_Image_Original_Color;
         }
 
@@ -1742,12 +1776,13 @@ namespace ClassLibrary1HUD
         {
             base.Start();
 
+            NgRaceEvents.OnShipHitSpeedPad += SpeedPadColorPulse;
+            NgRaceEvents.OnShipHitSpeedTile += SpeedPadColorPulse_Tile;
+
             Throttle_Bar_Background_Image = CustomComponents.GetById<Image>("ThrottleBarBackground");
             Throttle_Bar_Image = CustomComponents.GetById<Image>("ThrottleBar");
 
             Throttle_Bar_Image_Original_Color = Throttle_Bar_Image.color;
-
-            //NgRaceEvents.OnShipHitSpeedPad += SpeedPadColorPulse;
         }
 
         public override void Update()
@@ -1755,34 +1790,31 @@ namespace ClassLibrary1HUD
             base.Update();
 
             Throttle_Bar_Image.fillAmount = Mathf.Min(TargetShip.PysSim.enginePower, TargetShip.PysSim.engineAccel);
+        }
 
-            Current_Speedpad_Time = TargetShip.BoostTimer;
-            Current_Speedpad_Time_2280 = TargetShip.PysSim.modernPadPushTimer;
-
-            if ((Current_Speedpad_Time > Previous_Speedpad_Time) || (Current_Speedpad_Time_2280 > Previous_Speedpad_Time_2280))
+        public void SpeedPadColorPulse(ShipController ship, BallisticUnityTools.TrackTools.TrackPad pad) //Works with 3D ("Modern") pads
+        {
+            if (ship.IsPlayer)
             {
                 StartCoroutine(SpeedPadColorPulse_Coroutine());
             }
+        }
 
-            Previous_Speedpad_Time = TargetShip.BoostTimer;
-            Previous_Speedpad_Time_2280 = TargetShip.PysSim.modernPadPushTimer;
+        public void SpeedPadColorPulse_Tile(ShipController ship, NgTrackData.Tile tile) //Works with "Classic" speedpads
+        {
+            if (ship.IsPlayer)
+            {
+                StartCoroutine(SpeedPadColorPulse_Coroutine());
+            }
+        }
 
-        }            
+        public override void OnDestroy()
+        {
+            NgRaceEvents.OnShipHitSpeedPad -= SpeedPadColorPulse;
+            NgRaceEvents.OnShipHitSpeedTile -= SpeedPadColorPulse_Tile;
 
-        //public override void OnDestroy()
-        //{
-            //NgRaceEvents.OnShipHitSpeedPad -= SpeedPadColorPulse;
-
-            //base.OnDestroy();
-        //}
-
-        //public void SpeedPadColorPulse(ShipController ship, BallisticUnityTools.TrackTools.TrackPad pad) //Doesn't do anything
-        //{
-            //if (ship.IsPlayer)
-            //{
-                //StartCoroutine(SpeedPadColorPulse_Coroutine());
-           // }
-        //}
+            base.OnDestroy();
+        }
     }
 
     public class Rear_View_Mirror : ScriptableHud //Special thanks to Dekaid for sharing his rear view mirror implementation, I would never have figured out how to set this up on my own
@@ -1801,19 +1833,12 @@ namespace ClassLibrary1HUD
         public Vector3 Next_Forward_Vector;
         public Vector3 Next_Up_Vector;
         public Quaternion Next_Rotation_Quaternion;
-        public float Correct_Rotation_X; //I didn't use it
-        public float Correct_Rotation_Y; //I didn't use it
-        public float Correct_Rotation_Z; //I didn't use it
+
         public Quaternion Correct_Rotation_Quaternion;
         public Quaternion Intermediate_Rotation_Quaternion;
-        public Quaternion Maglock_Rotation_Quaternion;
+        public Quaternion Maglock_Rotation_Quaternion; //CURRENTLY UNUSED
         public float Rotation_Time;
-        public float progress;
-        public float rollAngle;
-        public bool PreviousSectionOnMaglock;
 
-        public float startTime;
-        public float endTime;
         public float lastWidth, lastHeight;
 
         public float Interpolation_Ratio;
@@ -1950,7 +1975,7 @@ namespace ClassLibrary1HUD
             //Next_Rotation_Quaternion = Quaternion.LookRotation(TargetShip.ForwardOnSection(TargetShip.CurrentSection), TargetShip.InterpolatedSection.Up);
             Next_Rotation_Quaternion = Quaternion.LookRotation(TargetShip.ShipCamera.transform.forward, TargetShip.InterpolatedSection.Up);
             Correct_Rotation_Quaternion = Quaternion.Euler(Target_Rotation.x, Target_Rotation.y, 0f);
-            Maglock_Rotation_Quaternion = Quaternion.Euler(Target_Rotation.x, Target_Rotation.y, Next_Rotation_Quaternion.eulerAngles.z);
+            Maglock_Rotation_Quaternion = Quaternion.Euler(Target_Rotation.x, Target_Rotation.y, Next_Rotation_Quaternion.eulerAngles.z); //CURRENTLY UNUSED
             Intermediate_Rotation_Quaternion = TargetShip.RBody.transform.rotation;
 
             //TargetShip.ModernPhysicsGroundedForce = 4f;
