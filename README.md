@@ -15,7 +15,7 @@ Check out Dekaid's GT3HUD and Dinir's Streamliner HUD (they're both much more pr
 - TBD
 
 ### Supported Version(s\)
-- 1.4.1.1
+- 1.4.1.2
 
 ### Features
 
