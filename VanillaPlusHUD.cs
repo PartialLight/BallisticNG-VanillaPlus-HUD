@@ -2,7 +2,6 @@
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using BallisticModding;
 using BallisticUnityTools.Placeholders;
 using BallisticUnityTools;
@@ -25,7 +24,6 @@ namespace ClassLibrary1HUD
 {
 
     public class HudRegister : CodeMod
-
     {
         string id = "VanillaPlus";
         string HudPath = "vanillaplushud.hud";
@@ -322,7 +320,7 @@ namespace ClassLibrary1HUD
                     Recharge_Sum_Readout.text = "∆" + string.Format("{0:N1}", Mathf.Max(Energy_Difference, Potential_Energy_Recharge));
                 }
 
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
 
             float Recharge_Linger_Start_Time = Time.time;
@@ -332,7 +330,7 @@ namespace ClassLibrary1HUD
             {
                 Recharge_Linger_Start_Time += Time.deltaTime;
 
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
             Recharge_Sum_Readout.text = "";
             Time_Spent_Recharging = 0f;
@@ -356,6 +354,8 @@ namespace ClassLibrary1HUD
         public int Pitlane_Current_Section;
         public int Pitlane_Previous_Section;
 
+        public List<Image> Left_Pitlane_Arrows;
+        public List<Image> Right_Pitlane_Arrows;
         public List<Image> Pitlane_Arrows;
 
         public Vector2 Arrow_1_Start_Position;
@@ -568,7 +568,7 @@ namespace ClassLibrary1HUD
                     Pitlane_Arrows[2].fillAmount = 1f - ((Time.time - Third_Arrow_End_Animation_Time_1) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_1));
                 }
 
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
             Pitlane_Arrows[0].enabled = false;
             Pitlane_Arrows[1].enabled = false;
@@ -609,6 +609,8 @@ namespace ClassLibrary1HUD
             Right_Pitlane_Indicator_Arrow_2.fillAmount = 0f;
             Right_Pitlane_Indicator_Arrow_3.fillAmount = 0f;
             
+            Left_Pitlane_Arrows = new List<Image> { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
+            Right_Pitlane_Arrows = new List<Image> { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
         }
 
         public override void Update()
@@ -632,12 +634,12 @@ namespace ClassLibrary1HUD
                     if (NgSettings.Gameplay.MirrorEnabled)
                     {
                         Pitlane_Side = -1;
-                        Pitlane_Arrows = new List<Image> { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
+                        Pitlane_Arrows = Left_Pitlane_Arrows;
                     }
                     else
                     {
                         Pitlane_Side = 1;
-                        Pitlane_Arrows = new List<Image> { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
+                        Pitlane_Arrows = Right_Pitlane_Arrows;
                     }                    
                 }
 
@@ -646,12 +648,12 @@ namespace ClassLibrary1HUD
                     if (NgSettings.Gameplay.MirrorEnabled)
                     {
                         Pitlane_Side = 1;
-                        Pitlane_Arrows = new List<Image> { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
+                        Pitlane_Arrows = Right_Pitlane_Arrows;
                     }
                     else
                     {
                         Pitlane_Side = -1;
-                        Pitlane_Arrows = new List<Image> { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
+                        Pitlane_Arrows = Left_Pitlane_Arrows;
                     }
                 }
 
@@ -668,9 +670,9 @@ namespace ClassLibrary1HUD
     public class Relative_Time_Display : ScriptableHud
     {
         public Text Relative_Time_Readout;
-        public Vector4 Race_Leader_Green = new Vector4(181f / 255f, 1f, 29f / 255f, 1f);
-        public Vector4 Contender_Red = new Vector4(1f, 28f / 255f, 36f / 255f, 1f);
-        public Vector4 Tremor_Safety_Blue = new Vector4(0f, (163f / 256f), (233f / 256f), 1f);
+        public static readonly Vector4 Race_Leader_Green = new Vector4(181f / 255f, 1f, 29f / 255f, 1f);
+        public static readonly Vector4 Contender_Red = new Vector4(1f, 28f / 255f, 36f / 255f, 1f);
+        public static readonly Vector4 Tremor_Safety_Blue = new Vector4(0f, (163f / 256f), (233f / 256f), 1f);
         public int Player_Section_Index;
         public int Second_Place_Index;
         public int Track_Section_Max;
@@ -841,7 +843,7 @@ namespace ClassLibrary1HUD
                 {
                     Music_Display_Readout.enabled = true;
                 }
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
             Music_Display_Readout.enabled = false;
         }
@@ -884,7 +886,7 @@ namespace ClassLibrary1HUD
             while (Time.time < End_Time)
             {
                 Damage_Flasher_Image.enabled = true;
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
             Damage_Flasher_Image.enabled = false;
             //yield return new WaitForEndOfFrame();
@@ -895,7 +897,7 @@ namespace ClassLibrary1HUD
             while ((TargetShip.PysSim.enginePower < 1f) || (TargetShip.PysSim.engineAccel < 1f))
             {
                 Damage_Flasher_Image.enabled = true;
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
             Damage_Flasher_Image.enabled = false;
         }
@@ -1381,8 +1383,8 @@ namespace ClassLibrary1HUD
         public Text Lap_Time_5;
         public List<Text> Lap_Texts;
         public List<Image> Lap_Images;
-        public Vector4 Lap_Diamond_Green = new Vector4(181f/255f, 1f, 29f/255f, 1f);
-        public Vector4 Lap_Diamond_Red = new Vector4(1f, 28f/255f, 36f/255f, 1f);
+        public static readonly Vector4 Lap_Diamond_Green = new Vector4(181f/255f, 1f, 29f/255f, 1f);
+        public static readonly Vector4 Lap_Diamond_Red = new Vector4(1f, 28f/255f, 36f/255f, 1f);
 
         public override void Start()
         {
@@ -1621,16 +1623,16 @@ namespace ClassLibrary1HUD
         //public Vector4 Color_Breakpoint_3 = new Vector4(87, 255, 23, 255); //Green
         //public Vector4 Color_Breakpoint_4 = new Vector4(0, 162, 232, 255); //Blue
         //public Vector4 Color_Breakpoint_5 = new Vector4(255, 255, 255, 255); //White
-        public Vector4 Color_Breakpoint_0 = new Vector4(1f, (29f / 256f), (37f / 256f), 1f); //Red
-        public Vector4 Color_Breakpoint_1 = new Vector4(1f, (128f / 256f), (40f / 256f), 1f); //Orange
-        public Vector4 Color_Breakpoint_2 = new Vector4(1f, (243f / 256f), 0f, 1f); //Yellow
-        public Vector4 Color_Breakpoint_3 = new Vector4((88f / 256f), 1f, (24f / 256f), 1f); //Green
-        public Vector4 Color_Breakpoint_4 = new Vector4(0f, (163f / 256f), (233f / 256f), 1f); //Blue
-        public Vector4 Color_Breakpoint_5 = new Vector4(1f, 1f, 1f, 1f); //White
+        public static readonly Vector4 Color_Breakpoint_0 = new Vector4(1f, (29f / 256f), (37f / 256f), 1f); //Red
+        public static readonly Vector4 Color_Breakpoint_1 = new Vector4(1f, (128f / 256f), (40f / 256f), 1f); //Orange
+        public static readonly Vector4 Color_Breakpoint_2 = new Vector4(1f, (243f / 256f), 0f, 1f); //Yellow
+        public static readonly Vector4 Color_Breakpoint_3 = new Vector4((88f / 256f), 1f, (24f / 256f), 1f); //Green
+        public static readonly Vector4 Color_Breakpoint_4 = new Vector4(0f, (163f / 256f), (233f / 256f), 1f); //Blue
+        public static readonly Vector4 Color_Breakpoint_5 = new Vector4(1f, 1f, 1f, 1f); //White
         public Vector4 Energy_Bar_Background_Original_Color;
 
-        public Vector4 Clear_Red = new Vector4(1f, 0f, 0f, 0f); //Don't have sprites you want to change the color of via script pre-colored and pre-alpha'd outside of Unity because modifying them in script modifies the color channels relative to the colors in the file provided as a sprite rather than absolute colors
-        public Vector4 Dark_Red = new Vector4(1f, 0f, 0f, 0.8f);
+        public static readonly Vector4 Clear_Red = new Vector4(1f, 0f, 0f, 0f); //Don't have sprites you want to change the color of via script pre-colored and pre-alpha'd outside of Unity because modifying them in script modifies the color channels relative to the colors in the file provided as a sprite rather than absolute colors
+        public static readonly Vector4 Dark_Red = new Vector4(1f, 0f, 0f, 0.8f);
 
         IEnumerator EnergyLowColorPulse() //Might have to set the color to the lerp target after Time.time == LerpInTime and after Time.time == EndTime
         {
@@ -1650,7 +1652,7 @@ namespace ClassLibrary1HUD
                 {
                     Energy_Bar_Background_Image.color = Color.Lerp(Color.red, Clear_Red, (Time.time - Energy_Low_Color_Pulse_Start_Time) / (Energy_Low_Color_Pulse_End_Time - Energy_Low_Color_Pulse_Start_Time));
                 }
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
             Energy_Low_Coroutine_Running = false;
         }
@@ -1673,7 +1675,7 @@ namespace ClassLibrary1HUD
                 {
                     Energy_Bar_Background_Image.color = Color.Lerp(Color.red, Clear_Red, (Time.time - Energy_Critical_Color_Pulse_Start_Time) / (Energy_Critical_Color_Pulse_End_Time - Energy_Critical_Color_Pulse_Start_Time));
                 }
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
             Energy_Critical_Coroutine_Running = false;
         }
@@ -1749,12 +1751,12 @@ namespace ClassLibrary1HUD
         public Image Throttle_Bar_Image;
         public Image Throttle_Bar_Background_Image;
         public Vector4 Throttle_Bar_Image_Original_Color;
+        public static readonly Vector4 Dark_Blue = new Vector4(0f, (96f / 255f), 1f, 1f);
+        public static readonly Vector4 Light_Blue = new Vector4((154f / 255f), (217f / 255f), 1f, 1f);
+        public static readonly WaitForEndOfFrame Cached_WaitForEndOfFrame = new WaitForEndOfFrame();
 
         IEnumerator SpeedPadColorPulse_Coroutine()
-        {
-            Vector4 Dark_Blue = new Vector4(0f, (96f / 255f), 1f, 1f);
-            Vector4 Light_Blue = new Vector4((154f / 255f), (217f / 255f), 1f, 1f);
-
+        {            
             float Speed_Pad_Color_Pulse_Start_Time = Time.time;
             float Speed_Pad_Color_Pulse_End_Time = Speed_Pad_Color_Pulse_Start_Time + 0.5f;
 
@@ -1766,7 +1768,7 @@ namespace ClassLibrary1HUD
                 {
                     Throttle_Bar_Image.color = Color.Lerp(Dark_Blue, Light_Blue, (Time.time - Speed_Pad_Color_Pulse_Start_Time) / (Speed_Pad_Color_Pulse_End_Time - Speed_Pad_Color_Pulse_Start_Time));
                 }
-                yield return new WaitForEndOfFrame();
+                yield return Cached_WaitForEndOfFrame;
             }
 
             Throttle_Bar_Image.color = Throttle_Bar_Image_Original_Color;
@@ -1782,7 +1784,7 @@ namespace ClassLibrary1HUD
             Throttle_Bar_Background_Image = CustomComponents.GetById<Image>("ThrottleBarBackground");
             Throttle_Bar_Image = CustomComponents.GetById<Image>("ThrottleBar");
 
-            Throttle_Bar_Image_Original_Color = Throttle_Bar_Image.color;
+            Throttle_Bar_Image_Original_Color = Throttle_Bar_Image.color;            
         }
 
         public override void Update()
@@ -1823,6 +1825,8 @@ namespace ClassLibrary1HUD
         public Camera Rear_View_Mirror_Camera;
         public RectTransform Empty_Game_Object;
         public RenderTexture Rear_View_Mirror_Feed;
+        public static readonly Vector3 Point_Camera_Backwards_Transform_Scale = new Vector3(-1f, 1f);
+        public static readonly Vector3 Point_Camera_Forwards_Transform_Scale = new Vector3(1f, 1f);
 
         public Vector3 Correct_Rotation;
         public Vector3 Initial_Rotation;
@@ -1914,56 +1918,68 @@ namespace ClassLibrary1HUD
         {
             base.Update();
             //Rear_View_Mirror_Camera.enabled = true;
+
             if (TargetShip.CamSim.CameraMode == 2 && !TargetShip.FinishedEvent)
             {
                 if ((Cheats.IntFromPhysicsMod() == 1) && VanillaPlusHUDOptions.ModMenuOptions.CanopyCameraAdjustment2280 == 0)
                 {
-                    TargetShip.ShipCamera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 1.25f; //Raise the 2280 Internal Camera to the same camera height as 2159 Internal Camera
+                    TargetShip.ShipCamera.transform.localPosition = Vector3.up * ((TargetShip.ShipToShipCollider.size.y / 2f) - 0.085f); //Raise the 2280 Internal Camera to the same camera height as 2159 Internal Camera (most recently (TargetShip.ShipToShipCollider.size.y / 1.25f))
                 }
             }
 
             if (TargetShip.CamSim.CameraMode == 3 && !TargetShip.FinishedEvent)
             {
-
-
                 if ((Cheats.IntFromPhysicsMod() == 1))
                 {
-                    if (VanillaPlusHUDOptions.ModMenuOptions.CockpitCameraAdjustment2280 == 0) //RAISED COCKPIT CAMERA
+                    //RAISED COCKPIT CAMERA
+                    if (VanillaPlusHUDOptions.ModMenuOptions.CockpitCameraAdjustment2280 == 0)
                     {
+                        TargetShip.ShipCamera.transform.localPosition = Vector3.up * ((TargetShip.ShipToShipCollider.size.y / 2f) - 0.085f); //(most recently (TargetShip.ShipToShipCollider.size.y / (341f / 180f))), before that it was (26f / 15f); //Raise the 2280 Cockpit Camera to the same camera height as 2159 Internal Camera (formerly)
 
-                        TargetShip.ShipCamera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (341f / 180f); //(26f / 15f); //Raise the 2280 Cockpit Camera to the same camera height as 2159 Internal Camera
-
-                        if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0)) //NOSECAM MESH
+                        //NOSECAM MESH
+                        if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0))
                         {
-                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (820f / 60f); //Raise the 2280 Cockpit Mesh 174f/60f (-132f/60f for default camera height) seems to be the magic number, maybe higher, also recall 68/15f
+                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * ((TargetShip.ShipToShipCollider.size.y / 2f) - (215f/1024f)); //(most recently (TargetShip.ShipToShipCollider.size.y / (341f / 180f))),Raise the 2280 Cockpit Mesh 174f/60f (-132f/60f for default camera height) seems to be the magic number, maybe higher, also recall 68/15f
                         }
-                        else //INTERIOR COCKPIT MESH
+
+                        //INTERIOR COCKPIT MESH
+                        else
                         {
-                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (341f / 180f);
+                            //Lock cockpit transform to camera transform
+                            TargetShip.CockpitParent.GetChild(0).localPosition = TargetShip.ShipCamera.transform.localPosition;
                         }
                     }
-                    else //INTERNAL COCKPIT CAMERA
+
+                    //INTERNAL COCKPIT CAMERA
+                    else
                     {
-                        if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0)) //NOSECAM MESH
+                        //NOSECAM MESH
+                        if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0))
                         {
-                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (-132f / 60f);
+                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * (-(TargetShip.ShipToShipCollider.size.y / 2f) + (13f/1024f));
                         }
-                        else //INTERIOR COCKPIT MESH
+
+                        //INTERIOR COCKPIT MESH
+                        else
                         {
-                            //Do Nothing
+                            //Reset to default position
                             TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.zero;
                         }
                     }
                 }
+
                 else if (((Cheats.IntFromPhysicsMod() == 0) || ((Cheats.IntFromPhysicsMod() == 2))))
                 {
-                    if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0)) //NOSECAM MESH
+                    //NOSECAM MESH
+                    if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0))
                     {
-                        TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / (-132f / 60f);
+                        TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * (-(TargetShip.ShipToShipCollider.size.y / 2f) + (13f/1024f)); //(most recently TargetShip.ShipToShipCollider.size.y / (-132f / 60f))
                     }
-                    else //INTERIOR COCKPIT MESH
+
+                    //INTERIOR COCKPIT MESH
+                    else
                     {
-                        //Do Nothing
+                        //Reset to default position
                         TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.zero;
                     }
                 }
@@ -1995,7 +2011,7 @@ namespace ClassLibrary1HUD
 
                     Non_Maglock_Interpolation_Ratio += Time.deltaTime;
 
-                    TargetShip.ShipCamera.transform.rotation = Quaternion.Slerp(Intermediate_Rotation_Quaternion, Correct_Rotation_Quaternion, Non_Maglock_Interpolation_Ratio);
+                    TargetShip.ShipCamera.transform.rotation = Quaternion.Slerp(TargetShip.ShipCamera.transform.rotation, Correct_Rotation_Quaternion, Non_Maglock_Interpolation_Ratio);
                 }
             }
 
@@ -2009,13 +2025,13 @@ namespace ClassLibrary1HUD
 
                     Interpolation_Ratio += Time.deltaTime * Rotation_Time;
 
-                    TargetShip.ShipCamera.transform.rotation = Quaternion.Slerp(Correct_Rotation_Quaternion, Quaternion.Euler(transform.InverseTransformDirection(Intermediate_Rotation_Quaternion.eulerAngles)), Interpolation_Ratio);
+                    TargetShip.ShipCamera.transform.rotation = Quaternion.Slerp(Correct_Rotation_Quaternion, Quaternion.Euler(transform.InverseTransformDirection(TargetShip.ShipCamera.transform.rotation.eulerAngles)), Interpolation_Ratio);
                 }
             }
 
             if (!TargetShip.CamSim.LookingBehind)
             {
-                RearViewMirror.transform.localScale = new Vector3(-1f, 1f);
+                RearViewMirror.transform.localScale = Point_Camera_Backwards_Transform_Scale;
                 Rear_View_Mirror_Camera.cullingMask = TargetShip.ShipCamera.cullingMask;
                 Rear_View_Mirror_Camera.transform.SetParent(TargetShip.transform);
                 Rear_View_Mirror_Camera.transform.localPosition = -Vector3.forward * TargetShip.ShipToShipCollider.size.z / 2;
@@ -2030,7 +2046,7 @@ namespace ClassLibrary1HUD
             }
             else
             {
-                RearViewMirror.transform.localScale = new Vector3(1f, 1f);
+                RearViewMirror.transform.localScale = Point_Camera_Forwards_Transform_Scale;
                 Rear_View_Mirror_Camera.cullingMask = TargetShip.ShipCamera.cullingMask;
                 Rear_View_Mirror_Camera.transform.SetParent(TargetShip.transform);
                 Rear_View_Mirror_Camera.transform.localPosition = Vector3.forward * TargetShip.ShipToShipCollider.size.z / 2;

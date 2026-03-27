@@ -1,4 +1,4 @@
-MD5: 1B5F20902DF8D7555BAD4F918DA69749
+MD5: 849AB06653EB50AB06816687B98445CA
 ___________________________________________________________________________________________________________
 
 
@@ -11,8 +11,10 @@ Your final folder structure should look like this:
 
 BallisticNG\User\Mods\Code Mods\VanillaPlus\
 
+Audio
 Weapons
 config.ini
+README.txt
 VanillaPlus.dll
 VanillaPlus.ini
 VanillaPlusHUD
