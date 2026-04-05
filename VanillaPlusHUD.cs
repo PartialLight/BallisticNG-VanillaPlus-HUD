@@ -1939,7 +1939,7 @@ namespace ClassLibrary1HUD
                         //NOSECAM MESH
                         if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0))
                         {
-                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * ((TargetShip.ShipToShipCollider.size.y / 2f) - (215f/1024f)); //(most recently (TargetShip.ShipToShipCollider.size.y / (341f / 180f))),Raise the 2280 Cockpit Mesh 174f/60f (-132f/60f for default camera height) seems to be the magic number, maybe higher, also recall 68/15f
+                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * ((TargetShip.ShipToShipCollider.size.y / 2f) - (250f/1024f)); //(most recently (TargetShip.ShipToShipCollider.size.y / (341f / 180f))),Raise the 2280 Cockpit Mesh 174f/60f (-132f/60f for default camera height) seems to be the magic number, maybe higher, also recall 68/15f
                         }
 
                         //INTERIOR COCKPIT MESH
