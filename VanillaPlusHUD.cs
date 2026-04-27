@@ -2593,11 +2593,6 @@ namespace ClassLibrary1HUD
             {
                 NgMusic.MusicPlayer.Instance.PlayPreviousSong(false); //the boolean passed here is whether or not to allow random song selection
             }
-
-            if (NgGameState.IsPaused && Input.GetKeyDown(KeyCode.A))
-            {
-                NgMusic.MusicPlayer.Instance.PlayPreviousSong(false);
-            }
         }
     }
 
