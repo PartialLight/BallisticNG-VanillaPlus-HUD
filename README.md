@@ -15,7 +15,7 @@ Check out Dekaid's GT3HUD and Dinir's Streamliner HUD (they're both much more pr
 - TBD
 
 ### Supported Version(s\)
-- 1.4.1.2
+- 1.4.1.3
 
 ### Features
 
@@ -39,3 +39,6 @@ Check out Dekaid's GT3HUD and Dinir's Streamliner HUD (they're both much more pr
 18. Cockpit Camera Adjust for 2280: Users can choose to raise the position of the cockpit camera to be more similar to 2159 in 2280.
 19. Cockpit Mesh Adjust: Users can choose whether to have the cockpit interior or the ship's nose/forward hull visible when using the cockpit camera in any physics mode.
 20. (EXPERIMENTAL\) Alternate Camera Modes for 2280: Users can choose to have the camera's tilt lock to world up (similar to 2159 camera behavior\) in 2280 except when on maglock or no-tilt-lock surfaces, or orientate to the track surface at all times (similar to Floorhugger\).
+21. Extra Warnings: Users can choose to receive visual warnings when it's the final lap of a race, when an enemy Tremor is active, or when a Hunter missile is active.
+22. Overtake Radar: Wipeout HD inspired proximity warning, shows you how far ahead you are of the ship behind you. If in last place, instead shows how close you are to the ship in the next position.
+23. Skip Song Backward: You can now play the previous song in-game without having to pause!
