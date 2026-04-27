@@ -75,6 +75,15 @@ namespace VanillaPlusHUDOptions
         public static int CockpitMeshAdjustment;
         public static int CameraBehavior2280;
 
+        public static bool FinalLapWarningToggle;
+        public static bool TremorWarningToggle;
+        public static bool HunterWarningToggle;
+
+        public static bool OvertakeRadarToggle;
+
+        //public static int ControllerInputType;
+        public static bool SkipSongBackwardToggle;
+
         public override void OnRegistered(string ModLocation)
         {
             _configPath = Path.Combine(ModLocation, "config.ini");
@@ -105,6 +114,8 @@ namespace VanillaPlusHUDOptions
             string SelectorCategory6 = "Hyperthrust Bar";
             string SelectorCategory7 = "Speed Pad Elements";
             string SelectorCategory8 = "Experimental Camera Adjustments";
+            string SelectorCategory9 = "Extra Warnings";
+            string SelectorCategory10 = "Overtake Radar";
 
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "WeaponMirrorPositionSwap_ID",
                 selector =>
@@ -425,6 +436,73 @@ namespace VanillaPlusHUDOptions
                 {
                     CameraBehavior2280 = selector.Value;
                 });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory9, "FinalLapWarningToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Final Lap Warning", "Whether to enable the Final Lap warning.",
+                        FinalLapWarningToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    FinalLapWarningToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory9, "TremorWarningToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Tremor Warning", "Whether to enable the Tremor warning.",
+                        TremorWarningToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    TremorWarningToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory9, "HunterWarningToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Hunter Warning", "Whether to enable the Hunter warning.",
+                        HunterWarningToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    HunterWarningToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory10, "OvertakeRadarToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Overtake Radar", "Whether to enable the Overtake Radar.",
+                        OvertakeRadarToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    OvertakeRadarToggle = selector.ToBool();
+                });
+
+            //ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "ControllerInputType_ID",
+            //    selector =>
+            //    {
+            //        selector.Configure("Controller Input Type", "Please select your controller's input API.\n\nXInput\n    Xbox controllers and most modern generic controllers.\n\nDirectInput\n    PlayStation controllers, Nintendo controllers, and some\n    older generic controllers.",
+            //            ControllerInputType, null, "XInput", "DirectInput");
+            //    },
+            //    selector =>
+            //    {
+            //        ControllerInputType = selector.Value;
+            //    });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "SkipSongBackwardToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Skip Song Backward", "Whether to enable the Skip Song Backward binding. In order to use this, you must bind your desired key/button to the \"Previous Song\" mapping in the in-game input options menu, \"binds\" tab, \"other\" category.",
+                        SkipSongBackwardToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    SkipSongBackwardToggle = selector.ToBool();
+                });
+
         }
 
         //private void GenerateModUi(ModOptionsUiContext ctx)
@@ -539,6 +617,15 @@ namespace VanillaPlusHUDOptions
             CockpitMeshAdjustment = ini.ReadValue("Settings", "CockpitMeshAdjustment_ID", CockpitMeshAdjustment);
             CameraBehavior2280 = ini.ReadValue("Settings", "CameraBehavior2280_ID", CameraBehavior2280);
 
+            FinalLapWarningToggle = ini.ReadValue("Settings", "FinalLapWarningToggle_ID", FinalLapWarningToggle);
+            TremorWarningToggle = ini.ReadValue("Settings", "TremorWarningToggle_ID", TremorWarningToggle);
+            HunterWarningToggle = ini.ReadValue("Settings", "HunterWarningToggle_ID", HunterWarningToggle);
+
+            OvertakeRadarToggle = ini.ReadValue("Settings", "OvertakeRadarToggle_ID", OvertakeRadarToggle);
+
+            //ControllerInputType = ini.ReadValue("Settings", "ControllerInputType_ID", ControllerInputType);
+            SkipSongBackwardToggle = ini.ReadValue("Settings", "SkipSongBackwardToggle_ID", SkipSongBackwardToggle);
+
             ini.Close();
         }
 
@@ -586,6 +673,15 @@ namespace VanillaPlusHUDOptions
             ini.WriteValue("Settings", "CockpitCameraAdjustment2280_ID", CockpitCameraAdjustment2280);
             ini.WriteValue("Settings", "CockpitMeshAdjustment_ID", CockpitMeshAdjustment);
             ini.WriteValue("Settings", "CameraBehavior2280_ID", CameraBehavior2280);
+
+            ini.WriteValue("Settings", "FinalLapWarningToggle_ID", FinalLapWarningToggle);
+            ini.WriteValue("Settings", "TremorWarningToggle_ID", TremorWarningToggle);
+            ini.WriteValue("Settings", "HunterWarningToggle_ID", HunterWarningToggle);
+
+            ini.WriteValue("Settings", "OvertakeRadarToggle_ID", OvertakeRadarToggle);
+
+            //ini.WriteValue("Settings", "ControllerInputType_ID", ControllerInputType);
+            ini.WriteValue("Settings", "SkipSongBackwardToggle_ID", SkipSongBackwardToggle);
 
             ini.Close();
         }
