@@ -12,7 +12,19 @@ Check out Dekaid's GT3HUD and Dinir's Streamliner HUD (they're both much more pr
 
 - [Single\] Race
 - Tournament (Which is just a series of [Single\] Races\)
-- TBD
+- Team Race
+- Online Team Race
+- Time Trial
+- Speed Lap
+- Survival
+- Knockout
+- Eliminator
+- Upsurge
+- Rush Hour
+- Stunt
+- Track Creator
+- Precision
+- Practice
 
 ### Supported Version(s\)
 - 1.4.1.3
@@ -28,7 +40,7 @@ Check out Dekaid's GT3HUD and Dinir's Streamliner HUD (they're both much more pr
 7. Alternative Readouts: Ship speed can be displayed in terms of Kilometres/Miles Per Hour, in terms of Engine Force units, or in terms of Unity world units travelled per second. Ship Energy can be displayed to 5 digits of decimal precision. Can be configured to show fewer/zero decimal places.
 8. Damage Flasher: A small red dot that flashes whenever you are slowed down by or take damage from any source (except afterburner usage\).
 9. Relative Time Readout: Your time behind first place, or your time ahead of second place if you're in first place. Updates continuously as you pass over individual track sections. Changes colour to blue when out of tremor range of second place.
-10. Recharge Sum: The amount of energy recharged while in the pitlane, which changes into an estimation of the total energy that could potentially have been restored after the player ship's shield integrity reaches 100. Inspired by a similar feature in Streamliner.
+10. Recharge Sum: The amount of energy recharged while in the pitlane (or from absorbing a pickup\), which changes into an estimation of the total energy that could potentially have been restored after the player ship's shield integrity reaches 100. Inspired by a similar feature in Streamliner.
 11. Last Attacker Display: The name of the player or AI-controlled ship that last hit you with a weapon.
 12. Hyperthrust Bar: Bar that fills up and decays based on afterburner usage, with accompanying Hyperthrust Force readout (readout text can be disabled\). Displayed next to rear view mirror by default, can be lowered to be displayed below the Relative Time Readout, or centered to be displayed above it.
 13. Speed Pad Counter: Keeps track of how many speed pads have been hit, with accompanying speed pad acceleration boost readout (+4/+8/+12 in terms of Engine Force units for 2159, readout text can be disabled\). While functional in 2280, information conveyed is less inherently useful due to the changes 2280 makes to speed pad function. Displayed next to rear view mirror by default, can be lowered to be displayed below the Relative Time Readout, or centered to be displayed above it.
@@ -39,6 +51,8 @@ Check out Dekaid's GT3HUD and Dinir's Streamliner HUD (they're both much more pr
 18. Cockpit Camera Adjust for 2280: Users can choose to raise the position of the cockpit camera to be more similar to 2159 in 2280.
 19. Cockpit Mesh Adjust: Users can choose whether to have the cockpit interior or the ship's nose/forward hull visible when using the cockpit camera in any physics mode.
 20. (EXPERIMENTAL\) Alternate Camera Modes for 2280: Users can choose to have the camera's tilt lock to world up (similar to 2159 camera behavior\) in 2280 except when on maglock or no-tilt-lock surfaces, or orientate to the track surface at all times (similar to Floorhugger\).
-21. Extra Warnings: Users can choose to receive visual warnings when it's the final lap of a race, when an enemy Tremor is active, or when a Hunter missile is active.
+21. Extra Warnings: Users can choose to receive visual warnings when it's the final lap of a race, when an enemy Tremor is active, or when a Hunter missile is active. For Survival and Upsurge, users have the choice of receiving visual alerts for when the current zone being progressed through is considered perfect (Survival-specific\), when the amount of zones possessed by an Upsurge ship is at the max (Upsurge-specific\), and when the Upsurge zone target is within reach (Upsurge-specific\).
 22. Overtake Radar: Wipeout HD inspired proximity warning, shows you how far ahead you are of the ship behind you. If in last place, instead shows how close you are to the ship in the next position.
 23. Skip Song Backward: You can now play the previous song in-game without having to pause!
+24. Position Counter Colors: The position counter will now change color based on your position in a race; Red for last place, bronze for third place, silver for second place, and gold for first place.
+25. Zone colors for Survival/Upsurge HUD elements: Users can choose to have the colors of the current zone apply to parts of the HUD, adding some visual flair without significant decreases in HUD readability (only tested with default survival/virtual palettes\).
