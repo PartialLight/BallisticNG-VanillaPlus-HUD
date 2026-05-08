@@ -15,12 +15,15 @@ using NgData;
 using NgEvents;
 using NgGame;
 using NgLib;
+using NgModes;
 using NgModding.Huds;
 using NgModding;
 using NgMp;
 using NgMusic;
 using NgPickups;
+using NgSettings;
 using NgShips;
+using NgSp;
 using NgUi.RaceUi;
 
 namespace ClassLibrary1HUD
@@ -48,7 +51,20 @@ namespace ClassLibrary1HUD
 
             VanillaPlusHUD = AssetBundle.LoadFromFile(Path.Combine(modPath, HudPath));
             CustomHudRegistry.RegisterMod(id);
-            CustomHudRegistry.RegisterSceneManager("Race", id, new HudManager());
+            CustomHudRegistry.RegisterSceneManager("Race", id, new RaceHudManager());
+            CustomHudRegistry.RegisterSceneManager("Speed Lap", id, new SpeedlapHudManager());
+            CustomHudRegistry.RegisterSceneManager("Survival", id, new SurvivalHudManager());
+            CustomHudRegistry.RegisterSceneManager("Upsurge", id, new UpsurgeHudManager());
+            CustomHudRegistry.RegisterSceneManager("Stunt", id, new StuntHudManager());
+            CustomHudRegistry.RegisterSceneManager("Precision", id, new PrecisionHudManager());
+            CustomHudRegistry.RegisterSceneManager("Practice", id, new PracticeHudManager());
+            CustomHudRegistry.RegisterSceneManager("Track Creator", id, new TrackCreatorHudManager());
+            CustomHudRegistry.RegisterSceneManager("Rush Hour", id, new RushHourHudManager());
+            CustomHudRegistry.RegisterSceneManager("Eliminator", id, new EliminatorHudManager());
+            CustomHudRegistry.RegisterSceneManager("Knockout", id, new KnockoutHudManager());
+            CustomHudRegistry.RegisterSceneManager("Time Trial", id, new TimeTrialHudManager());
+            CustomHudRegistry.RegisterSceneManager("Online Team Race", id, new OnlineTeamRaceHudManager());
+            CustomHudRegistry.RegisterSceneManager("Team Race", id, new TeamRaceHudManager());
 
             CustomHudRegistry.RegisterWeaponSprite("autopilot", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/AutoPilot.png")));
             CustomHudRegistry.RegisterWeaponSprite("cannon", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Cannon.png")));
@@ -143,7 +159,7 @@ namespace ClassLibrary1HUD
         }
     }
 
-    public class HudManager : SceneHudManager //Mothership
+    public class RaceHudManager : SceneHudManager //Single Race and Tournament
     {
         public override void OnCreateHuds()
         {
@@ -177,7 +193,7 @@ namespace ClassLibrary1HUD
                 RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
             }
 
-            RegisterHud<Lap_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Counter FIeld.prefab");
+            RegisterHud<Lap_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Counter Field.prefab"); //made the 'I' in 'FIeld' lowercase
 
             if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 2)
             {
@@ -195,7 +211,7 @@ namespace ClassLibrary1HUD
                 RegisterInternalHud("NowPlaying"); //Internal Music Display
             }
 
-            RegisterHud<Best_Time_Field>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Best Time FIeld.prefab");
+            RegisterHud<Best_Time_Field>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Best Time Field.prefab"); //made the 'I' in 'FIeld' lowercase
 
             if (VanillaPlusHUDOptions.ModMenuOptions.PitlaneIndicatorStyle == 0)
             {
@@ -248,6 +264,795 @@ namespace ClassLibrary1HUD
         }
     }
 
+    public class SpeedlapHudManager : SceneHudManager //Speedlap
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Speedlap_And_Precision>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedlap_Precision.prefab");            
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab"); //For Turbo pickup display
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 2)
+            {
+                RegisterHud<Speedpad_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Counter Field.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 2)
+            {
+                RegisterHud<Speedpad_Timer>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Timer Bar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+            
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+        }
+    }
+
+    public class SurvivalHudManager : SceneHudManager //Survival
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Survival>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Survival.prefab");
+
+            if (NgCampaign.Enabled == true)
+            {
+                RegisterInternalHud("ZoneAwards");
+            }
+                
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+            
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+        }
+    }
+
+    public class UpsurgeHudManager : SceneHudManager //Upsurge
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Upsurge>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Upsurge.prefab");
+            RegisterInternalHud("EliminatorScoreList"); //Upsurge scoreboard
+
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            if (NgNetworkBase.CurrentNetwork != null)
+            {
+                RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
+            }
+        }        
+    }
+
+    public class StuntHudManager : SceneHudManager
+    {
+        public override void OnCreateHuds()
+        {            
+            RegisterHud<Stunt>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Stunt.prefab");
+            RegisterInternalHud("ChainScore");
+            RegisterInternalHud("TitleDisplay"); //OVERTIME warning
+
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
+            RegisterHud<Lap_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Counter Field.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+        }
+    }
+
+    public class PrecisionHudManager : SceneHudManager
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Speedlap_And_Precision>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedlap_Precision.prefab");
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarToggle && Race.AfterburnerEnabled)
+            {
+                RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 2)
+            {
+                RegisterHud<Speedpad_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Counter Field.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 2)
+            {
+                RegisterHud<Speedpad_Timer>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Timer Bar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+        }
+    }
+
+    public class PracticeHudManager : SceneHudManager
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");            
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");      
+            RegisterHud<Position_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Position Counter Field.prefab");
+
+            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");            
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarToggle && Race.AfterburnerEnabled)
+            {
+                RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 2)
+            {
+                RegisterHud<Speedpad_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Counter Field.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 2)
+            {
+                RegisterHud<Speedpad_Timer>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Timer Bar.prefab");
+            }            
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RelativeTimeDisplayToggle)
+            {
+                RegisterHud<Relative_Time_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Relative Time Display.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarToggle)
+            {
+                RegisterHud<Overtake_Radar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Overtake Radar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.LastAttackerToggle)
+            {
+                RegisterHud<Last_Attacker>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Last Attacker.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumToggle)
+            {
+                RegisterHud<Recharge_Sum>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Recharge Sum.prefab");
+            }            
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceNameTags)
+            {
+                RegisterInternalHud("NetworkNameTags"); //Nametags
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceShieldBars)
+            {
+                RegisterInternalHud("Eliminator"); //Shield bars
+            }
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("KnockoutShipTracker");
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+        }
+    }
+
+    public class TrackCreatorHudManager : SceneHudManager
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+
+            RegisterHud<Speedlap_And_Precision>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedlap_Precision.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarToggle && Race.AfterburnerEnabled)
+            {
+                RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+        }
+    }
+
+    public class RushHourHudManager : SceneHudManager
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");            
+            RegisterInternalHud("ShipEnergyScoreboard");
+
+            RegisterHud<Position_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Position Counter Field.prefab");
+
+            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 2)
+            {
+                RegisterHud<Speedpad_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Counter Field.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 2)
+            {
+                RegisterHud<Speedpad_Timer>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Timer Bar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RelativeTimeDisplayToggle)
+            {
+                RegisterHud<Relative_Time_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Relative Time Display.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarToggle)
+            {
+                RegisterHud<Overtake_Radar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Overtake Radar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceNameTags)
+            {
+                RegisterInternalHud("NetworkNameTags"); //Nametags
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceShieldBars)
+            {
+                RegisterInternalHud("Eliminator"); //Shield bars
+            }
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            if (NgNetworkBase.CurrentNetwork != null)
+            {
+                RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
+            }
+        }
+    }
+
+    public class EliminatorHudManager : SceneHudManager
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");            
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterInternalHud("Eliminator"); //Shield bars
+            RegisterInternalHud("EliminatorScoreList");
+            RegisterInternalHud("KnockoutShipTracker");
+            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarToggle)
+            {
+                RegisterHud<Overtake_Radar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Overtake Radar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.LastAttackerToggle)
+            {
+                RegisterHud<Last_Attacker>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Last Attacker.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceNameTags)
+            {
+                RegisterInternalHud("NetworkNameTags"); //Nametags
+            }
+                        
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            if (NgNetworkBase.CurrentNetwork != null)
+            {
+                RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
+            }
+        }
+    }
+
+    public class KnockoutHudManager : SceneHudManager
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterInternalHud("KnockoutShipTracker");
+            RegisterHud<Position_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Position Counter Field.prefab");
+            RegisterInternalHud("NetworkPeerList");
+            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarToggle)
+            {
+                RegisterHud<Overtake_Radar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Overtake Radar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.LastAttackerToggle)
+            {
+                RegisterHud<Last_Attacker>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Last Attacker.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.PitlaneIndicatorStyle == 0)
+            {
+                RegisterHud<Pitlane_Indicator>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pitlane Indicator.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("PitlaneIndicator"); //Internal Pitlane Indicator
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumToggle)
+            {
+                RegisterHud<Recharge_Sum>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Recharge Sum.prefab"); //TEST IN ELIMINATOR AND ON SW1R TRACKS ON REGULAR RACE
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarToggle && Race.AfterburnerEnabled)
+            {
+                RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 2)
+            {
+                RegisterHud<Speedpad_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Counter Field.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 2)
+            {
+                RegisterHud<Speedpad_Timer>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Timer Bar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RelativeTimeDisplayToggle)
+            {
+                RegisterHud<Relative_Time_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Relative Time Display.prefab");
+            }
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceNameTags)
+            {
+                RegisterInternalHud("NetworkNameTags"); //Nametags
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceShieldBars)
+            {
+                RegisterInternalHud("Eliminator"); //Shield bars
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            if (NgNetworkBase.CurrentNetwork != null)
+            {
+                RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
+            }
+        }
+    }
+
+    public class TimeTrialHudManager : SceneHudManager
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab"); //For Turbo pickup display
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Lap_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Counter Field.prefab");
+            RegisterHud<Best_Time_Field>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Best Time Field.prefab");
+            RegisterHud<Lap_Time_Field>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Time Field.prefab");
+
+            if (NgCampaign.Enabled == true)
+            {
+                RegisterInternalHud("TimeTrialAwards");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.PitlaneIndicatorStyle == 0)
+            {
+                RegisterHud<Pitlane_Indicator>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pitlane Indicator.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("PitlaneIndicator"); //Internal Pitlane Indicator
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumToggle)
+            {
+                RegisterHud<Recharge_Sum>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Recharge Sum.prefab"); //TEST IN ELIMINATOR AND ON SW1R TRACKS ON REGULAR RACE
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarToggle && Race.AfterburnerEnabled)
+            {
+                RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 2)
+            {
+                RegisterHud<Speedpad_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Counter Field.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 2)
+            {
+                RegisterHud<Speedpad_Timer>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Timer Bar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+        }
+    }
+
+    public class OnlineTeamRaceHudManager : SceneHudManager
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab"); //For Turbo pickup display
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Position_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Position Counter Field.prefab");
+            RegisterHud<Lap_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Counter Field.prefab");
+            RegisterHud<Best_Time_Field>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Best Time Field.prefab");
+            RegisterHud<Lap_Time_Field>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Time Field.prefab");
+            RegisterInternalHud("KnockoutShipTracker");
+            RegisterInternalHud("OnlineTeamMateDisplay");
+            RegisterInternalHud("OnlineTeamScoreList");
+
+            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarToggle)
+            {
+                RegisterHud<Overtake_Radar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Overtake Radar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.LastAttackerToggle)
+            {
+                RegisterHud<Last_Attacker>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Last Attacker.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.PitlaneIndicatorStyle == 0)
+            {
+                RegisterHud<Pitlane_Indicator>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pitlane Indicator.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("PitlaneIndicator"); //Internal Pitlane Indicator
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumToggle)
+            {
+                RegisterHud<Recharge_Sum>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Recharge Sum.prefab"); //TEST IN ELIMINATOR AND ON SW1R TRACKS ON REGULAR RACE
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarToggle && Race.AfterburnerEnabled)
+            {
+                RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 2)
+            {
+                RegisterHud<Speedpad_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Counter Field.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 2)
+            {
+                RegisterHud<Speedpad_Timer>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Timer Bar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RelativeTimeDisplayToggle)
+            {
+                RegisterHud<Relative_Time_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Relative Time Display.prefab");
+            }
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            if (NgNetworkBase.CurrentNetwork != null)
+            {
+                RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
+            }
+        }
+    }
+
+    public class TeamRaceHudManager : SceneHudManager
+    {
+        public override void OnCreateHuds()
+        {
+            RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab"); //For Turbo pickup display
+            RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
+            RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
+            RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
+            RegisterHud<Position_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Position Counter Field.prefab");
+            RegisterHud<Lap_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Counter Field.prefab");
+            RegisterHud<Best_Time_Field>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Best Time Field.prefab");
+            RegisterHud<Lap_Time_Field>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Lap Time Field.prefab");
+            RegisterInternalHud("KnockoutShipTracker");
+            RegisterInternalHud("TeamScoreList");
+
+            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarToggle)
+            {
+                RegisterHud<Overtake_Radar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Overtake Radar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.LastAttackerToggle)
+            {
+                RegisterHud<Last_Attacker>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Last Attacker.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.PitlaneIndicatorStyle == 0)
+            {
+                RegisterHud<Pitlane_Indicator>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pitlane Indicator.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("PitlaneIndicator"); //Internal Pitlane Indicator
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumToggle)
+            {
+                RegisterHud<Recharge_Sum>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Recharge Sum.prefab"); //TEST IN ELIMINATOR AND ON SW1R TRACKS ON REGULAR RACE
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarToggle && Race.AfterburnerEnabled)
+            {
+                RegisterHud<Hyperthrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Hyperthrust Bar.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 2)
+            {
+                RegisterHud<Speedpad_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Counter Field.prefab");
+            }
+
+            if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerToggle == 2)
+            {
+                RegisterHud<Speedpad_Timer>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedpad Timer Bar.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
+            {
+                RegisterHud<Damage_Flasher>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Damage Flasher.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RelativeTimeDisplayToggle)
+            {
+                RegisterHud<Relative_Time_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Relative Time Display.prefab");
+            }
+
+            RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
+            RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.MusicDisplayStyle == 0)
+            {
+                RegisterHud<Music_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Music Display Field.prefab");
+            }
+            else
+            {
+                RegisterInternalHud("NowPlaying"); //Internal Music Display
+            }
+
+            RegisterInternalHud("NotificationBuffer"); //Have to make my own
+            RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
+            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+        }
+    }
+
     public class Last_Attacker : ScriptableHud
     {
         public Text Last_Attacker_Name;
@@ -287,14 +1092,22 @@ namespace ClassLibrary1HUD
         public float Energy_Before_Recharge;
         public float Energy_Difference;
 
+        public float Non_Pitlane_Energy_Restore_Value;        
+
         public override void Start()
         {
             base.Start();
 
             Recharge_Sum_Readout = CustomComponents.GetById<Text>("RechargeSumReadout");
             Recharge_Sum_Readout.text = "";
-            Recharge_Sum_Readout.enabled = false;
-            
+            //Recharge_Sum_Readout.enabled = false;
+
+            NgRaceEvents.OnShipAbsorb += AbsorbRechargeSum;
+        }
+
+        public override void OnDestroy()
+        {
+            NgRaceEvents.OnShipAbsorb -= AbsorbRechargeSum;
         }
 
         public override void Update()
@@ -303,7 +1116,7 @@ namespace ClassLibrary1HUD
 
             if (TargetShip.IsRecharging)
             {
-                Recharge_Sum_Readout.enabled = true;
+                //Recharge_Sum_Readout.enabled = true;
 
                 Time_Spent_Recharging += Time.deltaTime;
                 Potential_Energy_Recharge = Time_Spent_Recharging * 20f;
@@ -316,8 +1129,18 @@ namespace ClassLibrary1HUD
             }
         }
 
+        public void AbsorbRechargeSum(ShipController ship, float shieldRestored)
+        {
+            if (ship == TargetShip && (shieldRestored > 0f))
+            {
+                Non_Pitlane_Energy_Restore_Value = shieldRestored;
+                StartCoroutine(Recharge_Sum_Duration());
+            }
+        }
+
         IEnumerator Recharge_Sum_Duration()
         {
+            Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Non_Pitlane_Energy_Restore_Value);
 
             while (TargetShip.IsRecharging)
             {
@@ -346,7 +1169,7 @@ namespace ClassLibrary1HUD
             Recharge_Sum_Readout.text = "";
             Time_Spent_Recharging = 0f;
             Energy_Difference = 0f;
-            Recharge_Sum_Readout.enabled = false;
+            //Recharge_Sum_Readout.enabled = false;
         }
     }
 
@@ -1289,7 +2112,11 @@ namespace ClassLibrary1HUD
         public Image Position_Counter_Field_Background;
         public string Current_Position_String;
         public string Max_Position_String;
-        
+
+        public static readonly Vector4 Gold_Color = new Vector4(1f, (205f/255f), (102f/255f), 1f);
+        public static readonly Vector4 Silver_Color = new Vector4((128f / 255f), (128f / 255f), (128f / 255f), 1f);
+        public static readonly Vector4 Bronze_Color = new Vector4(1f, (102f/255f), 0f, 1f);
+
         public override void Start()
         {
             base.Start();
@@ -1317,6 +2144,27 @@ namespace ClassLibrary1HUD
             }
             Current_Position.text = Current_Position_String;
             Max_Position.text = Max_Position_String;
+
+            if (TargetShip.CurrentPlace == Ships.Active.Count && Ships.Active.Count != 1)
+            {
+                Current_Position.color = Color.red;
+            }
+            else if (TargetShip.CurrentPlace == 1)
+            {
+                Current_Position.color = Gold_Color;
+            }
+            else if (TargetShip.CurrentPlace == 2)
+            {
+                Current_Position.color = Silver_Color;
+            }
+            else if (TargetShip.CurrentPlace == 3)
+            {
+                Current_Position.color = Bronze_Color;
+            }
+            else
+            {
+                Current_Position.color = Color.white;
+            }
         }
     }
 
@@ -1604,6 +2452,8 @@ namespace ClassLibrary1HUD
     }
     public class Energy_Bar : ScriptableHud
     {
+        public float Shield_Display_Value;
+
         public Text Shield_Integrity_Numeric_Readout;
         public Image Energy_Bar_Image;
         public Image Energy_Bar_Background_Image;
@@ -1689,26 +2539,35 @@ namespace ClassLibrary1HUD
         {
             base.Update();
 
+            if (Hud.ShieldDisplayMode == EShieldDisplayMode.Percentage)
+            {
+                Shield_Display_Value = TargetShip.ShieldIntegrity;
+            }
+            else
+            {
+                Shield_Display_Value = TargetShip.ShieldIntegrity / TargetShip.Settings.DAMAGE_MULT;
+            }
+
             Energy_Bar_Image.fillAmount = TargetShip.ShieldIntegrity * 0.01f;
             switch (VanillaPlusHUDOptions.ModMenuOptions.EnergyBarReadoutDecimalPrecision)
             {
                 case 0:
-                    Shield_Integrity_Numeric_Readout.text = TargetShip.ShieldIntegrity.ToString();
+                    Shield_Integrity_Numeric_Readout.text = Shield_Display_Value.ToString();
                     break;
                 case 1:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N4}", TargetShip.ShieldIntegrity);
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N4}", Shield_Display_Value);
                     break;
                 case 2:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N3}", TargetShip.ShieldIntegrity);
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N3}", Shield_Display_Value);
                     break;
                 case 3:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N2}", TargetShip.ShieldIntegrity);
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N2}", Shield_Display_Value);
                     break;
                 case 4:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N1}", TargetShip.ShieldIntegrity);
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N1}", Shield_Display_Value);
                     break;
                 case 5:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N0}", TargetShip.ShieldIntegrity);
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N0}", Shield_Display_Value);
                     break;
             }
 
@@ -2386,32 +3245,26 @@ namespace ClassLibrary1HUD
             //if (Cheats.ModernPhysics && (!TargetShip.OnMaglock || !TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent)
             if (!TargetShip.OnMaglock && !TargetShip.CurrentSection.NoTiltLock) //2280 TILT LOCK BEHAVIOR
             {
+                Tiltlock_Maglocked_Interpolation_Ratio = 0f;
 
-                if (!TargetShip.CamSim.LookingBehind)
-                {
-                    Tiltlock_Maglocked_Interpolation_Ratio = 0f;
+                Tiltlock_Non_Maglocked_Interpolation_Ratio += Time.deltaTime;
 
-                    Tiltlock_Non_Maglocked_Interpolation_Ratio += Time.deltaTime;
+                Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(TargetShip.ShipCamera.transform.rotation, Tilt_Lock_Rotation_Quaternion, Tiltlock_Non_Maglocked_Interpolation_Ratio);
 
-                    Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(TargetShip.ShipCamera.transform.rotation, Tilt_Lock_Rotation_Quaternion, Tiltlock_Non_Maglocked_Interpolation_Ratio);
-                }
+                TargetShip.ShipCamera.transform.rotation = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Target_Tilt_Lock_Rotation_Quaternion.eulerAngles.z);
             }
 
             //else if (Cheats.ModernPhysics && (TargetShip.OnMaglock || TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent) //2280 TILT LOCK BEHAVIOR ON SECTIONS WITH NOTILTLOCK OR ON MAGLOCK SECTIONS/TRACKS THAT FORCE FLOORHUGGER
             else if (TargetShip.OnMaglock || TargetShip.CurrentSection.NoTiltLock) //2280 TILT LOCK BEHAVIOR ON SECTIONS WITH NOTILTLOCK OR ON MAGLOCK SECTIONS/TRACKS THAT FORCE FLOORHUGGER
             {
+                Tiltlock_Non_Maglocked_Interpolation_Ratio = 0f;
 
-                if (!TargetShip.CamSim.LookingBehind)
-                {
-                    Tiltlock_Non_Maglocked_Interpolation_Ratio = 0f;
+                Tiltlock_Maglocked_Interpolation_Ratio += Time.deltaTime * Rotation_Time;
 
-                    Tiltlock_Maglocked_Interpolation_Ratio += Time.deltaTime * Rotation_Time;
+                Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(Tilt_Lock_Rotation_Quaternion, Quaternion.Euler(transform.InverseTransformDirection(TargetShip.ShipCamera.transform.rotation.eulerAngles)), Tiltlock_Maglocked_Interpolation_Ratio);
 
-                    Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(Tilt_Lock_Rotation_Quaternion, Quaternion.Euler(transform.InverseTransformDirection(TargetShip.ShipCamera.transform.rotation.eulerAngles)), Tiltlock_Maglocked_Interpolation_Ratio);
-                }
-            }
-
-            TargetShip.ShipCamera.transform.rotation = Target_Tilt_Lock_Rotation_Quaternion;
+                TargetShip.ShipCamera.transform.rotation = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Target_Tilt_Lock_Rotation_Quaternion.eulerAngles.z);
+            }            
         }
 
         public void Pseudohugger()
@@ -2478,6 +3331,8 @@ namespace ClassLibrary1HUD
 
             if (TargetShip.CamSim.CameraMode == 3 && !TargetShip.FinishedEvent)
             {
+                TargetShip.Settings.REF_SHIELD.transform.localPosition = Vector3.up * ((TargetShip.ShipToShipCollider.size.y / 2f) - 0.085f);
+
                 if ((Cheats.IntFromPhysicsMod() == 1))
                 {
                     //RAISED COCKPIT CAMERA
@@ -2533,6 +3388,10 @@ namespace ClassLibrary1HUD
                     }
                 }
             }
+            else
+            {
+                TargetShip.Settings.REF_SHIELD.transform.localPosition = Vector3.zero;
+            }
         }
     }
 
@@ -2553,19 +3412,25 @@ namespace ClassLibrary1HUD
             Final_Lap_Warning_Text.enabled = false;
             Tremor_Warning_Text.enabled = false;
             Hunter_Warning_Text.enabled = false;
+
+            NgUiEvents.OnTriggerMessage += FinalLapWarning;
+        }
+
+        public override void OnDestroy()
+        {
+            NgUiEvents.OnTriggerMessage -= FinalLapWarning;
+        }
+
+        public void FinalLapWarning(string message, ShipController ship, Color color)
+        {
+            if (message == "FINAL LAP" && VanillaPlusHUDOptions.ModMenuOptions.FinalLapWarningToggle)
+            {
+                Final_Lap_Warning_Text.enabled = true;
+            }            
         }
 
         public override void Update()
         {
-            if (TargetShip.CurrentLap == Race.MaxLaps && VanillaPlusHUDOptions.ModMenuOptions.FinalLapWarningToggle)
-            {
-                Final_Lap_Warning_Text.enabled = true;
-            }
-            else
-            {
-                Final_Lap_Warning_Text.enabled = false;
-            }
-
             if (Race.QuakeExists && NgPickups.Physical.Tremor.Instance.Owner != TargetShip && VanillaPlusHUDOptions.ModMenuOptions.TremorWarningToggle)
             {
                 Tremor_Warning_Text.enabled = true;
@@ -2645,6 +3510,814 @@ namespace ClassLibrary1HUD
 
             Overtake_Warning_Pipper_Image.rectTransform.anchoredPosition = Vector2.Lerp(Pipper_Left_Position, Pipper_Right_Position, ((Mathf.Clamp(Lateral_Offset_Float, -4f, 4f) + 4f) / 8f));
             Overtake_Warning_Pipper_Image.fillAmount = ((1f - (Mathf.Clamp(Longitudinal_Offset_Float, 0f, 25f) * 0.04f)));
+        }
+    }
+
+    public class Speedlap_And_Precision : ScriptableHud
+    {
+        public Image Speedlap_Best_Field;
+        public Image Speedlap_Best_Accent;
+        public Image Speedlap_Time_Field;
+        public Image Speedlap_Time_Accent;
+        public Text Speedlap_Best_Name;
+        public Text Speedlap_Best_Readout;
+        public Text Speedlap_Time_Name;
+        public Text Speedlap_Time_Readout;
+
+        public float Speedlap_Best_Time_Milliseconds;
+        public string Speedlap_Best_Time_Units;
+
+        public float Speedlap_Time_Milliseconds;
+        public string Speedlap_Time_Units;
+
+        public override void Start()
+        {
+            base.Start();
+
+            Speedlap_Best_Field = CustomComponents.GetById<Image>("SpeedlapBestField");
+            Speedlap_Best_Accent = CustomComponents.GetById<Image>("SpeedlapBestAccent");
+            Speedlap_Time_Field = CustomComponents.GetById<Image>("SpeedlapTimeField");
+            Speedlap_Time_Accent = CustomComponents.GetById<Image>("SpeedlapTimeAccent");
+            Speedlap_Best_Name = CustomComponents.GetById<Text>("SpeedlapBestName");
+            Speedlap_Best_Readout = CustomComponents.GetById<Text>("SpeedlapBestReadout");
+            Speedlap_Time_Name = CustomComponents.GetById<Text>("SpeedlapTimeName");
+            Speedlap_Time_Readout = CustomComponents.GetById<Text>("SpeedlapTimeReadout");
+
+            Speedlap_Best_Readout.text = "–:––.––";
+            Speedlap_Time_Readout.text = "–:––.––";
+
+        }
+
+        public override void Update()
+        {
+            base.Update();
+            
+            if (TargetShip.BestLapTime != 0f)
+            {
+                Speedlap_Best_Time_Milliseconds = TargetShip.BestLapTime;
+                Speedlap_Best_Time_Units = FloatToTime.Convert(Speedlap_Best_Time_Milliseconds, "0:00.00");
+            }
+            else
+            {
+                Speedlap_Best_Time_Units = "–:––.––";
+            }
+
+            Speedlap_Best_Readout.text = Speedlap_Best_Time_Units;
+
+            Speedlap_Time_Readout.text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00");
+        }
+    }
+
+    public class Survival : ScriptableHud
+    {
+        public Text Zone_Number;
+        public Text Zone_Name;
+        public Text Zone_Score;
+        public Image Zone_Progress_Diamonds_Background;
+        public Image Diamond_1;
+        public Image Diamond_2;
+        public Image Diamond_3;
+        public Image Diamond_4;
+        public Image Diamond_5;
+        public Image Diamond_6;
+        public Image Diamond_7;
+        public Image Diamond_8;
+        public Image Diamond_9;
+        public Image Diamond_10;
+        public Image Diamond_11;
+        public Image Diamond_12;
+        public Image Diamond_13;
+        public Image Diamond_14;
+        public Image Diamond_15;
+        public Text Perfect_Zone;
+
+        public Vector4 Default_Zone_Number_Color;
+        public Vector4 Default_Zone_Name_Color;
+        public Vector4 Default_Zone_Score_Color;
+
+        public Image[] Zone_Diamonds;
+
+        public float Zone_Progress;
+
+        public int Zone_Diamond_Index;
+
+        public Vector4 Green_Diamond_Color;
+        public Vector4 Red_Diamond_Color;
+        public Vector4 Blue_Diamond_Color;
+        public Vector4 Diamond_Target_Color;
+
+        public override void Start()
+        {
+            base.Start();
+
+            Zone_Number = CustomComponents.GetById<Text>("ZoneNumber");
+            Zone_Name = CustomComponents.GetById<Text>("ZoneName");
+            Zone_Score = CustomComponents.GetById<Text>("ZoneScore");
+            Diamond_1 = CustomComponents.GetById<Image>("Diamond 1");
+            Diamond_2 = CustomComponents.GetById<Image>("Diamond 2");
+            Diamond_3 = CustomComponents.GetById<Image>("Diamond 3");
+            Diamond_4 = CustomComponents.GetById<Image>("Diamond 4");
+            Diamond_5 = CustomComponents.GetById<Image>("Diamond 5");
+            Diamond_6 = CustomComponents.GetById<Image>("Diamond 6");
+            Diamond_7 = CustomComponents.GetById<Image>("Diamond 7");
+            Diamond_8 = CustomComponents.GetById<Image>("Diamond 8");
+            Diamond_9 = CustomComponents.GetById<Image>("Diamond 9");
+            Diamond_10 = CustomComponents.GetById<Image>("Diamond 10");
+            Diamond_11 = CustomComponents.GetById<Image>("Diamond 11");
+            Diamond_12 = CustomComponents.GetById<Image>("Diamond 12");
+            Diamond_13 = CustomComponents.GetById<Image>("Diamond 13");
+            Diamond_14 = CustomComponents.GetById<Image>("Diamond 14");
+            Diamond_15 = CustomComponents.GetById<Image>("Diamond 15");
+            Perfect_Zone = CustomComponents.GetById<Text>("PerfectZone");
+
+            Default_Zone_Number_Color = Zone_Number.color;
+            Default_Zone_Name_Color = Zone_Name.color;
+            Default_Zone_Score_Color = Zone_Score.color;
+
+            Green_Diamond_Color = Diamond_1.color;
+            Red_Diamond_Color = Diamond_6.color;
+            Blue_Diamond_Color = Diamond_11.color;
+
+            Perfect_Zone.enabled = true;
+
+            NgUiEvents.OnZoneTitleUpdate += ZoneTitle;
+            NgUiEvents.OnZoneProgressUpdate += ZoneProgress;
+
+            Zone_Number.text = "0";
+            Zone_Name.text = "TOXIC";
+            Zone_Score.text = "0";
+
+            Zone_Diamonds = new Image[] { Diamond_1, Diamond_2, Diamond_3, Diamond_4, Diamond_5, Diamond_6, Diamond_7, Diamond_8, Diamond_9, Diamond_10, Diamond_11, Diamond_12, Diamond_13, Diamond_14, Diamond_15 };
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            Zone_Diamond_Index = (int)(Zone_Progress * 15f);
+
+            if (Zone_Progress >= (59f / 60f))
+            {
+                Diamond_15.color = Blue_Diamond_Color;
+            }
+
+            if (Zone_Progress <= 0.4f)
+            {
+                Diamond_Target_Color = Green_Diamond_Color;
+            }
+            else if (0.4f < Zone_Progress && Zone_Progress <= (11/15f))
+            {
+                Diamond_Target_Color = Red_Diamond_Color;
+            }
+            else if ((11 / 15f) < Zone_Progress && Zone_Progress <= 1f)
+            {
+                Diamond_Target_Color = Blue_Diamond_Color;
+            }
+
+            if ((Zone_Diamond_Index - 1) < 0)
+            {
+                Diamond_1.color = Color.white;
+                Diamond_2.color = Color.white;
+                Diamond_3.color = Color.white;
+                Diamond_4.color = Color.white;
+                Diamond_5.color = Color.white;
+                Diamond_6.color = Color.white;
+                Diamond_7.color = Color.white;
+                Diamond_8.color = Color.white;
+                Diamond_9.color = Color.white;
+                Diamond_10.color = Color.white;
+                Diamond_11.color = Color.white;
+                Diamond_12.color = Color.white;
+                Diamond_13.color = Color.white;
+                Diamond_14.color = Color.white;
+                Diamond_15.color = Color.white;
+            }
+            else
+            {
+                Zone_Diamonds[Zone_Diamond_Index - 1].color = Diamond_Target_Color;
+            }
+
+            Zone_Number.text = GmSurvivalBackend.Instance.zone.ToString();
+            Zone_Score.text = GmSurvivalBackend.Instance.zoneScore.ToString("N0");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.UseZoneColorsToggle == true)
+            {
+                Zone_Number.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackIllumColor;
+
+                if (NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentColor.maxColorComponent > NgVirtual.ZonePalleteSettings.CurrentColors.TrackFogColor.maxColorComponent)
+                {
+                    Zone_Name.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentColor;
+                }
+                else
+                {
+                    Zone_Name.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackFogColor;
+                }
+                
+                Zone_Score.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentDetailsColor;
+                //Zone_Number.color = TargetShip.ZoneColorController.Colors.TrackIllumColor;
+                //Zone_Name.color = TargetShip.ZoneColorController.Colors.EnvironmentDetailsColor;
+                //Zone_Score.color = TargetShip.ZoneColorController.Colors.EqColor;
+            }
+            else
+            {
+                //set back to initial default colors
+                Zone_Number.color = Default_Zone_Number_Color;
+                Zone_Name.color = Default_Zone_Name_Color;
+                Zone_Score.color = Default_Zone_Score_Color;
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.PerfectZoneWarningToggle == true)
+            {
+                Perfect_Zone.enabled = GmSurvivalBackend.Instance.perfectZone;
+            }
+            else
+            {
+                Perfect_Zone.enabled = false;
+            }
+        }
+
+        public void ZoneProgress(float progress)
+        {
+            Zone_Progress = progress;
+        }
+
+        public void ZoneTitle(string value)
+        {
+            Zone_Name.text = value;
+        }
+    }
+
+    public class Upsurge : ScriptableHud
+    {
+        public Image Upsurge_Zone_Buildup_Bar_Background;
+        public Image Stored_Shield_Charge_Bar_Background;
+        public Image Stored_Zones_Bar_Background;
+
+        public Image Upsurge_Zone_Buildup_Bar;
+        public Image Stored_Shield_Charge_Bar;
+        public Image Stored_Zones_Bar;
+
+        public Text Zones_Full_Warning;
+        public Text Target_Attainable_Warning;
+
+        public Image Barrier_Warn_Left;
+        public Image Barrier_Warn_Right;
+        public Image Barrier_Warn_Center;
+        public int Barrier_Warning_Side_Index;
+        public Image[] Barrier_Warning_Images;
+
+        public Image Zone_Count_Background;
+        public Image Zone_Label_Background;
+
+        public Image Shield_Charge_Background;
+        public Image Shield_Label_Background;
+
+        public Text Zone_Count;
+        public Text Zone_Label;
+
+        public Text Shield_Charge;
+        public Text Shield_Label;
+
+        public Text Barrier_Zone_Count;
+
+        public GmUpsurge Upsurge_Gamemode_Instance;
+        public UpsurgeShip Upsurge_Ship_Instance;
+
+        public float Buildup_Bar_Target_Fill_Amount;
+        public float Stored_Shield_Bar_Target_Fill_Amount;
+        public float Stored_Zones_Bar_Target_Fill_Amount;
+
+        public float Buildup_Bar_Previous_Fill_Amount;
+        public float Stored_Shield_Bar_Previous_Fill_Amount;
+        public float Stored_Zones_Bar_Previous_Fill_Amount;
+
+        public float Buildup_Bar_Interpolation_Ratio;
+        public float Stored_Shield_Bar_Interpolation_Ratio;
+        public float Stored_Zones_Bar_Interpolation_Ratio;
+        public float Buildup_Bar_Bleedthrough_Interpolation_Ratio;
+
+        public Vector4 Default_Buildup_Bar_Background_Color;
+        public Vector4 Default_Buildup_Bar_Color;
+        public Vector4 Default_Stored_Shield_Bar_Background_Color;
+        public Vector4 Default_Stored_Shield_Bar_Color;
+        public Vector4 Default_Stored_Zones_Bar_Background_Color;
+        public Vector4 Default_Stored_Zones_Bar_Color;
+        public Vector4 Default_Zone_Count_Background_Color;
+        public Vector4 Default_Zone_Count_Color;
+        public Vector4 Default_Shield_Charge_Background_Color;
+        public Vector4 Default_Shield_Charge_Color;
+        public Vector4 Default_Zone_Label_Background_Color;
+        public Vector4 Default_Zone_Label_Color;
+        public Vector4 Default_Shield_Label_Background_Color;
+        public Vector4 Default_Shield_Label_Color;
+
+        public static readonly Vector2 Raised_Barrier_Warning_Adjust_Vector = new Vector2(0, 816);
+        public Vector2 Lowered_Barrier_Left_Warning_Starting_Position_Vector;
+        public Vector2 Lowered_Barrier_Center_Warning_Starting_Position_Vector;
+        public Vector2 Lowered_Barrier_Right_Warning_Starting_Position_Vector;
+        public Vector2 Lowered_Barrier_Zone_Count_Starting_Position_Vector;
+
+        public override void Start()
+        {
+            base.Start();         
+
+            Upsurge_Zone_Buildup_Bar_Background = CustomComponents.GetById<Image>("UpsurgeZoneBuildupBarBackground");
+            Stored_Shield_Charge_Bar_Background = CustomComponents.GetById<Image>("StoredShieldChargeBarBackground");
+            Stored_Zones_Bar_Background = CustomComponents.GetById<Image>("StoredZonesBarBackground");
+            Default_Buildup_Bar_Background_Color = Upsurge_Zone_Buildup_Bar_Background.color;
+            Default_Shield_Charge_Background_Color = Stored_Shield_Charge_Bar_Background.color;
+            Default_Stored_Zones_Bar_Background_Color = Stored_Zones_Bar_Background.color;
+            Default_Stored_Shield_Bar_Background_Color = Stored_Shield_Charge_Bar_Background.color;
+
+            Upsurge_Zone_Buildup_Bar = CustomComponents.GetById<Image>("UpsurgeZoneBuildupBar");
+            Stored_Shield_Charge_Bar = CustomComponents.GetById<Image>("StoredShieldChargeBar");
+            Stored_Zones_Bar = CustomComponents.GetById<Image>("StoredZonesBar");
+            Default_Buildup_Bar_Color = Upsurge_Zone_Buildup_Bar.color;
+            Default_Stored_Shield_Bar_Color = Stored_Shield_Charge_Bar.color;
+            Default_Stored_Zones_Bar_Color = Stored_Zones_Bar.color;
+
+            Zones_Full_Warning = CustomComponents.GetById<Text>("ZonesFullWarning");
+            Target_Attainable_Warning = CustomComponents.GetById<Text>("TargetAttainableWarning");
+
+            Zones_Full_Warning.enabled = false;
+            Target_Attainable_Warning.enabled = false;
+
+            Barrier_Warn_Left = CustomComponents.GetById<Image>("BarrierWarnLeft");
+            Barrier_Warn_Right = CustomComponents.GetById<Image>("BarrierWarnRight");
+            Barrier_Warn_Center = CustomComponents.GetById<Image>("BarrierWarnCenter");
+
+            Lowered_Barrier_Left_Warning_Starting_Position_Vector = Barrier_Warn_Left.rectTransform.anchoredPosition;
+            Lowered_Barrier_Center_Warning_Starting_Position_Vector = Barrier_Warn_Center.rectTransform.anchoredPosition;
+            Lowered_Barrier_Right_Warning_Starting_Position_Vector = Barrier_Warn_Right.rectTransform.anchoredPosition;
+
+            Zone_Count_Background = CustomComponents.GetById<Image>("ZoneCountBackground");
+            Zone_Label_Background = CustomComponents.GetById<Image>("ZoneLabelBackground");
+            Default_Zone_Count_Background_Color = Zone_Count_Background.color;
+            Default_Zone_Label_Background_Color = Zone_Label_Background.color;
+
+            Shield_Charge_Background = CustomComponents.GetById<Image>("ShieldChargeBackground");
+            Shield_Label_Background = CustomComponents.GetById<Image>("ShieldLabelBackground");
+            Default_Shield_Charge_Background_Color = Shield_Charge_Background.color;
+            Default_Shield_Label_Background_Color = Shield_Label_Background.color;
+
+            Zone_Count = CustomComponents.GetById<Text>("ZoneCount");
+            Zone_Label = CustomComponents.GetById<Text>("ZoneLabel");
+            Default_Zone_Count_Color = Zone_Count.color;
+            Default_Zone_Label_Color = Zone_Label.color;
+
+            Shield_Charge = CustomComponents.GetById<Text>("ShieldCharge");
+            Shield_Label = CustomComponents.GetById<Text>("ShieldLabel");
+            Default_Shield_Charge_Color = Shield_Charge.color;
+            Default_Shield_Label_Color = Shield_Label.color;
+
+            Barrier_Zone_Count = CustomComponents.GetById<Text>("BarrierZoneCount");
+            Lowered_Barrier_Zone_Count_Starting_Position_Vector = Barrier_Zone_Count.rectTransform.anchoredPosition;
+
+            Barrier_Warning_Images = new Image[] { Barrier_Warn_Left, Barrier_Warn_Center, Barrier_Warn_Right };
+
+            NgPickups.Physical.Barrier.OnPlayerBarrierWarned += BarrierWarning;
+            //NgPickups.Physical.Barrier.OnAiBarrierWarned += BarrierWarning;
+
+            Upsurge_Zone_Buildup_Bar.fillAmount = 0f;
+            Stored_Shield_Charge_Bar.fillAmount = 0f;
+            Stored_Zones_Bar.fillAmount = 0f;
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.LoweredBarrierWarningToggle == false)
+            {
+                Barrier_Zone_Count.rectTransform.anchoredPosition = Lowered_Barrier_Zone_Count_Starting_Position_Vector + Raised_Barrier_Warning_Adjust_Vector;
+                Barrier_Warning_Images[0].rectTransform.anchoredPosition = Lowered_Barrier_Left_Warning_Starting_Position_Vector + Raised_Barrier_Warning_Adjust_Vector;
+                Barrier_Warning_Images[1].rectTransform.anchoredPosition = Lowered_Barrier_Center_Warning_Starting_Position_Vector + Raised_Barrier_Warning_Adjust_Vector;
+                Barrier_Warning_Images[2].rectTransform.anchoredPosition = Lowered_Barrier_Right_Warning_Starting_Position_Vector + Raised_Barrier_Warning_Adjust_Vector;
+            }
+        }
+
+        public override void OnDestroy()
+        {
+            NgPickups.Physical.Barrier.OnPlayerBarrierWarned -= BarrierWarning;
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            Upsurge_Gamemode_Instance = RaceManager.CurrentGamemode as GmUpsurge;
+
+            if (Upsurge_Ship_Instance == null)
+            {
+                foreach (UpsurgeShip upsurgeShip in Upsurge_Gamemode_Instance.Ships)
+                {
+                    if (upsurgeShip.TargetShip == TargetShip)
+                    {
+                        Upsurge_Ship_Instance = upsurgeShip;
+                    }
+                }
+            }
+
+            Zone_Count.text = "+" + Upsurge_Ship_Instance.BuiltZones.ToString();
+            Shield_Charge.text = "+" + (Mathf.Clamp((Upsurge_Ship_Instance.BuiltZones * 20), 0, 100)).ToString();
+            Barrier_Zone_Count.text = Upsurge_Ship_Instance.CurrentZone.ToString();
+
+            Stored_Zones_Bar_Target_Fill_Amount = (Upsurge_Ship_Instance.BuiltZones / 10f);
+            Stored_Shield_Bar_Target_Fill_Amount = ((Mathf.Clamp((Upsurge_Ship_Instance.BuiltZones * 20), 0, 100)) / 100f);
+            Buildup_Bar_Target_Fill_Amount = (Upsurge_Ship_Instance.ZoneTime / 5f);
+
+            if (Stored_Zones_Bar_Target_Fill_Amount > Stored_Zones_Bar_Previous_Fill_Amount)
+            {
+                Stored_Zones_Bar_Interpolation_Ratio += Time.deltaTime;
+                Stored_Zones_Bar.fillAmount = Mathf.Lerp(Stored_Zones_Bar_Previous_Fill_Amount, Stored_Zones_Bar_Target_Fill_Amount, Stored_Zones_Bar_Interpolation_Ratio);
+            }
+            else
+            {
+                Stored_Zones_Bar_Interpolation_Ratio = 0f;
+                if ((Upsurge_Ship_Instance.BuiltZones / 10f) < Stored_Zones_Bar.fillAmount)
+                {
+                    Stored_Zones_Bar.fillAmount = (Upsurge_Ship_Instance.BuiltZones / 10f);
+                }
+            }
+
+            if (Stored_Shield_Bar_Target_Fill_Amount > Stored_Shield_Bar_Previous_Fill_Amount)
+            {
+                Stored_Shield_Bar_Interpolation_Ratio += Time.deltaTime;
+                Stored_Shield_Charge_Bar.fillAmount = Mathf.Lerp(Stored_Shield_Bar_Previous_Fill_Amount, Stored_Shield_Bar_Target_Fill_Amount, Stored_Shield_Bar_Interpolation_Ratio);
+            }
+            else
+            {
+                Stored_Shield_Bar_Interpolation_Ratio = 0f;
+                if (((Mathf.Clamp((Upsurge_Ship_Instance.BuiltZones * 20), 0, 100)) / 100f) < Stored_Shield_Charge_Bar.fillAmount)
+                {
+                    Stored_Shield_Charge_Bar.fillAmount = ((Mathf.Clamp((Upsurge_Ship_Instance.BuiltZones * 20), 0, 100)) / 100f);
+                }
+            }
+
+            if (Buildup_Bar_Target_Fill_Amount > Buildup_Bar_Previous_Fill_Amount)
+            {
+                Buildup_Bar_Interpolation_Ratio += Time.deltaTime;
+                Upsurge_Zone_Buildup_Bar.fillAmount = Mathf.Lerp(Buildup_Bar_Previous_Fill_Amount, Buildup_Bar_Target_Fill_Amount, Buildup_Bar_Interpolation_Ratio);
+            }
+            else
+            {
+                if (Upsurge_Ship_Instance.ZoneTime == 0f)
+                {
+                    Upsurge_Zone_Buildup_Bar.fillAmount = 0f;
+                }
+                Buildup_Bar_Interpolation_Ratio = 0f;
+                Buildup_Bar_Bleedthrough_Interpolation_Ratio = 0f;
+            }
+
+            Stored_Zones_Bar_Previous_Fill_Amount = Stored_Zones_Bar.fillAmount;
+            Stored_Shield_Bar_Previous_Fill_Amount = Stored_Shield_Charge_Bar.fillAmount;
+            Buildup_Bar_Previous_Fill_Amount = Upsurge_Zone_Buildup_Bar.fillAmount;
+
+            if (Upsurge_Ship_Instance.BuiltZones == 10 && VanillaPlusHUDOptions.ModMenuOptions.ZonesFullWarningToggle == true)
+            {
+                Zones_Full_Warning.enabled = true;
+            }
+            else
+            {
+                Zones_Full_Warning.enabled = false;
+            }
+
+            if ((Upsurge_Ship_Instance.CurrentZone + Upsurge_Ship_Instance.BuiltZones) >= Upsurge_Ship_Instance.Target && VanillaPlusHUDOptions.ModMenuOptions.TargetAttainableWarningToggle == true)
+            {
+                Target_Attainable_Warning.enabled = true;
+            }
+            else
+            {
+                Target_Attainable_Warning.enabled = false;
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.UseUpsurgeColorsToggle == true)
+            {
+                Zone_Label_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackIllumColor;
+                Zone_Count_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackIllumColor;
+                Zone_Label.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackColor;
+                Zone_Count.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackColor;
+
+                Shield_Charge_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.EqBackgroundColor;
+                Shield_Label_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.EqBackgroundColor;
+                Shield_Charge.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentDetailsColor;
+                Shield_Label.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentDetailsColor;
+
+                Upsurge_Zone_Buildup_Bar_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackIllumColor; //Bottom bar, where shield/energy normally are
+                Upsurge_Zone_Buildup_Bar.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentColor;
+
+                Stored_Zones_Bar_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackColor; //Top bar
+                Stored_Zones_Bar.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackIllumColor;
+
+                Stored_Shield_Charge_Bar_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentDetailsColor;//Middle bar
+                Stored_Shield_Charge_Bar.color = NgVirtual.ZonePalleteSettings.CurrentColors.EqBackgroundColor;
+            }
+            else
+            {
+                //set back to initial default colors
+                Zone_Label_Background.color = Default_Zone_Label_Background_Color;
+                Zone_Count_Background.color = Default_Zone_Count_Background_Color;
+                Zone_Label.color = Default_Zone_Label_Color;
+                Zone_Count.color = Default_Zone_Count_Color;
+
+                Shield_Charge_Background.color = Default_Shield_Charge_Background_Color;
+                Shield_Label_Background.color = Default_Shield_Label_Background_Color;
+                Shield_Charge.color = Default_Shield_Charge_Color;
+                Shield_Label.color = Default_Shield_Label_Color;
+
+                Upsurge_Zone_Buildup_Bar_Background.color = Default_Buildup_Bar_Background_Color; //Bottom bar, where shield/energy normally are
+                Upsurge_Zone_Buildup_Bar.color = Default_Buildup_Bar_Color;
+
+                Stored_Zones_Bar_Background.color = Default_Stored_Zones_Bar_Background_Color; //Top bar
+                Stored_Zones_Bar.color = Default_Stored_Zones_Bar_Color;
+
+                Stored_Shield_Charge_Bar_Background.color = Default_Stored_Shield_Bar_Background_Color;//Middle bar
+                Stored_Shield_Charge_Bar.color = Default_Stored_Shield_Bar_Color;
+            }
+        }
+
+        public void BarrierWarning(ShipController ship, NgPickups.Physical.Barrier barrier, int trackSide)
+        {
+            Barrier_Warning_Side_Index = trackSide + 1;
+            StartCoroutine(Barrier_Warning_Flasher());
+        }
+
+        IEnumerator Barrier_Warning_Flasher()
+        {
+            int Barrier_Side = Barrier_Warning_Side_Index;
+            float Barrier_Warning_Start_Time = Time.time;
+            float Barrier_Warning_End_Time = Barrier_Warning_Start_Time + 2.375f;
+
+            float Barrier_Flash_On_1 = Barrier_Warning_Start_Time + 0.125f;
+            float Barrier_Flash_Off_1 = Barrier_Warning_Start_Time + 0.25f;
+            float Barrier_Flash_On_2 = Barrier_Warning_Start_Time + 0.375f;
+            float Barrier_Flash_Off_2 = Barrier_Warning_Start_Time + 0.5f;
+            float Barrier_Flash_On_3 = Barrier_Warning_Start_Time + 0.625f;
+            float Barrier_Flash_Off_3 = Barrier_Warning_Start_Time + 0.75f;
+            float Barrier_Flash_On_4 = Barrier_Warning_Start_Time + 0.875f;
+            float Barrier_Flash_Off_4 = Barrier_Warning_Start_Time + 1f;
+            float Barrier_Flash_On_5 = Barrier_Warning_Start_Time + 1.125f;
+            float Barrier_Flash_Off_5 = Barrier_Warning_Start_Time + 1.25f;
+            float Barrier_Flash_On_6 = Barrier_Warning_Start_Time + 1.375f;
+            float Barrier_Flash_Off_6 = Barrier_Warning_Start_Time + 1.5f;
+            float Barrier_Flash_On_7 = Barrier_Warning_Start_Time + 1.625f;
+            float Barrier_Flash_Off_7 = Barrier_Warning_Start_Time + 1.75f;
+            float Barrier_Flash_On_8 = Barrier_Warning_Start_Time + 1.875f;
+            float Barrier_Flash_Off_8 = Barrier_Warning_Start_Time + 2f;
+            float Barrier_Flash_On_9 = Barrier_Warning_Start_Time + 2.125f;
+            float Barrier_Flash_Off_9 = Barrier_Warning_Start_Time + 2.25f;
+            float Barrier_Flash_On_10 = Barrier_Warning_End_Time;            
+
+            while (Time.time < Barrier_Warning_End_Time)
+            {
+                //START
+                if (Barrier_Warning_Start_Time < Time.time && Time.time <= Barrier_Flash_On_1)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                }
+                if (Barrier_Flash_On_1 < Time.time && Time.time <= Barrier_Flash_Off_1)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
+                }
+                if (Barrier_Flash_Off_1 < Time.time && Time.time <= Barrier_Flash_On_2)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                }
+                if (Barrier_Flash_On_2 < Time.time && Time.time <= Barrier_Flash_Off_2)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
+                }
+                if (Barrier_Flash_Off_2 < Time.time && Time.time <= Barrier_Flash_On_3)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                }
+                if (Barrier_Flash_On_3 < Time.time && Time.time <= Barrier_Flash_Off_3)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
+                }
+
+                if (Barrier_Flash_Off_3 < Time.time && Time.time <= Barrier_Flash_On_4)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                }
+
+                if (Barrier_Flash_On_4 < Time.time && Time.time <= Barrier_Flash_Off_4)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
+                }
+
+                if (Barrier_Flash_Off_4 < Time.time && Time.time <= Barrier_Flash_On_5)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                }
+
+                if (Barrier_Flash_On_5 < Time.time && Time.time <= Barrier_Flash_Off_5)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
+                }
+
+                if (Barrier_Flash_Off_5 < Time.time && Time.time <= Barrier_Flash_On_6)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                }
+
+                if (Barrier_Flash_On_6 < Time.time && Time.time <= Barrier_Flash_Off_6)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
+                }
+
+                if (Barrier_Flash_Off_6 < Time.time && Time.time <= Barrier_Flash_On_7)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                }
+
+                if (Barrier_Flash_On_7 < Time.time && Time.time <= Barrier_Flash_Off_7)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
+                }
+
+                if (Barrier_Flash_Off_7 < Time.time && Time.time <= Barrier_Flash_On_8)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                }
+
+                if (Barrier_Flash_On_8 < Time.time && Time.time <= Barrier_Flash_Off_8)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
+                }
+
+                if (Barrier_Flash_Off_8 < Time.time && Time.time <= Barrier_Flash_On_9)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                }
+
+                if (Barrier_Flash_On_9 < Time.time && Time.time <= Barrier_Flash_Off_9)
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
+                }
+
+                if (Barrier_Flash_Off_9 < Time.time && Time.time <= Barrier_Flash_On_10) //FINAL RED FLASH
+                {
+                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                }
+                yield return null;
+            }
+            Barrier_Warning_Images[Barrier_Side].color = Color.white;
+        }    
+    }
+
+    public class Stunt : ScriptableHud
+    {
+        public static readonly Vector4 Ballistic_NG_Orange = new Vector4(1f, (173f / 255f), 0f, 1f);
+
+        public Image Stunt_Score_Field;
+        public Image Stunt_Score_Accent;
+        public Text Stunt_Score_Name;
+        public Text Stunt_Score_Readout;
+
+        public Image Stunt_Score_Best_Field;
+        public Image Stunt_Score_Best_Accent;
+        public Text Stunt_Score_Best_Name;
+        public Text Stunt_Score_Best_Readout;
+
+        public Text Stunt_Height_Readout;
+        public Text Stunt_Chain_Readout;
+        public Image Stunt_Height_Diamond;
+        public Image Stunt_Chain_Bar_Background;
+        public Image Stunt_Chain_Bar;
+        public Image Roll_Input_Spam_Bar;
+
+        public Text Uplift_Name;
+        public Image Uplift_Bar_Background;
+        public Image Uplift_Bar;
+        public Image Uplift_Pip_1;
+        public Image Uplift_Pip_2;
+        public Image Uplift_Pip_3;
+
+        public GmStunt Stunt_Gamemode_Instance;
+        public StuntPlayer Stunt_Player_Instance;        
+
+        public override void Start()
+        {
+            base.Start();
+
+            Stunt_Score_Field = CustomComponents.GetById<Image>("StuntScoreField");
+            Stunt_Score_Accent = CustomComponents.GetById<Image>("StuntScoreAccent");
+            Stunt_Score_Name = CustomComponents.GetById<Text>("StuntScoreName");
+            Stunt_Score_Readout = CustomComponents.GetById<Text>("StuntScoreReadout");
+
+            Stunt_Score_Best_Field = CustomComponents.GetById<Image>("StuntScoreBestField");
+            Stunt_Score_Best_Accent = CustomComponents.GetById<Image>("StuntScoreBestAccent");
+            Stunt_Score_Best_Name = CustomComponents.GetById<Text>("StuntScoreBestName");
+            Stunt_Score_Best_Readout = CustomComponents.GetById<Text>("StuntScoreBestReadout");
+
+            Stunt_Height_Readout = CustomComponents.GetById<Text>("StuntHeightReadout");
+            Stunt_Chain_Readout = CustomComponents.GetById<Text>("StuntChainReadout");
+            Stunt_Height_Diamond = CustomComponents.GetById<Image>("StuntHeightDiamond");
+            Stunt_Chain_Bar_Background = CustomComponents.GetById<Image>("StuntChainBarBackground");
+            Stunt_Chain_Bar = CustomComponents.GetById<Image>("StuntChainBar");
+            Roll_Input_Spam_Bar = CustomComponents.GetById<Image>("Roll_InputSpamBar");
+
+            Uplift_Name = CustomComponents.GetById<Text>("UpliftName");
+            Uplift_Bar_Background = CustomComponents.GetById<Image>("UpliftBarBackground");
+            Uplift_Bar = CustomComponents.GetById<Image>("UpliftBar");
+            Uplift_Pip_1 = CustomComponents.GetById<Image>("UpliftPip1");
+            Uplift_Pip_2 = CustomComponents.GetById<Image>("UpliftPip2");
+            Uplift_Pip_3 = CustomComponents.GetById<Image>("UpliftPip3");
+
+            Stunt_Score_Readout.text = "0";
+            Stunt_Score_Best_Readout.text = "0";
+
+            NgRaceEvents.OnShipScoreChanged += StuntScore;
+        }
+
+        public override void OnDestroy()
+        {
+            NgRaceEvents.OnShipScoreChanged -= StuntScore;
+        }
+
+        public void StuntScore(ShipController ship, float oldScore, float newScore)
+        {                        
+            Stunt_Score_Readout.text = newScore.ToString("N0");
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            Stunt_Gamemode_Instance = RaceManager.CurrentGamemode as GmStunt;
+
+            if (Stunt_Player_Instance == null)
+            {
+                foreach (StuntPlayer stuntPlayer in Stunt_Gamemode_Instance.Players)
+                {
+                    if (stuntPlayer.R == TargetShip)
+                    {
+                        Stunt_Player_Instance = stuntPlayer;
+                    }
+                }
+            }
+
+            Stunt_Score_Best_Readout.text = Stunt_Gamemode_Instance.BestScore.ToString("N0");
+            Stunt_Chain_Readout.text = "×" + Stunt_Player_Instance.ChainAmount.ToString();
+            if (Stunt_Player_Instance.ChainAmount < 1)
+            {
+                Stunt_Chain_Readout.enabled = false;
+            }
+            else
+            {
+                Stunt_Chain_Readout.enabled = true;
+            }
+
+            if (((TargetShip.InterpolatedSection.InverseTransformPoint(TargetShip.PhysicsPosition).y * 18f) - 6f) <= 0f)
+            {
+                Stunt_Height_Readout.text = "0m";
+            }
+            else
+            {
+                Stunt_Height_Readout.text = string.Format("{0:N0}", ((TargetShip.InterpolatedSection.InverseTransformPoint(TargetShip.PhysicsPosition).y * 18f) - 6f)) + "m";
+            }
+
+            Stunt_Chain_Bar.fillAmount = (Stunt_Player_Instance.ChainTimer / 3f);
+            Roll_Input_Spam_Bar.fillAmount = Stunt_Player_Instance.RollInputCooldown;
+            Uplift_Bar.fillAmount = (TargetShip.ShieldIntegrity / 100f);
+
+            if (TargetShip.ShieldIntegrity >= (100f / 3f))
+            {
+                Uplift_Pip_1.color = Lap_Time_Field.Lap_Diamond_Green;
+            }
+            else
+            {
+                Uplift_Pip_1.color = Lap_Time_Field.Lap_Diamond_Red;
+            }
+
+            if (TargetShip.ShieldIntegrity >= (200f / 3f))
+            {
+                Uplift_Pip_2.color = Lap_Time_Field.Lap_Diamond_Green;
+            }
+            else
+            {
+                Uplift_Pip_2.color = Lap_Time_Field.Lap_Diamond_Red;
+            }
+
+            if (TargetShip.ShieldIntegrity == 100f)
+            {
+                Uplift_Pip_3.color = Lap_Time_Field.Lap_Diamond_Green;
+            }
+            else
+            {
+                Uplift_Pip_3.color = Lap_Time_Field.Lap_Diamond_Red;
+            }
+
+            if (Stunt_Player_Instance.HudShowInput == true)
+            {
+                Stunt_Height_Diamond.color = Ballistic_NG_Orange;
+                Stunt_Height_Readout.color = Ballistic_NG_Orange;
+                Stunt_Chain_Readout.color = Ballistic_NG_Orange;
+                Stunt_Chain_Bar.color = Ballistic_NG_Orange;
+            }
+            else
+            {
+                Stunt_Height_Diamond.color = Color.white;
+                Stunt_Height_Readout.color = Color.white;
+                Stunt_Chain_Readout.color = Color.white;
+                Stunt_Chain_Bar.color = Color.white;
+            }        
         }
     }
 }

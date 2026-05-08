@@ -84,6 +84,14 @@ namespace VanillaPlusHUDOptions
         //public static int ControllerInputType;
         public static bool SkipSongBackwardToggle;
 
+        public static bool UseZoneColorsToggle;
+        public static bool PerfectZoneWarningToggle;
+
+        public static bool LoweredBarrierWarningToggle;
+        public static bool UseUpsurgeColorsToggle;
+        public static bool ZonesFullWarningToggle;
+        public static bool TargetAttainableWarningToggle;
+
         public override void OnRegistered(string ModLocation)
         {
             _configPath = Path.Combine(ModLocation, "config.ini");
@@ -116,6 +124,8 @@ namespace VanillaPlusHUDOptions
             string SelectorCategory8 = "Experimental Camera Adjustments";
             string SelectorCategory9 = "Extra Warnings";
             string SelectorCategory10 = "Overtake Radar";
+            string SelectorCategory11 = "Zone Settings";
+            string SelectorCategory12 = "Upsurge Settings";
 
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "WeaponMirrorPositionSwap_ID",
                 selector =>
@@ -503,6 +513,72 @@ namespace VanillaPlusHUDOptions
                     SkipSongBackwardToggle = selector.ToBool();
                 });
 
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory11, "UseZoneColorsToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Use Zone Colors", "Whether to enable the use of zone colors for the zone score, zone count, and zone title HUD elements.",
+                        UseZoneColorsToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    UseZoneColorsToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory11, "PerfectZoneWarningToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Perfect Zone Warning", "Whether to enable the perfect zone warning. When enabled, perfect zone will be displayed at the bottom of the screen whenever the current zone being progressed through is considered to be a perfect zone.",
+                        PerfectZoneWarningToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    PerfectZoneWarningToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory12, "LoweredBarrierWarningToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Raised Barrier Warning", "Whether to enable the lowering of the barrier warning for upsurge.",
+                        LoweredBarrierWarningToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    LoweredBarrierWarningToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory12, "UseUpsurgeColorsToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Use Upsurge Colors", "Whether to enable the use of upsurge colors for the upsurge display HUD elements.",
+                        UseUpsurgeColorsToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    UseUpsurgeColorsToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory12, "ZonesFullWarningToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Zones Full Warning", "Whether to enable the zones full warning. When enabled, text will be displayed whenever you have a full 10 zones stored.",
+                        ZonesFullWarningToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    ZonesFullWarningToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory12, "TargetAttainableWarningToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Target Attainable Warning", "Whether to enable the target attainable warning. When enabled, text will be displayed in the center of the screen when the Upsurge zone target is attainable.",
+                        TargetAttainableWarningToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    TargetAttainableWarningToggle = selector.ToBool();
+                });
+
         }
 
         //private void GenerateModUi(ModOptionsUiContext ctx)
@@ -626,6 +702,14 @@ namespace VanillaPlusHUDOptions
             //ControllerInputType = ini.ReadValue("Settings", "ControllerInputType_ID", ControllerInputType);
             SkipSongBackwardToggle = ini.ReadValue("Settings", "SkipSongBackwardToggle_ID", SkipSongBackwardToggle);
 
+            UseZoneColorsToggle = ini.ReadValue("Settings", "UseZoneColorsToggle_ID", UseZoneColorsToggle);
+            PerfectZoneWarningToggle = ini.ReadValue("Settings", "PerfectZoneWarningToggle_ID", PerfectZoneWarningToggle);
+
+            //LoweredBarrierWarningToggle = ini.ReadValue("Settings", "LoweredBarrierWarningToggle_ID", LoweredBarrierWarningToggle);
+            UseUpsurgeColorsToggle = ini.ReadValue("Settings", "UseUpsurgeColorsToggle_ID", UseUpsurgeColorsToggle);
+            ZonesFullWarningToggle = ini.ReadValue("Settings", "ZonesFullWarningToggle_ID", ZonesFullWarningToggle);
+            TargetAttainableWarningToggle = ini.ReadValue("Settings", "TargetAttainableWarningToggle_ID", TargetAttainableWarningToggle);
+
             ini.Close();
         }
 
@@ -682,6 +766,14 @@ namespace VanillaPlusHUDOptions
 
             //ini.WriteValue("Settings", "ControllerInputType_ID", ControllerInputType);
             ini.WriteValue("Settings", "SkipSongBackwardToggle_ID", SkipSongBackwardToggle);
+
+            ini.WriteValue("Settings", "UseZoneColorsToggle_ID", UseZoneColorsToggle);
+            ini.WriteValue("Settings", "PerfectZoneWarningToggle_ID", PerfectZoneWarningToggle);
+
+            ini.WriteValue("Settings", "LoweredBarrierWarningToggle_ID", LoweredBarrierWarningToggle);
+            ini.WriteValue("Settings", "UseUpsurgeColorsToggle_ID", UseUpsurgeColorsToggle);
+            ini.WriteValue("Settings", "ZonesFullWarningToggle_ID", ZonesFullWarningToggle);
+            ini.WriteValue("Settings", "TargetAttainableWarningToggle_ID", TargetAttainableWarningToggle);
 
             ini.Close();
         }
