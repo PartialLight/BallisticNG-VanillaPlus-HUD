@@ -78,6 +78,7 @@ namespace VanillaPlusHUDOptions
         public static bool FinalLapWarningToggle;
         public static bool TremorWarningToggle;
         public static bool HunterWarningToggle;
+        public static bool ShieldTimerToggle;
 
         public static bool OvertakeRadarToggle;
 
@@ -91,6 +92,12 @@ namespace VanillaPlusHUDOptions
         public static bool UseUpsurgeColorsToggle;
         public static bool ZonesFullWarningToggle;
         public static bool TargetAttainableWarningToggle;
+
+        public static bool ExtraWeaponInfoToggle;
+        public static bool RespawnDarkenerToggle;
+        public static int AbsoluteShieldValueStyle;
+
+        public static int CannonFirerateOverride;
 
         public override void OnRegistered(string ModLocation)
         {
@@ -480,6 +487,17 @@ namespace VanillaPlusHUDOptions
                     HunterWarningToggle = selector.ToBool();
                 });
 
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory9, "ShieldTimerToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Shield Timer", "Whether to enable the shield timer.",
+                        ShieldTimerToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    ShieldTimerToggle = selector.ToBool();
+                });
+
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory10, "OvertakeRadarToggle_ID",
                 selector =>
                 {
@@ -511,7 +529,7 @@ namespace VanillaPlusHUDOptions
                 selector =>
                 {
                     SkipSongBackwardToggle = selector.ToBool();
-                });
+                });            
 
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory11, "UseZoneColorsToggle_ID",
                 selector =>
@@ -538,7 +556,7 @@ namespace VanillaPlusHUDOptions
             ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory12, "LoweredBarrierWarningToggle_ID",
                 selector =>
                 {
-                    selector.Configure("Raised Barrier Warning", "Whether to enable the lowering of the barrier warning for upsurge.",
+                    selector.Configure("Lowered Barrier Warning", "Whether to enable the lowering of the barrier warning for upsurge.",
                         LoweredBarrierWarningToggle, EBooleanDisplayType.EnabledDisabled);
                 },
                 selector =>
@@ -577,6 +595,50 @@ namespace VanillaPlusHUDOptions
                 selector =>
                 {
                     TargetAttainableWarningToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "ExtraWeaponInfoToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Extra Weapon Information", "Whether to display additional weapon information. When enabled, additional info will be displayed for the following weapons:\n\nMissile\n    Lockon signal integrity (how close you are to losing a\n    lockon)\n\nHellstorm\n    The total number of unique targets you've locked on to\n\nAutopilot\n    The amount of time remaining before autopilot attempts\n    to disengage, followed by the amount of time before\n    autopilot forcibly disengages\n\nEnergy Wall\n    Which side of the track your energy wall will deploy on",
+                        ExtraWeaponInfoToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    ExtraWeaponInfoToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "RespawnDarkenerToggle_ID",
+                selector =>
+                {
+                    selector.Configure("Respawn Darkener", "Whether to enable the respawn darkener. When enabled, the screen will be shaded on respawn before fading back to normal brightness/color.",
+                        RespawnDarkenerToggle, EBooleanDisplayType.EnabledDisabled);
+                },
+                selector =>
+                {
+                    RespawnDarkenerToggle = selector.ToBool();
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory4, "AbsoluteShieldValueStyle_ID",
+                selector =>
+                {
+                    selector.Configure("Absolute Shield Value Style", "Whether to use the internal or modded calculation for absolute shield values. Internal will produce the same numbers as vanilla, modded provides numbers more representative of a ship's true survivability.",
+                        AbsoluteShieldValueStyle, null, "Internal", "Modded");
+                },
+                selector =>
+                {
+                    AbsoluteShieldValueStyle = selector.Value;
+                });
+
+            ModOptions.RegisterOption<NgBoxSelector>(false, ModID, SelectorCategory0, "CannonFirerateOverride_ID",
+                selector =>
+                {
+                    selector.Configure("Cannon Firerate Override", "This setting will attempt to override your ship's cannon firerate. Faster firerates will lower your weapon effectiveness, slower firerates will increase your weapon effectiveness. This has no effect on weaponless ships when \"Force Weapons\" isn't enabled.\n\nDefault\n    Your ship's cannon firerate and weapon effectiveness\n    stats will be unchanged from their default values\n\nLight\n    Fastest firerate, lowest damage\n\nMedium\n    Balanced firerate and damage\n\nHeavy\n    Slowest firerate, highest damage",
+                        CannonFirerateOverride, null, "Light", "Medium", "Heavy", "Default");
+                },
+                selector =>
+                {
+                    CannonFirerateOverride = selector.Value;
                 });
 
         }
@@ -696,6 +758,7 @@ namespace VanillaPlusHUDOptions
             FinalLapWarningToggle = ini.ReadValue("Settings", "FinalLapWarningToggle_ID", FinalLapWarningToggle);
             TremorWarningToggle = ini.ReadValue("Settings", "TremorWarningToggle_ID", TremorWarningToggle);
             HunterWarningToggle = ini.ReadValue("Settings", "HunterWarningToggle_ID", HunterWarningToggle);
+            ShieldTimerToggle = ini.ReadValue("Settings", "ShieldTimerToggle_ID", ShieldTimerToggle);
 
             OvertakeRadarToggle = ini.ReadValue("Settings", "OvertakeRadarToggle_ID", OvertakeRadarToggle);
 
@@ -709,6 +772,12 @@ namespace VanillaPlusHUDOptions
             UseUpsurgeColorsToggle = ini.ReadValue("Settings", "UseUpsurgeColorsToggle_ID", UseUpsurgeColorsToggle);
             ZonesFullWarningToggle = ini.ReadValue("Settings", "ZonesFullWarningToggle_ID", ZonesFullWarningToggle);
             TargetAttainableWarningToggle = ini.ReadValue("Settings", "TargetAttainableWarningToggle_ID", TargetAttainableWarningToggle);
+
+            ExtraWeaponInfoToggle = ini.ReadValue("Settings", "ExtraWeaponInfoToggle_ID", ExtraWeaponInfoToggle);
+            RespawnDarkenerToggle = ini.ReadValue("Settings", "RespawnDarkenerToggle_ID", RespawnDarkenerToggle);
+            AbsoluteShieldValueStyle = ini.ReadValue("Settings", "AbsoluteShieldValueStyle_ID", AbsoluteShieldValueStyle);
+
+            CannonFirerateOverride = ini.ReadValue("Settings", "CannonFirerateOverride_ID", CannonFirerateOverride);
 
             ini.Close();
         }
@@ -761,6 +830,7 @@ namespace VanillaPlusHUDOptions
             ini.WriteValue("Settings", "FinalLapWarningToggle_ID", FinalLapWarningToggle);
             ini.WriteValue("Settings", "TremorWarningToggle_ID", TremorWarningToggle);
             ini.WriteValue("Settings", "HunterWarningToggle_ID", HunterWarningToggle);
+            ini.WriteValue("Settings", "ShieldTimerToggle_ID", ShieldTimerToggle);
 
             ini.WriteValue("Settings", "OvertakeRadarToggle_ID", OvertakeRadarToggle);
 
@@ -774,6 +844,12 @@ namespace VanillaPlusHUDOptions
             ini.WriteValue("Settings", "UseUpsurgeColorsToggle_ID", UseUpsurgeColorsToggle);
             ini.WriteValue("Settings", "ZonesFullWarningToggle_ID", ZonesFullWarningToggle);
             ini.WriteValue("Settings", "TargetAttainableWarningToggle_ID", TargetAttainableWarningToggle);
+
+            ini.WriteValue("Settings", "ExtraWeaponInfoToggle_ID", ExtraWeaponInfoToggle);
+            ini.WriteValue("Settings", "RespawnDarkenerToggle_ID", RespawnDarkenerToggle);
+            ini.WriteValue("Settings", "AbsoluteShieldValueStyle_ID", AbsoluteShieldValueStyle);
+
+            ini.WriteValue("Settings", "CannonFirerateOverride_ID", CannonFirerateOverride);
 
             ini.Close();
         }

@@ -3,6 +3,8 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using BallisticModding;
 using BallisticUnityTools.Placeholders;
 using BallisticUnityTools;
@@ -167,7 +169,12 @@ namespace ClassLibrary1HUD
             {
                 RegisterHud<Overtake_Radar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Overtake Radar.prefab");
             }
-            
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }            
+
             RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab");
             RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
             RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
@@ -176,7 +183,11 @@ namespace ClassLibrary1HUD
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
             RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
             RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
-            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+
+            if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
+            {
+                RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+            }            
 
             if (VanillaPlusHUDOptions.ModMenuOptions.LastAttackerToggle)
             {
@@ -245,7 +256,10 @@ namespace ClassLibrary1HUD
                 RegisterInternalHud("NetworkNameTags"); //Nametags
             }
             
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
 
             if (VanillaPlusHUDOptions.ModMenuOptions.ForceShieldBars)
             {
@@ -268,6 +282,11 @@ namespace ClassLibrary1HUD
     {
         public override void OnCreateHuds()
         {
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
+
             RegisterHud<Speedlap_And_Precision>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedlap_Precision.prefab");            
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
             RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
@@ -304,7 +323,11 @@ namespace ClassLibrary1HUD
             
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
         }
     }
 
@@ -338,7 +361,11 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
         }
     }
 
@@ -368,7 +395,12 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
+
             if (NgNetworkBase.CurrentNetwork != null)
             {
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
@@ -383,6 +415,11 @@ namespace ClassLibrary1HUD
             RegisterHud<Stunt>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Stunt.prefab");
             RegisterInternalHud("ChainScore");
             RegisterInternalHud("TitleDisplay"); //OVERTIME warning
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
 
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
             RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
@@ -410,7 +447,11 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
         }
     }
 
@@ -418,6 +459,11 @@ namespace ClassLibrary1HUD
     {
         public override void OnCreateHuds()
         {
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
+
             RegisterHud<Speedlap_And_Precision>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedlap_Precision.prefab");
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
@@ -459,7 +505,11 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
         }
     }
 
@@ -467,13 +517,21 @@ namespace ClassLibrary1HUD
     {
         public override void OnCreateHuds()
         {
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
+
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");            
             RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
             RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");      
             RegisterHud<Position_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Position Counter Field.prefab");
 
-            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");            
+            if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
+            {
+                RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+            }
 
             if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarToggle && Race.AfterburnerEnabled)
             {
@@ -541,7 +599,11 @@ namespace ClassLibrary1HUD
             RegisterInternalHud("KnockoutShipTracker");
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
         }
     }
 
@@ -549,6 +611,11 @@ namespace ClassLibrary1HUD
     {
         public override void OnCreateHuds()
         {
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
+
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
             RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
@@ -581,7 +648,11 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
         }
     }
 
@@ -589,6 +660,11 @@ namespace ClassLibrary1HUD
     {
         public override void OnCreateHuds()
         {
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
+
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
             RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
@@ -597,7 +673,10 @@ namespace ClassLibrary1HUD
 
             RegisterHud<Position_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Position Counter Field.prefab");
 
-            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+            if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
+            {
+                RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+            }
 
             if (((VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 0) && (Cheats.IntFromPhysicsMod() != 1)) || VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterToggle == 2)
             {
@@ -649,7 +728,12 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
+
             if (NgNetworkBase.CurrentNetwork != null)
             {
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
@@ -661,6 +745,11 @@ namespace ClassLibrary1HUD
     {
         public override void OnCreateHuds()
         {
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
+
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");            
             RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
@@ -668,7 +757,11 @@ namespace ClassLibrary1HUD
             RegisterInternalHud("Eliminator"); //Shield bars
             RegisterInternalHud("EliminatorScoreList");
             RegisterInternalHud("KnockoutShipTracker");
-            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+
+            if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
+            {
+                RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+            }
 
             if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarToggle)
             {
@@ -705,7 +798,12 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
+
             if (NgNetworkBase.CurrentNetwork != null)
             {
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
@@ -717,6 +815,11 @@ namespace ClassLibrary1HUD
     {
         public override void OnCreateHuds()
         {
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
+
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
             RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
@@ -724,7 +827,11 @@ namespace ClassLibrary1HUD
             RegisterInternalHud("KnockoutShipTracker");
             RegisterHud<Position_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Position Counter Field.prefab");
             RegisterInternalHud("NetworkPeerList");
-            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+
+            if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
+            {
+                RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+            }
 
             if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarToggle)
             {
@@ -800,7 +907,12 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
+
             if (NgNetworkBase.CurrentNetwork != null)
             {
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
@@ -812,6 +924,11 @@ namespace ClassLibrary1HUD
     {
         public override void OnCreateHuds()
         {
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
+
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab"); //For Turbo pickup display
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
             RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
@@ -874,7 +991,11 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
         }
     }
 
@@ -882,6 +1003,11 @@ namespace ClassLibrary1HUD
     {
         public override void OnCreateHuds()
         {
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
+
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab"); //For Turbo pickup display
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
             RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
@@ -894,7 +1020,10 @@ namespace ClassLibrary1HUD
             RegisterInternalHud("OnlineTeamMateDisplay");
             RegisterInternalHud("OnlineTeamScoreList");
 
-            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+            if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
+            {
+                RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+            }
 
             if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarToggle)
             {
@@ -960,7 +1089,12 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
+
             if (NgNetworkBase.CurrentNetwork != null)
             {
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
@@ -972,6 +1106,11 @@ namespace ClassLibrary1HUD
     {
         public override void OnCreateHuds()
         {
+            if (VanillaPlusHUDOptions.ModMenuOptions.ExtraWeaponInfoToggle)
+            {
+                RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
+            }
+
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab"); //For Turbo pickup display
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
             RegisterHud<Energy_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Energy Bar.prefab");
@@ -983,7 +1122,10 @@ namespace ClassLibrary1HUD
             RegisterInternalHud("KnockoutShipTracker");
             RegisterInternalHud("TeamScoreList");
 
-            RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+            if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
+            {
+                RegisterHud<Rear_View_Mirror>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab");
+            }
 
             if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarToggle)
             {
@@ -1049,7 +1191,214 @@ namespace ClassLibrary1HUD
 
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
-            RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
+            {
+                RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
+        }
+    }
+
+    public static class IL_Accessors
+    {
+        public static readonly Func<PickupMissiles, LockonSystem> GetLockonSystem;
+        public static readonly Func<PickupHellstorm, int> GetHellstormLockonCount;
+
+        static IL_Accessors()
+        {
+            FieldInfo fieldMissiles = typeof(PickupMissiles).GetField("_lockSystem", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (fieldMissiles != null)
+            {
+                DynamicMethod dynamicGetterMissiles = new DynamicMethod("GetPrivateLockSystem", typeof(LockonSystem), new[] { typeof(PickupMissiles) }, typeof(PickupMissiles).Module, true);
+
+                ILGenerator ilMissiles = dynamicGetterMissiles.GetILGenerator();
+                ilMissiles.Emit(OpCodes.Ldarg_0);
+                ilMissiles.Emit(OpCodes.Ldfld, fieldMissiles);
+                ilMissiles.Emit(OpCodes.Ret);
+
+                GetLockonSystem = (Func<PickupMissiles, LockonSystem>)dynamicGetterMissiles.CreateDelegate(typeof(Func<PickupMissiles, LockonSystem>));
+            }
+
+            PropertyInfo propHellstorm = typeof(PickupHellstorm).GetProperty("LockonCount", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+            MethodInfo getMethodHellstorm = propHellstorm?.GetMethod;
+            if (getMethodHellstorm != null)
+            {
+                DynamicMethod dynamicGetterHellstorm = new DynamicMethod("GetPrivateIntProperty", typeof(int), new[] { typeof(PickupHellstorm) }, typeof(PickupHellstorm).Module, true);
+
+                ILGenerator ilHellstorm = dynamicGetterHellstorm.GetILGenerator();
+                ilHellstorm.Emit(OpCodes.Ldarg_0);
+                ilHellstorm.Emit(OpCodes.Call, getMethodHellstorm);
+                ilHellstorm.Emit(OpCodes.Ret);
+
+                GetHellstormLockonCount = (Func<PickupHellstorm, int>)dynamicGetterHellstorm.CreateDelegate(typeof(Func<PickupHellstorm, int>));
+            }
+        }
+    }
+
+    public class Extra_Weapon_Information : ScriptableHud
+    {
+        public Text Energy_Wall_Left_Readout;
+        public Text Energy_Wall_Right_Readout;
+        public Text Extra_Weapon_Information_Readout;
+
+        public float Shield_Time_Remaining;
+        public float Missile_Lockon_Strength;
+        public int Hellstorm_Lock_Count;
+
+        public float Autopilot_Timer;
+
+        public LockonSystem LockonSystem_Instance;
+
+        public PickupMissiles Missile_Instance;
+        public PickupHellstorm Hellstorm_Instance;
+        public PickupEnergyWall EnergyWall_Instance;
+        public PickupShield Shield_Instance;
+        public PickupAutopilot Autopilot_Instance;
+
+        public Outline Extra_Weapon_Information_Outline;
+
+        public static readonly Vector4 Autopilot_Cyan = new Vector4((11f / 255f), 1f, 1f, 1f);
+        public static readonly Vector4 Hellstorm_Indigo = new Vector4((56f / 255f), (56f / 255f), (161f / 255f), 1f);
+        public static readonly Vector4 Missile_Fuchsia = new Vector4(1f, (25f / 255f), 1f, 1f);
+
+        public override void Start()
+        {
+            base.Start();
+
+            Energy_Wall_Left_Readout = CustomComponents.GetById<Text>("EnergyWallLeftReadout");
+            Energy_Wall_Right_Readout = CustomComponents.GetById<Text>("EnergyWallRightReadout");
+            Extra_Weapon_Information_Readout = CustomComponents.GetById<Text>("ExtraInfoReadout");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.WeaponMirrorPositionSwap)
+            {
+                Energy_Wall_Left_Readout.rectTransform.anchoredPosition = Energy_Wall_Left_Readout.rectTransform.anchoredPosition + Weapon_Display.Weapon_Display_Adjust_Vector;
+                Energy_Wall_Right_Readout.rectTransform.anchoredPosition = Energy_Wall_Right_Readout.rectTransform.anchoredPosition + Weapon_Display.Weapon_Display_Adjust_Vector;
+                Extra_Weapon_Information_Readout.rectTransform.anchoredPosition = Extra_Weapon_Information_Readout.rectTransform.anchoredPosition + Weapon_Display.Weapon_Display_Adjust_Vector;                
+            }
+
+            Extra_Weapon_Information_Outline = Extra_Weapon_Information_Readout.GetComponent<Outline>();
+
+            Energy_Wall_Left_Readout.enabled = false;
+            Energy_Wall_Right_Readout.enabled = false;
+            Extra_Weapon_Information_Readout.enabled = false;
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            switch (TargetShip?.CurrentPickupRegister?.Name)
+            {
+                default:
+                    Energy_Wall_Left_Readout.enabled = false;
+                    Energy_Wall_Right_Readout.enabled = false;
+                    Extra_Weapon_Information_Outline.effectColor = Color.black;
+                    Extra_Weapon_Information_Readout.enabled = false;
+                    break;
+
+                case "hellstorm":
+                    Energy_Wall_Left_Readout.enabled = false;
+                    Energy_Wall_Right_Readout.enabled = false;
+
+                    Hellstorm_Instance = TargetShip.CurrentPickup as PickupHellstorm;
+                    Hellstorm_Lock_Count = IL_Accessors.GetHellstormLockonCount(Hellstorm_Instance);
+
+                    if (Hellstorm_Lock_Count > 0)
+                    {
+                        Extra_Weapon_Information_Readout.text = "×" + Hellstorm_Lock_Count.ToString();
+                        Extra_Weapon_Information_Readout.color = Hellstorm_Indigo;
+                        //Extra_Weapon_Information_Outline.effectColor = Color.white;
+                        Extra_Weapon_Information_Readout.enabled = true;
+                    }
+                    else
+                    {
+                        Extra_Weapon_Information_Outline.effectColor = Color.black;
+                        Extra_Weapon_Information_Readout.enabled = false;
+                    }
+                    break;
+
+                case "missile":
+                    Energy_Wall_Left_Readout.enabled = false;
+                    Energy_Wall_Right_Readout.enabled = false;
+
+                    Missile_Instance = TargetShip.CurrentPickup as PickupMissiles;
+                    LockonSystem_Instance = IL_Accessors.GetLockonSystem(Missile_Instance);
+
+                    if (LockonSystem_Instance.TargetLockon != null)
+                    {
+                        Missile_Lockon_Strength = 100 * Mathf.Min(
+                            (LockonSystem_Instance.MaxLockDistance - TargetShip.InverseTransformPoint(LockonSystem_Instance.TargetLockon.PhysicsPosition).magnitude),
+                            (TargetShip.InverseTransformPoint(LockonSystem_Instance.TargetLockon.PhysicsPosition).magnitude - LockonSystem_Instance.MinLockDistance)
+                            ) / (0.85f * ((LockonSystem_Instance.MaxLockDistance + LockonSystem_Instance.MinLockDistance) / 2f));
+                        Extra_Weapon_Information_Readout.text = string.Format("{0:N0}", Missile_Lockon_Strength) + "%";
+                        Extra_Weapon_Information_Readout.color = Missile_Fuchsia;
+                        Extra_Weapon_Information_Readout.enabled = true;
+                    }
+                    else
+                    {
+                        Extra_Weapon_Information_Readout.enabled = false;
+                    }                    
+                    break;
+
+                case "autopilot":                    
+                    Energy_Wall_Left_Readout.enabled = false;
+                    Energy_Wall_Right_Readout.enabled = false;
+
+                    if (TargetShip.AutopilotActivated == true)
+                    {
+                        Autopilot_Timer -= Time.deltaTime;
+                        
+                        if (Autopilot_Timer < 0f)
+                        {
+                            Extra_Weapon_Information_Readout.text = string.Format("{0:N2}", 3f + Autopilot_Timer);
+                        }
+                        else
+                        {
+                            Extra_Weapon_Information_Readout.text = string.Format("{0:N2}", Autopilot_Timer);
+                        }
+                        
+                        Extra_Weapon_Information_Readout.color = Autopilot_Cyan;
+                        Extra_Weapon_Information_Readout.enabled = true;
+                    }                    
+                    else
+                    {
+                        Autopilot_Timer = 5f;
+                        Extra_Weapon_Information_Readout.enabled = false;
+                    }
+                    break;
+
+                case "energywall":
+                    Extra_Weapon_Information_Readout.enabled = false;
+
+                    if (TargetShip.CurrentSection.InverseTransformPoint(TargetShip.PhysicsPosition).x < 0f) //Ship is on left side of section
+                    {
+                        if (NgSettings.Gameplay.MirrorEnabled)
+                        {
+                            Energy_Wall_Left_Readout.enabled = true;
+                            Energy_Wall_Right_Readout.enabled = false;
+                        }
+                        else
+                        {
+                            Energy_Wall_Right_Readout.enabled = true;
+                            Energy_Wall_Left_Readout.enabled = false;
+                        }
+                        
+                    }
+                    else //Ship is on right side of section
+                    {
+                        if (NgSettings.Gameplay.MirrorEnabled)
+                        {
+                            Energy_Wall_Right_Readout.enabled = true;
+                            Energy_Wall_Left_Readout.enabled = false;
+                        }
+                        else
+                        {
+                            Energy_Wall_Left_Readout.enabled = true;
+                            Energy_Wall_Right_Readout.enabled = false;
+                        }                        
+                    }
+                    break;
+            }
         }
     }
 
@@ -1072,13 +1421,13 @@ namespace ClassLibrary1HUD
 
             Last_Attacker_Name.enabled = true;
 
-            if (TargetShip.LastAttacker.IsAi)
+            if (TargetShip.LastAttacker != null)
             {
                 Last_Attacker_Name.text = TargetShip.LastAttacker.ShipName;
             }
             else
             {
-                Last_Attacker_Name.text = TargetShip.LastAttacker.ShipName;
+                Last_Attacker_Name.text = "";
             }
             
         }
@@ -1092,7 +1441,10 @@ namespace ClassLibrary1HUD
         public float Energy_Before_Recharge;
         public float Energy_Difference;
 
-        public float Non_Pitlane_Energy_Restore_Value;        
+        public float Non_Pitlane_Energy_Restore_Value;
+        public float Absorbed_While_In_Pitlane_Restore_Value = 0f;
+        public float Previous_Shield_Integity;
+        //public float Current_Shield_Integrity;
 
         public override void Start()
         {
@@ -1114,6 +1466,8 @@ namespace ClassLibrary1HUD
         {
             base.Update();
 
+            //Current_Shield_Integrity = TargetShip.ShieldIntegrity;
+
             if (TargetShip.IsRecharging)
             {
                 //Recharge_Sum_Readout.enabled = true;
@@ -1127,20 +1481,35 @@ namespace ClassLibrary1HUD
             {
                 Energy_Before_Recharge = TargetShip.ShieldIntegrity;
             }
+
+            Previous_Shield_Integity = TargetShip.ShieldIntegrity;
         }
 
         public void AbsorbRechargeSum(ShipController ship, float shieldRestored)
         {
             if (ship == TargetShip && (shieldRestored > 0f))
             {
-                Non_Pitlane_Energy_Restore_Value = shieldRestored;
+                if (TargetShip.IsRecharging)
+                {
+                    Absorbed_While_In_Pitlane_Restore_Value = shieldRestored;
+                }
+
+                Non_Pitlane_Energy_Restore_Value = Mathf.Min(shieldRestored, (Mathf.Min((TargetShip.ShieldIntegrity + shieldRestored), 100f) - Previous_Shield_Integity));
                 StartCoroutine(Recharge_Sum_Duration());
             }
         }
 
         IEnumerator Recharge_Sum_Duration()
         {
-            Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Non_Pitlane_Energy_Restore_Value);
+            if (Non_Pitlane_Energy_Restore_Value >= 0.05f)
+            {
+                Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Non_Pitlane_Energy_Restore_Value);
+            }
+            else
+            {
+                Recharge_Sum_Readout.text = "";
+            }
+            
 
             while (TargetShip.IsRecharging)
             {
@@ -1151,11 +1520,13 @@ namespace ClassLibrary1HUD
                 }
                 else if (TargetShip.ShieldIntegrity >= 100)
                 {
-                    Recharge_Sum_Readout.text = "∆" + string.Format("{0:N1}", Mathf.Max(Energy_Difference, Potential_Energy_Recharge));
+                    Recharge_Sum_Readout.text = "∆" + string.Format("{0:N1}", Mathf.Max((Energy_Difference - Absorbed_While_In_Pitlane_Restore_Value), Potential_Energy_Recharge));
                 }
 
                 yield return null;
             }
+
+            Absorbed_While_In_Pitlane_Restore_Value = 0f;
 
             float Recharge_Linger_Start_Time = Time.time;
             float Recharge_Linger_End_Time = Time.time + 1.5f;
@@ -2296,7 +2667,7 @@ namespace ClassLibrary1HUD
             {
                 Lap_Texts[4].text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00").ToString();
             }
-            else
+            else if (TargetShip.CurrentLap % 5 > 0)
             {
                 Lap_Texts[((TargetShip.CurrentLap % 5) - 1)].text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00").ToString();
             }
@@ -2309,7 +2680,7 @@ namespace ClassLibrary1HUD
                 {
                     Lap_Images[4].color = Lap_Diamond_Green;
                 }
-                else
+                else if (TargetShip.CurrentLap % 5 > 0)
                 {
                     Lap_Images[((TargetShip.CurrentLap % 5) - 1)].color = Lap_Diamond_Green;
                 }
@@ -2321,7 +2692,7 @@ namespace ClassLibrary1HUD
                 {
                     Lap_Images[4].color = Lap_Diamond_Red;
                 }
-                else
+                else if (TargetShip.CurrentLap % 5 > 0)
                 {
                     Lap_Images[((TargetShip.CurrentLap % 5) - 1)].color = Lap_Diamond_Red;
                 }
@@ -2381,21 +2752,110 @@ namespace ClassLibrary1HUD
 
         public static readonly Vector2 Weapon_Display_Adjust_Vector = new Vector2(0, -178);
 
+        public const float Weapon_Effectiveness_Compensation_Value = (14f / 375f);
+        public int Weapon_Effectiveness_Compensation_Multiplier;
+        public int Default_Cannon_Firerate;
+        public float Default_Weapon_Effectiveness;
+        public float Weapon_Effectiveness_Override;
+
         public override void Update()
         {
             base.Update();
 
             Weapon_Text.text = TargetShip.PickupDisplayText;
 
+            Weapon_Effectiveness_Compensation_Multiplier = (Default_Cannon_Firerate - VanillaPlusHUDOptions.ModMenuOptions.CannonFirerateOverride);
+            Weapon_Effectiveness_Override = Default_Weapon_Effectiveness - (Weapon_Effectiveness_Compensation_Value * Weapon_Effectiveness_Compensation_Multiplier);
+
+            switch (VanillaPlusHUDOptions.ModMenuOptions.CannonFirerateOverride)
+            {
+                case 0:
+                    if (Default_Cannon_Firerate == 0)
+                    {
+                        TargetShip.Settings.DAMAGE_PWR = Default_Weapon_Effectiveness;
+                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Light;
+                        break;
+                    }
+                    else
+                    {
+                        if (Default_Weapon_Effectiveness < 0f)
+                        {
+                            break;
+                        }
+                        TargetShip.Settings.DAMAGE_PWR = Weapon_Effectiveness_Override;
+                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Light;
+                        break;
+                    }
+                case 1:
+                    if (Default_Cannon_Firerate == 1)
+                    {
+                        TargetShip.Settings.DAMAGE_PWR = Default_Weapon_Effectiveness;
+                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Medium;
+                        break;
+                    }
+                    else
+                    {
+                        if (Default_Weapon_Effectiveness < 0f)
+                        {
+                            break;
+                        }
+                        TargetShip.Settings.DAMAGE_PWR = Weapon_Effectiveness_Override;
+                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Medium;
+                        break;
+                    }
+                case 2:
+                    if (Default_Cannon_Firerate == 2)
+                    {
+                        TargetShip.Settings.DAMAGE_PWR = Default_Weapon_Effectiveness;
+                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Heavy;
+                        break;
+                    }
+                    else
+                    {
+                        if (Default_Weapon_Effectiveness < 0f)
+                        {
+                            break;
+                        }
+                        TargetShip.Settings.DAMAGE_PWR = Weapon_Effectiveness_Override;
+                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Heavy;
+                        break;
+                    }
+                case 3:
+                    TargetShip.Settings.DAMAGE_PWR = Default_Weapon_Effectiveness;
+                    TargetShip.Settings.CANNON_TYPE = (BallisticUnityTools.Ships.ECannonStat)Default_Cannon_Firerate;
+                    break;
+            }
+
+            if (TargetShip.CurrentPickup == null)
+            {
+                return;
+            }
+
             if (RaceManager.CurrentGamemode.Configuration.ShipsCanAbsorbPickups == true && TargetShip.CurrentPickup.GetCurrentAbsorbAmount() != 0)
+            {
                 Absorb_Text.text = "+" + TargetShip.CurrentPickup.GetCurrentAbsorbAmount().ToString();
+            }
             else
+            {
                 Absorb_Text.text = "";
+            }                
         }
 
         public override void Start()
         {
             base.Start();
+
+            Default_Cannon_Firerate = (int)TargetShip.Settings.CANNON_TYPE;
+
+            if (RaceManager.CurrentGmConfig.AllShipsHaveWeapons == false || TargetShip.Settings.DAMAGE_PWR > 0f)
+            {
+                Default_Weapon_Effectiveness = TargetShip.Settings.DAMAGE_PWR;
+            }
+            else
+            {
+                Default_Weapon_Effectiveness = 1f;
+            }
+            
 
             Weapon_Icon = CustomComponents.GetById<Image>("PickupDisplay");
             Weapon_Text = CustomComponents.GetById<Text>("Weapon Message");
@@ -2453,6 +2913,7 @@ namespace ClassLibrary1HUD
     public class Energy_Bar : ScriptableHud
     {
         public float Shield_Display_Value;
+        public float Shield_Stat;
 
         public Text Shield_Integrity_Numeric_Readout;
         public Image Energy_Bar_Image;
@@ -2528,6 +2989,17 @@ namespace ClassLibrary1HUD
         {
             base.Start();
 
+            Shield_Stat = TargetShip.Settings.DAMAGE_MULT + 0.07f;
+
+            if (Shield_Stat > 1.0f)
+            {
+                Shield_Stat *= 1.1f;
+            }
+            else if (Shield_Stat < 1.0f)
+            {
+                Shield_Stat *= 0.9f;
+            }
+
             Energy_Bar_Image = CustomComponents.GetById<Image>("EnergyBar");
             Energy_Bar_Background_Image = CustomComponents.GetById<Image>("EnergyBarBackground");
             Shield_Integrity_Numeric_Readout = CustomComponents.GetById<Text>("Shield Integrity Numeric Readout");
@@ -2545,7 +3017,14 @@ namespace ClassLibrary1HUD
             }
             else
             {
-                Shield_Display_Value = TargetShip.ShieldIntegrity / TargetShip.Settings.DAMAGE_MULT;
+                if (VanillaPlusHUDOptions.ModMenuOptions.AbsoluteShieldValueStyle == 1)
+                {
+                    Shield_Display_Value = TargetShip.ShieldIntegrity / TargetShip.Settings.DAMAGE_MULT;
+                }
+                else
+                {
+                    Shield_Display_Value = Mathf.Ceil(TargetShip.ShieldIntegrity * (1f / Shield_Stat));
+                }
             }
 
             Energy_Bar_Image.fillAmount = TargetShip.ShieldIntegrity * 0.01f;
@@ -2699,14 +3178,9 @@ namespace ClassLibrary1HUD
             RearViewMirror = CustomComponents.GetById<RawImage>("RearViewMirrorTexture");
             RearViewMirror.color = Color.clear;
 
-
-            
-            if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
-            {
-                StartCoroutine(WaitAFrame());
-                //Other logic can go in between these two
-                StartCoroutine(RenderFrame());
-            }
+            StartCoroutine(WaitAFrame());
+            //Other logic can go in between these two
+            StartCoroutine(RenderFrame());
 
             if (VanillaPlusHUDOptions.ModMenuOptions.WeaponMirrorPositionSwap)
             {
@@ -2717,17 +3191,15 @@ namespace ClassLibrary1HUD
 
         IEnumerator WaitAFrame()
         {
-            for (int i = 0; i < 60; i++)
-            {
-                yield return new WaitForEndOfFrame();
-            }
+            //for (int i = 0; i < 60; i++)
+            //{
+            //    yield return new WaitForEndOfFrame();
+            //}
             Empty_Game_Object = CustomComponents.GetById("EmptyGameObject"); //initialize the RectTransform through the Empty Game Object component in the Unity prefab
             Rear_View_Mirror_Camera = Empty_Game_Object.gameObject.AddComponent<Camera>(); //Adding a camera dynamically by attaching it to the Empty Game Object
             //Rear_View_Mirror_Camera.enabled = false; //Disabled so it's not rendering until instructed to do so
             CreateRenderTexture(640f, 160f); //Size of the RenderTexture on user screen
-
-            
-
+            yield return null;            
         }
 
         IEnumerator RenderFrame()
@@ -2751,12 +3223,6 @@ namespace ClassLibrary1HUD
             base.Update();
             //Rear_View_Mirror_Camera.enabled = true;
 
-            
-
-
-
-            
-
             if (!TargetShip.CamSim.LookingBehind)
             {
                 RearViewMirror.transform.localScale = Point_Camera_Backwards_Transform_Scale;
@@ -2769,8 +3235,7 @@ namespace ClassLibrary1HUD
                 //{
                     //RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
                 //}
-                RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
-                
+                RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque                
             }
             else
             {
@@ -2885,7 +3350,7 @@ namespace ClassLibrary1HUD
         public static readonly int[] Prototype_99_KEM_Sunthrone = { 20, 21, 44, 45, 46, 47, 48, 49, 50, 51, 61, 62, 66, 67, 71, 72, 76, 77, 78, 79, 80, 97, 98, 125, 126, 160, 161, 162, 163, 187, 188, 189, 205, 206, 207, 208, 209, 210, 234, 235, 271, 272, 273, 274, 275, 276, 277, 287, 288 };
         public static readonly int[] ES_0x016_Germania = { 191, 192};
         public static readonly int[] ES_0x033_Dione_II = { 99, 100, 135, 136, 427, 428, 460, 461 };
-        public static readonly int[] Annapurna = { 139, 201, 202, 203 };
+        public static readonly int[] Annapurna = { 139, 201, 202, 203, 230, 231 };
         public static readonly int[] Desolata = { 679, 680 };
         public static readonly int[] Infinity_Spear = { 119, 120, 161, 162, 163, 164, 221, 222, 231, 232, 241, 242, 250, 251, 263, 264 };
         public static readonly int[] bngl_metro_11 = { 157, 158, 391, 392, 393, 394, 395, 396, 397, 431, 432 };
@@ -2895,11 +3360,11 @@ namespace ClassLibrary1HUD
         public static readonly int[] Astra_Magnesium = { 176, 177, 201, 202 };
         public static readonly int[] Serenewoods = { 208, 209, 210, 211, 212, 213, 214, 231, 232, 233, 234, 235 };
         public static readonly int[] Cobbledark = { -543 };
-        public static readonly int[] SW1R_Bumpys_Breakers = { 306, 307, 308, 309, 310, 482, 483 };
+        public static readonly int[] SW1R_Bumpys_Breakers = { 106, 107, 108, 109, 306, 307, 308, 309, 310, 482, 483 };
         public static readonly int[] SW1R_Malastare_100 = { 87, 88, 89, 90, 91, 92, 93, 94, 95, 101, 102, 103, 107, 108, 109, 110, };
         public static readonly int[] SW1R_Scrappers_Run = { 83, 84, 148, 149 };
         public static readonly int[] SW1R_The_Boonta_Eve_Classic = { 308, 309, 310, 579, 580 };
-        public static readonly int[] SW1R_Aquilaris_Classic = { 196, 197, 198, 199, 200, 201, 236, 238, 239, 240, 241, 242, 243, 244, 249, 251, 252 };
+        public static readonly int[] SW1R_Aquilaris_Classic = { 139, 140, 141, 142, 143, 144, 145, 146, 147, 196, 197, 198, 199, 200, 201, 236, 238, 239, 240, 241, 242, 243, 244, 249, 251, 252 };
         public static readonly int[] NFS1_Alpine = { 430, 431, 432, 433 };
         public static readonly int[] NFS1_Transtropolis = { 357, 358, 359, 360 };
         public static readonly int[] Solaris = { 14, 15, 78, 79, 151, 152, 290, 291, 362, 363 };
@@ -3093,7 +3558,7 @@ namespace ClassLibrary1HUD
                 case "(SW1R) The Boonta Eve Classic":
                     return SW1R_The_Boonta_Eve_Classic;
 
-                case "(SW1R Aquilaris Classic)":
+                case "(SW1R) Aquilaris Classic":
                     return SW1R_Aquilaris_Classic;
 
                 case "(NFS1) Alpine":
@@ -3400,6 +3865,7 @@ namespace ClassLibrary1HUD
         public Text Final_Lap_Warning_Text;
         public Text Tremor_Warning_Text;
         public Text Hunter_Warning_Text;
+        public Text Shield_Timer_Text;
 
         public override void Start()
         {
@@ -3408,10 +3874,12 @@ namespace ClassLibrary1HUD
             Final_Lap_Warning_Text = CustomComponents.GetById<Text>("FinalLapWarning");
             Tremor_Warning_Text = CustomComponents.GetById<Text>("TremorWarning");
             Hunter_Warning_Text = CustomComponents.GetById<Text>("HunterWarning");
+            Shield_Timer_Text = CustomComponents.GetById<Text>("ShieldTimer");
 
             Final_Lap_Warning_Text.enabled = false;
             Tremor_Warning_Text.enabled = false;
             Hunter_Warning_Text.enabled = false;
+            Shield_Timer_Text.enabled = false;
 
             NgUiEvents.OnTriggerMessage += FinalLapWarning;
         }
@@ -3449,9 +3917,14 @@ namespace ClassLibrary1HUD
                 Hunter_Warning_Text.enabled = false;
             }
 
-            if (VanillaPlusHUDOptions.ModMenuOptions.SkipSongBackwardToggle == true)
+            if (TargetShip.ShieldTimer > 0f && VanillaPlusHUDOptions.ModMenuOptions.ShieldTimerToggle == true)
             {
-
+                Shield_Timer_Text.text = string.Format("{0:N2}", TargetShip.ShieldTimer);
+                Shield_Timer_Text.enabled = true;
+            }
+            else
+            {
+                Shield_Timer_Text.enabled = false;
             }
 
             if (NgIo.NgIn.GetButtonDown("Previous Song", 0) && VanillaPlusHUDOptions.ModMenuOptions.SkipSongBackwardToggle == true && NgGameState.IsPaused == false)
