@@ -41,11 +41,14 @@ namespace ClassLibrary1HUD
         public AudioClip End_Beep;
 
         public static AssetBundle VanillaPlusHUD;
+        public static SceneHudManager CurrentHudManager;
 
         public override void OnRegistered(string modPath)
         {
+            DebugConsole.Log($"<color=#F3E5AB>[VanillaPlusHUD Version 1.1.1]</color> MD5 hash: {CodeModLoader.ActiveMods.Find(x => x.Name == id).DllMd5.ToUpper()}");
+
             NgNetworkBase.OnNetworkStart += ConnectToLobby;
-            End_Beep = LoadWavFile((modPath + "\\Audio\\mpcountdownend.wav"));
+            End_Beep = LoadWavFile((modPath + "/Audio/mpcountdownend.wav"));
 
             string TestPathString = Path.Combine(modPath, "config.ini");
             INIParser ini = new INIParser();
@@ -275,6 +278,8 @@ namespace ClassLibrary1HUD
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
             }
             RegisterInternalHud("NetworkRaceFinish"); //Race finishes in 30 seconds
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -328,6 +333,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -336,6 +343,11 @@ namespace ClassLibrary1HUD
         public override void OnCreateHuds()
         {
             RegisterHud<Survival>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Survival.prefab");
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumToggle)
+            {
+                RegisterHud<Recharge_Sum>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Recharge Sum.prefab");
+            }
 
             if (NgCampaign.Enabled == true)
             {
@@ -366,6 +378,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -375,6 +389,11 @@ namespace ClassLibrary1HUD
         {
             RegisterHud<Upsurge>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Upsurge.prefab");
             RegisterInternalHud("EliminatorScoreList"); //Upsurge scoreboard
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumToggle)
+            {
+                RegisterHud<Recharge_Sum>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Recharge Sum.prefab");
+            }
 
             RegisterHud<Thrust_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Thrust Bar.prefab");
             RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
@@ -405,6 +424,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
             }
+
+            HudRegister.CurrentHudManager = this;
         }        
     }
 
@@ -452,6 +473,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -463,6 +486,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterHud<Extra_Weapon_Information>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Weapon Info.prefab");
             }
+
+            RegisterInternalHud("PrecisionHud");
 
             RegisterHud<Speedlap_And_Precision>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Speedlap_Precision.prefab");
             RegisterHud<Weapon_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Pickup.prefab");
@@ -510,6 +535,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -604,6 +631,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -653,6 +682,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -738,6 +769,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -808,6 +841,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -917,6 +952,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -996,6 +1033,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -1074,6 +1113,18 @@ namespace ClassLibrary1HUD
                 RegisterHud<Relative_Time_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Relative Time Display.prefab");
             }
 
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceNameTags)
+            {
+                RegisterInternalHud("NetworkNameTags"); //Nametags
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceShieldBars)
+            {
+                RegisterInternalHud("Eliminator"); //Shield bars
+            }
+
+            RegisterInternalHud("NetworkRaceFinish"); //Race finishes in 30 seconds
+
             RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
             RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
             RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
@@ -1099,6 +1150,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("NetworkWaitingList"); //Waiting for PLAYER at start of race while people are loading
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -1176,6 +1229,16 @@ namespace ClassLibrary1HUD
                 RegisterHud<Relative_Time_Display>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Relative Time Display.prefab");
             }
 
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceNameTags)
+            {
+                RegisterInternalHud("NetworkNameTags"); //Nametags
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceShieldBars)
+            {
+                RegisterInternalHud("Eliminator"); //Shield bars
+            }
+
             RegisterHud<Camera_Rotation_Overrides_2280>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
             RegisterHud<Camera_Height_Adjustments>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Rear View Mirror.prefab"); //Should be in every HudManager
             RegisterHud<Extra_Warnings>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Extra Warnings.prefab"); //Needed for skip song backwards
@@ -1196,6 +1259,8 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
             }
+
+            HudRegister.CurrentHudManager = this;
         }
     }
 
@@ -1240,6 +1305,7 @@ namespace ClassLibrary1HUD
         public Text Energy_Wall_Left_Readout;
         public Text Energy_Wall_Right_Readout;
         public Text Extra_Weapon_Information_Readout;
+        public Text Lethal_Missile_Damage_Indicator;
 
         public float Shield_Time_Remaining;
         public float Missile_Lockon_Strength;
@@ -1268,12 +1334,14 @@ namespace ClassLibrary1HUD
             Energy_Wall_Left_Readout = CustomComponents.GetById<Text>("EnergyWallLeftReadout");
             Energy_Wall_Right_Readout = CustomComponents.GetById<Text>("EnergyWallRightReadout");
             Extra_Weapon_Information_Readout = CustomComponents.GetById<Text>("ExtraInfoReadout");
+            Lethal_Missile_Damage_Indicator = CustomComponents.GetById<Text>("LethalMissileDamageIndicator");
 
             if (VanillaPlusHUDOptions.ModMenuOptions.WeaponMirrorPositionSwap)
             {
                 Energy_Wall_Left_Readout.rectTransform.anchoredPosition = Energy_Wall_Left_Readout.rectTransform.anchoredPosition + Weapon_Display.Weapon_Display_Adjust_Vector;
                 Energy_Wall_Right_Readout.rectTransform.anchoredPosition = Energy_Wall_Right_Readout.rectTransform.anchoredPosition + Weapon_Display.Weapon_Display_Adjust_Vector;
-                Extra_Weapon_Information_Readout.rectTransform.anchoredPosition = Extra_Weapon_Information_Readout.rectTransform.anchoredPosition + Weapon_Display.Weapon_Display_Adjust_Vector;                
+                Extra_Weapon_Information_Readout.rectTransform.anchoredPosition = Extra_Weapon_Information_Readout.rectTransform.anchoredPosition + Weapon_Display.Weapon_Display_Adjust_Vector;
+                Lethal_Missile_Damage_Indicator.rectTransform.anchoredPosition = Lethal_Missile_Damage_Indicator.rectTransform.anchoredPosition + Weapon_Display.Weapon_Display_Adjust_Vector;
             }
 
             Extra_Weapon_Information_Outline = Extra_Weapon_Information_Readout.GetComponent<Outline>();
@@ -1294,6 +1362,7 @@ namespace ClassLibrary1HUD
                     Energy_Wall_Right_Readout.enabled = false;
                     Extra_Weapon_Information_Outline.effectColor = Color.black;
                     Extra_Weapon_Information_Readout.enabled = false;
+                    Lethal_Missile_Damage_Indicator.enabled = false;
                     break;
 
                 case "hellstorm":
@@ -1333,10 +1402,20 @@ namespace ClassLibrary1HUD
                         Extra_Weapon_Information_Readout.text = string.Format("{0:N0}", Missile_Lockon_Strength) + "%";
                         Extra_Weapon_Information_Readout.color = Missile_Fuchsia;
                         Extra_Weapon_Information_Readout.enabled = true;
+
+                        if (Missile_Instance.Target.ShieldIntegrity <= (TargetShip.Settings.DAMAGE_PWR * 15f * Missile_Instance.Target.Settings.DAMAGE_MULT) && !Missile_Instance.Target.IsShieldActivated && Missile_Instance.HasLock)
+                        {
+                            Lethal_Missile_Damage_Indicator.enabled = true;
+                        }
+                        else
+                        {
+                            Lethal_Missile_Damage_Indicator.enabled = false;
+                        }
                     }
                     else
                     {
                         Extra_Weapon_Information_Readout.enabled = false;
+                        Lethal_Missile_Damage_Indicator.enabled = false;
                     }                    
                     break;
 
@@ -1435,6 +1514,8 @@ namespace ClassLibrary1HUD
 
     public class Recharge_Sum : ScriptableHud
     {
+        public static Recharge_Sum Instance { get; private set; }
+
         public Text Recharge_Sum_Readout;
         public float Time_Spent_Recharging;
         public float Potential_Energy_Recharge;
@@ -1444,7 +1525,17 @@ namespace ClassLibrary1HUD
         public float Non_Pitlane_Energy_Restore_Value;
         public float Absorbed_While_In_Pitlane_Restore_Value = 0f;
         public float Previous_Shield_Integity;
-        //public float Current_Shield_Integrity;
+        public float Current_Shield_Integrity;
+
+        public Vector2 Recharge_Sum_Readout_Default_Position;
+        public static readonly Vector2 Recharge_Sum_Lower_Middle_Adjust_Vector = new Vector2(0f, -232f);
+        public static readonly Vector2 Recharge_Sum_Bottom_Adjust_Vector = new Vector2(0f, -528);
+
+        public string Track_Display_Name;
+        public int Current_Section_Index;
+        public int Previous_Section_Index;
+
+        public bool Recharge_Sum_Coroutine_Running;
 
         public override void Start()
         {
@@ -1454,21 +1545,144 @@ namespace ClassLibrary1HUD
             Recharge_Sum_Readout.text = "";
             //Recharge_Sum_Readout.enabled = false;
 
+            Recharge_Sum_Readout_Default_Position = Recharge_Sum_Readout.rectTransform.anchoredPosition;
+
+            Track_Display_Name = ContentManager.GetCurrentTrack().DisplayName;
+
             NgRaceEvents.OnShipAbsorb += AbsorbRechargeSum;
+            NgRaceEvents.OnShipUse += EPackRechargeSum;
+
+            switch (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumPosition)
+            {
+                case 1:
+                    Recharge_Sum_Readout.rectTransform.anchoredPosition = Recharge_Sum_Readout_Default_Position + Recharge_Sum_Lower_Middle_Adjust_Vector;
+                    break;
+                case 2:
+                    Recharge_Sum_Readout.rectTransform.anchoredPosition = Recharge_Sum_Readout_Default_Position + Recharge_Sum_Bottom_Adjust_Vector;
+                    break;                
+            }
+
+            Instance = this;
         }
 
         public override void OnDestroy()
         {
             NgRaceEvents.OnShipAbsorb -= AbsorbRechargeSum;
+            NgRaceEvents.OnShipUse -= EPackRechargeSum;
         }
 
         public override void Update()
         {
             base.Update();
 
-            //Current_Shield_Integrity = TargetShip.ShieldIntegrity;
+            Current_Section_Index = TargetShip.CurrentSection.index;
 
-            if (TargetShip.IsRecharging)
+            Current_Shield_Integrity = TargetShip.ShieldIntegrity;
+
+            if ((RaceManager.CurrentGamemode as GmUpsurge != null) && (Current_Shield_Integrity > Previous_Shield_Integity) && !TargetShip.ShipRestrained)
+            {
+                Non_Pitlane_Energy_Restore_Value = Mathf.Min(20f, (Mathf.Min((TargetShip.ShieldIntegrity + 20f), 100f) - Previous_Shield_Integity));
+                StartCoroutine(Recharge_Sum_Duration());
+            }
+
+            if (NgModes.GmSurvivalBackend.Instance != null && (Current_Shield_Integrity > Previous_Shield_Integity) && !TargetShip.ShipRestrained)
+            {
+                Non_Pitlane_Energy_Restore_Value = Mathf.Min(GmSurvivalBackend.Instance.ShieldRecovery, (Mathf.Min((TargetShip.ShieldIntegrity + GmSurvivalBackend.Instance.ShieldRecovery), 100f) - Previous_Shield_Integity));
+                StartCoroutine(Recharge_Sum_Duration());
+            }
+
+            switch (Track_Display_Name)
+            {
+                case "(NFS1) Alpine":
+                    if (TargetShip.CurrentSection.index == 1877 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(50f, (Mathf.Min((TargetShip.ShieldIntegrity + 50f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }                    
+                    break;
+
+                case "(NFS1) Autumn Valley":
+                    if (TargetShip.CurrentSection.index == 1 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(20f, (Mathf.Min((TargetShip.ShieldIntegrity + 20f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }
+                    break;
+
+                case "(NFS1) Transtropolis":
+                    if (TargetShip.CurrentSection.index == 0 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(40f, (Mathf.Min((TargetShip.ShieldIntegrity + 40f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }
+                    break;
+
+                case "(SW1R) Beedo's Wild Ride":
+                    if (TargetShip.CurrentSection.index == 4 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(40f, (Mathf.Min((TargetShip.ShieldIntegrity + 40f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }
+                    break;
+
+                case "(SW1R) Boonta Eve Training Course":
+                    if (TargetShip.CurrentSection.index == 0 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(20f, (Mathf.Min((TargetShip.ShieldIntegrity + 20f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }
+                    break;
+
+                case "(SW1R) Bumpy's Breakers":
+                    if (TargetShip.CurrentSection.index == 1 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(60f, (Mathf.Min((TargetShip.ShieldIntegrity + 60f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }
+                    break;
+
+                case "(SW1R) Fire Mountain Rally":
+                    if (TargetShip.CurrentSection.index == 0 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(80f, (Mathf.Min((TargetShip.ShieldIntegrity + 80f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }
+                    break;
+
+                case "(SW1R) Malastare 100":
+                    if (TargetShip.CurrentSection.index == 185 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(20f, (Mathf.Min((TargetShip.ShieldIntegrity + 20f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }
+                    break;
+
+                case "(SW1R) Scrapper's Run":
+                    if (TargetShip.CurrentSection.index == 1 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(25f, (Mathf.Min((TargetShip.ShieldIntegrity + 25f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }
+                    break;
+
+                case "(SW1R) The Boonta Eve Classic":
+                    if (TargetShip.CurrentSection.index == 0 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(80f, (Mathf.Min((TargetShip.ShieldIntegrity + 80f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }
+                    break;
+
+                case "[GPL] Torino '55":
+                    if (TargetShip.CurrentSection.index == 0 && Current_Section_Index != Previous_Section_Index)
+                    {
+                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(50f, (Mathf.Min((TargetShip.ShieldIntegrity + 50f), 100f) - Previous_Shield_Integity));
+                        StartCoroutine(Recharge_Sum_Duration());
+                    }
+                    break;
+            }
+
+            if (TargetShip.IsRecharging && !Recharge_Sum_Coroutine_Running)
             {
                 //Recharge_Sum_Readout.enabled = true;
 
@@ -1477,12 +1691,19 @@ namespace ClassLibrary1HUD
 
                 StartCoroutine(Recharge_Sum_Duration());
             }
+            else if (TargetShip.IsRecharging && Recharge_Sum_Coroutine_Running)
+            {
+                Time_Spent_Recharging += Time.deltaTime;
+                Potential_Energy_Recharge = Time_Spent_Recharging * 20f;
+            }
             else
             {
                 Energy_Before_Recharge = TargetShip.ShieldIntegrity;
             }
 
             Previous_Shield_Integity = TargetShip.ShieldIntegrity;
+
+            Previous_Section_Index = TargetShip.CurrentSection.index;
         }
 
         public void AbsorbRechargeSum(ShipController ship, float shieldRestored)
@@ -1499,8 +1720,24 @@ namespace ClassLibrary1HUD
             }
         }
 
+        public void EPackRechargeSum(ShipController ship, PickupBase pickup)
+        {
+            if (ship == TargetShip && pickup as PickupEPack != null)
+            {
+                if (TargetShip.IsRecharging)
+                {
+                    Absorbed_While_In_Pitlane_Restore_Value = 25f;
+                }
+
+                Non_Pitlane_Energy_Restore_Value = Mathf.Min(25f, (Mathf.Min((TargetShip.ShieldIntegrity + 25f), 100f) - Previous_Shield_Integity));
+                StartCoroutine(Recharge_Sum_Duration());
+            }
+        }
+
         IEnumerator Recharge_Sum_Duration()
         {
+            Recharge_Sum_Coroutine_Running = true;
+
             if (Non_Pitlane_Energy_Restore_Value >= 0.05f)
             {
                 Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Non_Pitlane_Energy_Restore_Value);
@@ -1541,6 +1778,8 @@ namespace ClassLibrary1HUD
             Time_Spent_Recharging = 0f;
             Energy_Difference = 0f;
             //Recharge_Sum_Readout.enabled = false;
+
+            Recharge_Sum_Coroutine_Running = false;
         }
     }
 
@@ -1598,6 +1837,18 @@ namespace ClassLibrary1HUD
         public float Third_Arrow_End_Animation_Time_1;
         public float Third_Arrow_End_Animation_Time_2;
         public float Third_Arrow_End_Animation_Time_3;
+
+        public Vector2 Left_Pitlane_Indicator_Arrow_1_Default_Position;
+        public Vector2 Left_Pitlane_Indicator_Arrow_2_Default_Position;
+        public Vector2 Left_Pitlane_Indicator_Arrow_3_Default_Position;
+        public Vector2 Right_Pitlane_Indicator_Arrow_1_Default_Position;
+        public Vector2 Right_Pitlane_Indicator_Arrow_2_Default_Position;
+        public Vector2 Right_Pitlane_Indicator_Arrow_3_Default_Position;
+        public Vector2 Pitlane_Indicator_Field_Name_Default_Position;
+
+        public static readonly Vector2 Pitlane_Indicator_Top_Adjust_Vector = new Vector2(0f, 471f);
+        public static readonly Vector2 Pitlane_Indicator_Lower_Middle_Adjust_Vector = new Vector2(0f, -293f);
+        public static readonly Vector2 Pitlane_Indicator_Bottom_Adjust_Vector = new Vector2(0f, -528f);
 
 
         IEnumerator Pitlane_Indicator_Animation()
@@ -1813,7 +2064,46 @@ namespace ClassLibrary1HUD
             Right_Pitlane_Indicator_Arrow_1.fillAmount = 0f;
             Right_Pitlane_Indicator_Arrow_2.fillAmount = 0f;
             Right_Pitlane_Indicator_Arrow_3.fillAmount = 0f;
-            
+
+            Left_Pitlane_Indicator_Arrow_1_Default_Position = Left_Pitlane_Indicator_Arrow_1.rectTransform.anchoredPosition;
+            Left_Pitlane_Indicator_Arrow_2_Default_Position = Left_Pitlane_Indicator_Arrow_2.rectTransform.anchoredPosition;
+            Left_Pitlane_Indicator_Arrow_3_Default_Position = Left_Pitlane_Indicator_Arrow_3.rectTransform.anchoredPosition;
+            Right_Pitlane_Indicator_Arrow_1_Default_Position = Right_Pitlane_Indicator_Arrow_1.rectTransform.anchoredPosition;
+            Right_Pitlane_Indicator_Arrow_2_Default_Position = Right_Pitlane_Indicator_Arrow_2.rectTransform.anchoredPosition;
+            Right_Pitlane_Indicator_Arrow_3_Default_Position = Right_Pitlane_Indicator_Arrow_3.rectTransform.anchoredPosition;
+            Pitlane_Indicator_Field_Name_Default_Position = Pitlane_Indicator_Field_Name.rectTransform.anchoredPosition;
+
+            switch (VanillaPlusHUDOptions.ModMenuOptions.PitlaneIndicatorPosition)
+            {
+                case 1:
+                    Pitlane_Indicator_Field_Name.rectTransform.anchoredPosition = Pitlane_Indicator_Field_Name_Default_Position + Pitlane_Indicator_Top_Adjust_Vector;
+                    Left_Pitlane_Indicator_Arrow_1.rectTransform.anchoredPosition = Left_Pitlane_Indicator_Arrow_1_Default_Position + Pitlane_Indicator_Top_Adjust_Vector;
+                    Left_Pitlane_Indicator_Arrow_2.rectTransform.anchoredPosition = Left_Pitlane_Indicator_Arrow_2_Default_Position + Pitlane_Indicator_Top_Adjust_Vector;
+                    Left_Pitlane_Indicator_Arrow_3.rectTransform.anchoredPosition = Left_Pitlane_Indicator_Arrow_3_Default_Position + Pitlane_Indicator_Top_Adjust_Vector;
+                    Right_Pitlane_Indicator_Arrow_1.rectTransform.anchoredPosition = Right_Pitlane_Indicator_Arrow_1_Default_Position + Pitlane_Indicator_Top_Adjust_Vector;
+                    Right_Pitlane_Indicator_Arrow_2.rectTransform.anchoredPosition = Right_Pitlane_Indicator_Arrow_2_Default_Position + Pitlane_Indicator_Top_Adjust_Vector;
+                    Right_Pitlane_Indicator_Arrow_3.rectTransform.anchoredPosition = Right_Pitlane_Indicator_Arrow_3_Default_Position + Pitlane_Indicator_Top_Adjust_Vector;
+                    break;
+                case 2:
+                    Pitlane_Indicator_Field_Name.rectTransform.anchoredPosition = Pitlane_Indicator_Field_Name_Default_Position + Pitlane_Indicator_Lower_Middle_Adjust_Vector;
+                    Left_Pitlane_Indicator_Arrow_1.rectTransform.anchoredPosition = Left_Pitlane_Indicator_Arrow_1_Default_Position + Pitlane_Indicator_Lower_Middle_Adjust_Vector;
+                    Left_Pitlane_Indicator_Arrow_2.rectTransform.anchoredPosition = Left_Pitlane_Indicator_Arrow_2_Default_Position + Pitlane_Indicator_Lower_Middle_Adjust_Vector;
+                    Left_Pitlane_Indicator_Arrow_3.rectTransform.anchoredPosition = Left_Pitlane_Indicator_Arrow_3_Default_Position + Pitlane_Indicator_Lower_Middle_Adjust_Vector;
+                    Right_Pitlane_Indicator_Arrow_1.rectTransform.anchoredPosition = Right_Pitlane_Indicator_Arrow_1_Default_Position + Pitlane_Indicator_Lower_Middle_Adjust_Vector;
+                    Right_Pitlane_Indicator_Arrow_2.rectTransform.anchoredPosition = Right_Pitlane_Indicator_Arrow_2_Default_Position + Pitlane_Indicator_Lower_Middle_Adjust_Vector;
+                    Right_Pitlane_Indicator_Arrow_3.rectTransform.anchoredPosition = Right_Pitlane_Indicator_Arrow_3_Default_Position + Pitlane_Indicator_Lower_Middle_Adjust_Vector;
+                    break;
+                case 3:
+                    Pitlane_Indicator_Field_Name.rectTransform.anchoredPosition = Pitlane_Indicator_Field_Name_Default_Position + Pitlane_Indicator_Bottom_Adjust_Vector;
+                    Left_Pitlane_Indicator_Arrow_1.rectTransform.anchoredPosition = Left_Pitlane_Indicator_Arrow_1_Default_Position + Pitlane_Indicator_Bottom_Adjust_Vector;
+                    Left_Pitlane_Indicator_Arrow_2.rectTransform.anchoredPosition = Left_Pitlane_Indicator_Arrow_2_Default_Position + Pitlane_Indicator_Bottom_Adjust_Vector;
+                    Left_Pitlane_Indicator_Arrow_3.rectTransform.anchoredPosition = Left_Pitlane_Indicator_Arrow_3_Default_Position + Pitlane_Indicator_Bottom_Adjust_Vector;
+                    Right_Pitlane_Indicator_Arrow_1.rectTransform.anchoredPosition = Right_Pitlane_Indicator_Arrow_1_Default_Position + Pitlane_Indicator_Bottom_Adjust_Vector;
+                    Right_Pitlane_Indicator_Arrow_2.rectTransform.anchoredPosition = Right_Pitlane_Indicator_Arrow_2_Default_Position + Pitlane_Indicator_Bottom_Adjust_Vector;
+                    Right_Pitlane_Indicator_Arrow_3.rectTransform.anchoredPosition = Right_Pitlane_Indicator_Arrow_3_Default_Position + Pitlane_Indicator_Bottom_Adjust_Vector;
+                    break;
+            }
+
             Left_Pitlane_Arrows = new Image[] { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
             Right_Pitlane_Arrows = new Image[] { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
         }
@@ -1893,6 +2183,7 @@ namespace ClassLibrary1HUD
             base.Start();
 
             Relative_Time_Readout = CustomComponents.GetById<Text>("RelativeTimeReadout");
+            Relative_Time_Readout.text = "–:––.––";
             Track_Section_Max = NgTrackData.TrackManager.Instance.data.sections.Count; //How many sections the current track has
         }
 
@@ -1969,6 +2260,11 @@ namespace ClassLibrary1HUD
     public class Music_Display : ScriptableHud
     {
         public Text Music_Display_Readout;
+
+        public Vector2 Music_Display_Readout_Default_Position;
+        public static readonly Vector2 Music_Display_Readout_Adjust_Vector = new Vector2(0f, 37f);
+        
+        public Coroutine MusicFlasherCoroutine;
 
         IEnumerator Music_Flasher()
         {
@@ -2051,6 +2347,8 @@ namespace ClassLibrary1HUD
                 yield return null;
             }
             Music_Display_Readout.enabled = false;
+
+            MusicFlasherCoroutine = null;
         }
 
         public override void Start()
@@ -2058,14 +2356,23 @@ namespace ClassLibrary1HUD
             base.Start();
             NgUiEvents.OnNewSongPlaying += Music_Display_Method;
             Music_Display_Readout = CustomComponents.GetById<Text>("MusicReadout");
+            Music_Display_Readout_Default_Position = Music_Display_Readout.rectTransform.anchoredPosition;
             Music_Display_Readout.text = "";
         }
 
         public void Music_Display_Method(string name)
         {
             Music_Display_Readout.text = name;
+            Music_Display_Readout.cachedTextGenerator.Populate(Music_Display_Readout.text, Music_Display_Readout.GetGenerationSettings(Music_Display_Readout.rectTransform.rect.size));
+            Music_Display_Readout.rectTransform.anchoredPosition = Music_Display_Readout_Default_Position + ((Music_Display_Readout.cachedTextGenerator.lineCount - 1) * Music_Display_Readout_Adjust_Vector);
 
-            StartCoroutine(Music_Flasher());
+            if (MusicFlasherCoroutine != null)
+            {
+                StopCoroutine(MusicFlasherCoroutine);
+                MusicFlasherCoroutine = null;
+            }
+
+            MusicFlasherCoroutine = StartCoroutine(Music_Flasher());
         }
 
         public override void OnDestroy()
@@ -2082,6 +2389,9 @@ namespace ClassLibrary1HUD
         //public bool Damaged_In_Autopilot;
         public Image Damage_Flasher_Image;
         public Image Damage_Flasher_Background;
+        public Text Damage_Flasher_Text;
+        public const float Autopilot_Flash_Duration = 0.5f;
+        public float Autopilot_Flash_End_Time;
 
         IEnumerator Damage_Flash_Autopilot_Duration()
         {
@@ -2113,7 +2423,10 @@ namespace ClassLibrary1HUD
 
             Damage_Flasher_Image = CustomComponents.GetById<Image>("DamageFlasher");
             Damage_Flasher_Background = CustomComponents.GetById<Image>("DamageFlasherBackground");
+            Damage_Flasher_Text = CustomComponents.GetById<Text>("DamageFlasherText");
             Damage_Flasher_Image.enabled = false;
+            Damage_Flasher_Background.enabled = false;
+            Damage_Flasher_Text.enabled = false;
         }
 
         public override void Update()
@@ -2125,17 +2438,41 @@ namespace ClassLibrary1HUD
             if ((Current_Shield_Integrity < Previous_Shield_Integrity) && TargetShip.IsShieldActivated && TargetShip.LastAttacker != null)
             {
                 //Damage_Flasher_Image.enabled = true;
-                StartCoroutine(Damage_Flash_Autopilot_Duration());
+                //StartCoroutine(Damage_Flash_Autopilot_Duration());
+                Autopilot_Flash_End_Time = Time.time + Autopilot_Flash_Duration;
             }
-            else if (((TargetShip.PysSim.enginePower < 1f) || (TargetShip.PysSim.engineAccel < 1f)) && TargetShip.CurrentLap != 0)
-            {
-                //Damage_Flasher_Image.enabled = true;
-                StartCoroutine(Damage_Flash_Duration());
-            }
+            //else if (((TargetShip.PysSim.enginePower < 1f) || (TargetShip.PysSim.engineAccel < 1f)) && TargetShip.CurrentLap != 0)
+            //{
+            //    //Damage_Flasher_Image.enabled = true;
+            //    StartCoroutine(Damage_Flash_Duration());
+            //}
             //else
             //{
                 //Damage_Flasher_Image.enabled = false;
             //}
+
+            if (Time.time < Autopilot_Flash_End_Time || (((TargetShip.PysSim.enginePower < 1f) || (TargetShip.PysSim.engineAccel < 1f)) && TargetShip.CurrentLap != 0))
+            {
+                //Damage_Flasher_Image.enabled = true;
+                //Damage_Flasher_Background.enabled = true;
+                Damage_Flasher_Text.enabled = true;
+            }
+            else
+            {
+                //Damage_Flasher_Image.enabled = false;
+                //Damage_Flasher_Background.enabled = false;
+                Damage_Flasher_Text.enabled = false;
+            }
+
+            //if (Damage_Flasher_Image.enabled != true)
+            //{
+            //    Damage_Flasher_Background.enabled = false;
+            //}
+            //else
+            //{
+            //    Damage_Flasher_Image.enabled = true;
+            //}
+
             Previous_Shield_Integrity = TargetShip.ShieldIntegrity;
         }
     }
@@ -2215,9 +2552,23 @@ namespace ClassLibrary1HUD
             Hyperthrust_Bar_Image.fillAmount = TargetShip.PysSim.engineHyper / 1.85f;
             Hyperthrust_Units_String = string.Format("{0:N2}", TargetShip.PysSim.engineHyper);
             Hyperthrust_Bar_Numeric_Readout.text = Hyperthrust_Units_String;
-            if (TargetShip.PysSim.engineHyper < 0.01f)
+            if (TargetShip.PysSim.engineHyper < 0.01f && VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarVisibility == 1)
+            {                
+                Hyperthrust_Bar_Numeric_Readout.enabled = false; //Formerly, Hyperthrust_Bar_Numeric_Readout.text = "";
+                Hyperthrust_Bar_Background.enabled = false;
+                Hyperthrust_Bar_Whiteout.enabled = false;
+                Hyperthrust_Bar_Image.enabled = false;                
+            }
+            else
             {
-                Hyperthrust_Bar_Numeric_Readout.text = "";
+                if (TargetShip.PysSim.engineHyper < 0.01f)
+                {
+                    Hyperthrust_Bar_Numeric_Readout.text = "";
+                }
+                Hyperthrust_Bar_Numeric_Readout.enabled = true;
+                Hyperthrust_Bar_Background.enabled = true;
+                Hyperthrust_Bar_Whiteout.enabled = true;
+                Hyperthrust_Bar_Image.enabled = true;
             }
         }
     }
@@ -2312,9 +2663,23 @@ namespace ClassLibrary1HUD
                 Speedpad_Counter_Image.fillAmount = Speedpad_Counter_2280 / 3f;
                 Speedpad_Count_Numeric_Readout.text = "+" + Speedpad_Counter_2280.ToString();
 
-                if (Speedpad_Counter_2280 == 0f)
+                if (Speedpad_Counter_2280 == 0f && VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterVisibility == 1)
+                {                    
+                    Speedpad_Count_Numeric_Readout.enabled = false; //Formerly, Speedpad_Count_Numeric_Readout.text = "";
+                    Speedpad_Counter_Background.enabled = false;
+                    Speedpad_Counter_Whiteout.enabled = false;
+                    Speedpad_Counter_Image.enabled = false;
+                }
+                else
                 {
-                    Speedpad_Count_Numeric_Readout.text = "";
+                    if (Speedpad_Counter_2280 == 0f)
+                    {
+                        Speedpad_Count_Numeric_Readout.text = "";
+                    }
+                    Speedpad_Count_Numeric_Readout.enabled = true;
+                    Speedpad_Counter_Background.enabled = true;
+                    Speedpad_Counter_Whiteout.enabled = true;
+                    Speedpad_Counter_Image.enabled = true;
                 }
 
                 Speedpad_Counter_Previous_Speedpad_Time_2280 = TargetShip.PysSim.modernPadPushTimer;
@@ -2324,11 +2689,24 @@ namespace ClassLibrary1HUD
                 Speedpad_Counter_Image.fillAmount = TargetShip.BoostAcceleration / 12f;
                 Speedpad_Count_Numeric_Readout.text = "+" + TargetShip.BoostAcceleration.ToString();
 
-                if (TargetShip.BoostAcceleration == 0f)
-                {
-                    Speedpad_Count_Numeric_Readout.text = "";
+                if (TargetShip.BoostAcceleration == 0f && VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterVisibility == 1)
+                {                    
+                    Speedpad_Count_Numeric_Readout.enabled = false; //Formerly, Speedpad_Count_Numeric_Readout.text = "";
+                    Speedpad_Counter_Background.enabled = false;
+                    Speedpad_Counter_Whiteout.enabled = false;
+                    Speedpad_Counter_Image.enabled = false;
                 }
-
+                else
+                {
+                    if (TargetShip.BoostAcceleration == 0f)
+                    {
+                        Speedpad_Count_Numeric_Readout.text = "";
+                    }
+                    Speedpad_Count_Numeric_Readout.enabled = true;
+                    Speedpad_Counter_Background.enabled = true;
+                    Speedpad_Counter_Whiteout.enabled = true;
+                    Speedpad_Counter_Image.enabled = true;
+                }
             }
 
         }
@@ -2411,9 +2789,23 @@ namespace ClassLibrary1HUD
                 Speedpad_Timer_Units_String = string.Format("{0:N2}", TargetShip.PysSim.modernPadPushTimer);
 
                 Speedpad_Timer_Numeric_Readout.text = Speedpad_Timer_Units_String;
-                if (TargetShip.PysSim.modernPadPushTimer < 0.01f)
+                if (TargetShip.PysSim.modernPadPushTimer < 0.01f && VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerVisibility == 1)
+                {                    
+                    Speedpad_Timer_Numeric_Readout.enabled = false; //Formerly, Speedpad_Timer_Units_String = "";
+                    Speedpad_Timer_Background.enabled = false;
+                    Speedpad_Timer_Whiteout.enabled = false;
+                    Speedpad_Timer_Image.enabled = false;
+                }
+                else
                 {
-                    Speedpad_Timer_Units_String = "";
+                    if (TargetShip.PysSim.modernPadPushTimer < 0.01f)
+                    {
+                        Speedpad_Timer_Units_String = "";
+                    }
+                    Speedpad_Timer_Numeric_Readout.enabled = true;
+                    Speedpad_Timer_Background.enabled = true;
+                    Speedpad_Timer_Whiteout.enabled = true;
+                    Speedpad_Timer_Image.enabled = true;
                 }
                 Speedpad_Timer_Numeric_Readout.text = Speedpad_Timer_Units_String;
             }
@@ -2422,9 +2814,23 @@ namespace ClassLibrary1HUD
                 Speedpad_Timer_Image.fillAmount = TargetShip.BoostTimer / 4.5f; //First 3 speedpads hit grant 1.5 seconds each, 4th and beyond grant 0.5 seconds each. Formerly this value was 5f
                 Speedpad_Timer_Units_String = string.Format("{0:N2}", TargetShip.BoostTimer);
 
-                if (TargetShip.BoostTimer < 0.01f)
+                if (TargetShip.BoostTimer < 0.01f && VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerVisibility == 1)
+                {                    
+                    Speedpad_Timer_Numeric_Readout.enabled = false; //Formerly, Speedpad_Timer_Units_String = "";
+                    Speedpad_Timer_Background.enabled = false;
+                    Speedpad_Timer_Whiteout.enabled = false;
+                    Speedpad_Timer_Image.enabled = false;
+                }
+                else
                 {
-                    Speedpad_Timer_Units_String = "";
+                    if (TargetShip.BoostTimer < 0.01f)
+                    {
+                        Speedpad_Timer_Units_String = "";
+                    }
+                    Speedpad_Timer_Numeric_Readout.enabled = true;
+                    Speedpad_Timer_Background.enabled = true;
+                    Speedpad_Timer_Whiteout.enabled = true;
+                    Speedpad_Timer_Image.enabled = true;
                 }
                 Speedpad_Timer_Numeric_Readout.text = Speedpad_Timer_Units_String;
             }            
@@ -2484,6 +2890,7 @@ namespace ClassLibrary1HUD
         public string Current_Position_String;
         public string Max_Position_String;
 
+        public static readonly Vector4 Platinum_Color = new Vector4((63f/255f), 1f, 1f, 1f);
         public static readonly Vector4 Gold_Color = new Vector4(1f, (205f/255f), (102f/255f), 1f);
         public static readonly Vector4 Silver_Color = new Vector4((128f / 255f), (128f / 255f), (128f / 255f), 1f);
         public static readonly Vector4 Bronze_Color = new Vector4(1f, (102f/255f), 0f, 1f);
@@ -2520,7 +2927,11 @@ namespace ClassLibrary1HUD
             {
                 Current_Position.color = Color.red;
             }
-            else if (TargetShip.CurrentPlace == 1)
+            else if (TargetShip.CurrentPlace == 1 && (TargetShip.CurrentLap == Race.MaxLaps))
+            {
+                Current_Position.color = Platinum_Color;
+            }
+            else if (TargetShip.CurrentPlace == 1 && (TargetShip.CurrentLap != Race.MaxLaps))
             {
                 Current_Position.color = Gold_Color;
             }
@@ -2765,7 +3176,15 @@ namespace ClassLibrary1HUD
             Weapon_Text.text = TargetShip.PickupDisplayText;
 
             Weapon_Effectiveness_Compensation_Multiplier = (Default_Cannon_Firerate - VanillaPlusHUDOptions.ModMenuOptions.CannonFirerateOverride);
-            Weapon_Effectiveness_Override = Default_Weapon_Effectiveness - (Weapon_Effectiveness_Compensation_Value * Weapon_Effectiveness_Compensation_Multiplier);
+
+            if (NgData.Race.WeaponBlackList.GetValue(RaceManager.Instance.RaceContext).WeaponNames.Contains("cannon"))
+            {
+                Weapon_Effectiveness_Override = Default_Weapon_Effectiveness;
+            }
+            else
+            {
+                Weapon_Effectiveness_Override = Default_Weapon_Effectiveness - (Weapon_Effectiveness_Compensation_Value * Weapon_Effectiveness_Compensation_Multiplier);
+            }
 
             switch (VanillaPlusHUDOptions.ModMenuOptions.CannonFirerateOverride)
             {
@@ -2922,6 +3341,16 @@ namespace ClassLibrary1HUD
         public bool Energy_Low_Coroutine_Running;
         public bool Energy_Critical_Coroutine_Running;
 
+        public List<float> Enemy_Weapon_Effectiveness_Values = new List<float>();
+        public float Lowest_Enemy_Weapon_Effectiveness = 1f;
+        public float Highest_Enemy_Weapon_Effectiveness = 1f;
+
+        public float Plasma_WCDR = 71.15920f;
+        public float Plasma_BCDR = 60.27840f;
+        public float Rockets_WCDR = 36.59616f;
+        public float Missile_WCDR = 15.42840f;
+        public float Tremor_WCDR = 8.13248f;
+
         //public Vector4 Color_Breakpoint_0 = new Vector4(255, 28, 36, 255); //Red
         //public Vector4 Color_Breakpoint_1 = new Vector4(255, 127, 39, 255); //Orange
         //public Vector4 Color_Breakpoint_2 = new Vector4(255, 242, 0, 255); //Yellow
@@ -2985,6 +3414,39 @@ namespace ClassLibrary1HUD
             Energy_Critical_Coroutine_Running = false;
         }
 
+        public void CalculateDamageBreakpoints()
+        {
+            foreach (ShipController shipcon in Ships.Loaded)
+            {
+                if (shipcon != TargetShip && shipcon.Settings.DAMAGE_PWR > 0f)
+                {
+                    Enemy_Weapon_Effectiveness_Values.Add(shipcon.Settings.DAMAGE_PWR);
+                }
+            }
+
+            if (Enemy_Weapon_Effectiveness_Values.Count > 0)
+            {
+                Lowest_Enemy_Weapon_Effectiveness = Enemy_Weapon_Effectiveness_Values.Min();
+                Highest_Enemy_Weapon_Effectiveness = Enemy_Weapon_Effectiveness_Values.Max();
+            }
+
+            if (Enemy_Weapon_Effectiveness_Values.Count > 1 && Lowest_Enemy_Weapon_Effectiveness != Highest_Enemy_Weapon_Effectiveness)
+            {
+                Plasma_WCDR = Highest_Enemy_Weapon_Effectiveness * TargetShip.Settings.DAMAGE_MULT * 70f;
+                Plasma_BCDR = Lowest_Enemy_Weapon_Effectiveness * TargetShip.Settings.DAMAGE_MULT * 70f;
+                Rockets_WCDR = Highest_Enemy_Weapon_Effectiveness * TargetShip.Settings.DAMAGE_MULT * 36f;
+                Missile_WCDR = Highest_Enemy_Weapon_Effectiveness * TargetShip.Settings.DAMAGE_MULT * 15f;
+                Tremor_WCDR = Highest_Enemy_Weapon_Effectiveness * TargetShip.Settings.DAMAGE_MULT * 8f;
+            }
+        }
+
+        public override void OnDestroy()
+        {
+            NgRaceEvents.OnCountdownStart -= CalculateDamageBreakpoints;
+
+            base.OnDestroy();
+        }
+
         public override void Start()
         {
             base.Start();
@@ -3005,6 +3467,8 @@ namespace ClassLibrary1HUD
             Shield_Integrity_Numeric_Readout = CustomComponents.GetById<Text>("Shield Integrity Numeric Readout");
 
             Energy_Bar_Background_Original_Color = Energy_Bar_Background_Image.color;
+
+            NgRaceEvents.OnCountdownStart += CalculateDamageBreakpoints;
         }
 
         public override void Update()
@@ -3019,11 +3483,11 @@ namespace ClassLibrary1HUD
             {
                 if (VanillaPlusHUDOptions.ModMenuOptions.AbsoluteShieldValueStyle == 1)
                 {
-                    Shield_Display_Value = TargetShip.ShieldIntegrity / TargetShip.Settings.DAMAGE_MULT;
+                    Shield_Display_Value = TargetShip.ShieldIntegrity / TargetShip.Settings.DAMAGE_MULT; //Modded Absolute Shield Value Math
                 }
                 else
                 {
-                    Shield_Display_Value = Mathf.Ceil(TargetShip.ShieldIntegrity * (1f / Shield_Stat));
+                    Shield_Display_Value = TargetShip.ShieldIntegrity * (1f / Shield_Stat); //Internal Absolute Shield Value Math
                 }
             }
 
@@ -3031,36 +3495,36 @@ namespace ClassLibrary1HUD
             switch (VanillaPlusHUDOptions.ModMenuOptions.EnergyBarReadoutDecimalPrecision)
             {
                 case 0:
-                    Shield_Integrity_Numeric_Readout.text = Shield_Display_Value.ToString();
+                    Shield_Integrity_Numeric_Readout.text = Shield_Display_Value.ToString(); //5 decimal places
                     break;
                 case 1:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N4}", Shield_Display_Value);
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N4}", Shield_Display_Value); //4 decimal places
                     break;
                 case 2:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N3}", Shield_Display_Value);
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N3}", Shield_Display_Value); //3 decimal places
                     break;
                 case 3:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N2}", Shield_Display_Value);
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N2}", Shield_Display_Value); //2 decimal places
                     break;
                 case 4:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N1}", Shield_Display_Value);
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N1}", Shield_Display_Value); //1 decimal places
                     break;
                 case 5:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N0}", Shield_Display_Value);
+                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N0}", Mathf.Ceil(Shield_Display_Value)); //No decimal places
                     break;
             }
 
-            if (TargetShip.ShieldIntegrity > 71.15920f)
+            if (TargetShip.ShieldIntegrity > Plasma_WCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_5; //White
-            if (TargetShip.ShieldIntegrity > 60.27840f && TargetShip.ShieldIntegrity <= 71.15920f)
+            if (TargetShip.ShieldIntegrity > Plasma_BCDR && TargetShip.ShieldIntegrity <= Plasma_WCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_4; //Blue
-            if (TargetShip.ShieldIntegrity > 36.59616f && TargetShip.ShieldIntegrity <= 60.27840f)
+            if (TargetShip.ShieldIntegrity > Rockets_WCDR && TargetShip.ShieldIntegrity <= Plasma_BCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_3; //Green
-            if (TargetShip.ShieldIntegrity > 15.42840f && TargetShip.ShieldIntegrity <= 36.59616f)
+            if (TargetShip.ShieldIntegrity > Missile_WCDR && TargetShip.ShieldIntegrity <= Rockets_WCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_2; //Yellow
-            if (TargetShip.ShieldIntegrity > 8.13248f && TargetShip.ShieldIntegrity <= 15.42840f)
+            if (TargetShip.ShieldIntegrity > Tremor_WCDR && TargetShip.ShieldIntegrity <= Missile_WCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_1; //Orange
-            if (TargetShip.ShieldIntegrity >= 0.00001f && TargetShip.ShieldIntegrity <= 8.13248f)
+            if (TargetShip.ShieldIntegrity >= 0.00001f && TargetShip.ShieldIntegrity <= Tremor_WCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_0; //Red
 
             if (10f < TargetShip.ShieldIntegrity && TargetShip.ShieldIntegrity <= 25f && !Energy_Low_Coroutine_Running)
@@ -3312,58 +3776,60 @@ namespace ClassLibrary1HUD
         //public float Pseudohugger_Aerial_Interpolation_Ratio;
         public float Pseudohugger_Grounded_Interpolation_Ratio;
 
+        //Misalignment can be introduced by bad TRM traces, negatively indexed sections, bad pitlane geometry, bad junction geometry generally, junctions crossing over into the normal route and vice versa, gaps/jumps, and really sharp changes in track pitch, track width, or section-to-section distance
         public static readonly int[] BNGL_Arrivon_Falls_8 = { 398, 399, 461, 462 };
         public static readonly int[] BNGL_Oceana_8 = { 121, 122, 176, 177 };
-        public static readonly int[] Helheim = { 43, 44, 113, 114, 201, 202, 242, 243 };
+        public static readonly int[] Helheim = { 43, 44, 113, 114, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243 };
         public static readonly int[] Alphard_Reverse = { 357, 358 };
-        public static readonly int[] Samrong_Crossing_Reverse = { 67, 68, 94, 95, 123, 124 };
-        public static readonly int[] Blackward_Decks = { 14, 15, 103, 105, 279, 280, 459, 460 };
-        public static readonly int[] Great_Manitou_Trail = { 354, 355, 380, 381, 402, 403, 648, 650 };
+        public static readonly int[] Samrong_Crossing_Reverse = { 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124 };
+        public static readonly int[] Blackward_Decks = { 14, 15, 103, 105, 146, 279, 280, 459, 460, 508, 509, 574, 581, 588, 595 };
+        public static readonly int[] Great_Manitou_Trail = { 156, 321, 354, 355, 380, 381, 402, 403, 443, 505, 506, 572, 648, 650, 715, 828, 829, 1122, 1144, 1145 };
         public static readonly int[] Vestfjorden = { 35, 36 };
-        public static readonly int[] Abyssus = { 149, 150, 209, 210, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 259, 260, 261, 262 };
-        public static readonly int[] Aeolus_II = { 0, 1, 116, 117, 170, 171, 236, 237, 245, 246, 269, 270, 296, 297 };
-        public static readonly int[] Altima_XIV = { 203, 204 };
-        public static readonly int[] Antelao = { 168, 187, 308 };
-        public static readonly int[] Antelao_Reverse = { 130, 131, 149, 150 };
-        public static readonly int[] Beltane = { 318, 319};
-        public static readonly int[] Cairodrome = { 57, 58 };
+        public static readonly int[] Abyssus = { 149, 150, 209, 210, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 259, 260, 261, 262, 380, 381, 489, 490, 500, 501 };
+        public static readonly int[] Aeolus_II = { 0, 1, 2, 116, 117, 118, 170, 171, 172, 236, 237, 238, 245, 246, 247, 269, 270, 271, 296, 297, 298 };
+        public static readonly int[] Altima_XIV = { 203, 204, 205 };
+        public static readonly int[] Antelao = { 168, 169, 187, 188, 308, 309 };
+        public static readonly int[] Antelao_Reverse = { 9, 10, 11, 130, 131, 132, 149, 150, 151 };
+        public static readonly int[] Beltane = { 318, 319 };
+        public static readonly int[] Cairodrome = { 22, 23, 24, 35, 57, 58, 59, 190, 191, 192, 281, 282, 283 };
         public static readonly int[] Canyonlands = { 48, 49, 50, 51, 281, 282, 295, 296, 310, 311, 329, 330, 493, 494, 495, 496, 497 };
         public static readonly int[] Canyonlands_Reverse = { 86, 87, 88, 105, 106, 107, 120, 121, 122, 134, 135, 136, 401, 402, 403 };
-        public static readonly int[] Dione_IV = { -417 };
+        public static readonly int[] Dione_IV = { -417, -418, -419, -420, -421, 390, 391, 392 };
         public static readonly int[] Elivagar_Reverse = { 327, 328 };
         public static readonly int[] Eschaton = { 3, 4, 14, 15, 37, 38, 159, 160, 165, 166, 177, 178, 308, 309 };
         public static readonly int[] Gehennom = { 1, 2, 107, 108, 220, 221, 243, 244, 255, 256, 276, 277, 291, 292, 301, 302, 321, 322, 462, 523, 529, 530, 568, 569, 613, 614, 634, 635, 654, 655, 672, 673 };
         public static readonly int[] Herne_Park = { 243, 244 };
-        public static readonly int[] Kamanneq = { 2, 3, 102, 103, 147, 148 };
-        public static readonly int[] Lumenar_V = { 7, 8, 31, 32};
+        public static readonly int[] Kamanneq = { 2, 3, 7, 42, 102, 103, 147, 148 };
+        public static readonly int[] Lumenar_V = { 7, 8, 31, 32 };
         public static readonly int[] Millenium_Wharf = { 78, 79, 251, 252, 355, 356, 428, 429 };
         public static readonly int[] Project_Pandora = { 180, 181, 500, 501, 510, 511, 521, 522 };
         public static readonly int[] Shanghai_Financial = { 13, 14, 179, 180 };
         public static readonly int[] South_Ridge = { 213, 214 };
-        public static readonly int[] Sovereign = { 271, 272, 273 };
-        public static readonly int[] Sovereign_Reverse = { 65, 66, 67 };
+        public static readonly int[] Sovereign = { 7, 8, 120, 121, 271, 272, 273, 274, 275, 276 };
+        public static readonly int[] Sovereign_Reverse = { 65, 66, 67, 68, 69, 70, 220, 221, 333, 334 };
         public static readonly int[] The_STJ = { 201, 202 };
-        public static readonly int[] Dagon_Prime = { 16, 17, 119, 120, 175, 176, 177, 178, 179, 302, 303, 351, 352, 368, 369, 471, 472, 511, 512, 535, 536, 557, 558 };
+        public static readonly int[] Dagon_Prime = { -73, -74, -75, -76, -77, -78, -79, -80, -81, -82, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 119, 120, 175, 176, 177, 178, 179, 302, 303, 351, 352, 368, 369, 471, 472, 511, 512, 535, 536, 557, 558 };
         public static readonly int[] Prototype_19_WLD_Botanica = { 182, 183 };
         public static readonly int[] Prototype_77_ODR_Nachtmahr = { 6, 7 };
         public static readonly int[] Prototype_81_JMT_Lambda2Phi = { 2, 3, 26, 27, 155, 156, 188, 189 };
         public static readonly int[] Prototype_99_KEM_Sunthrone = { 20, 21, 44, 45, 46, 47, 48, 49, 50, 51, 61, 62, 66, 67, 71, 72, 76, 77, 78, 79, 80, 97, 98, 125, 126, 160, 161, 162, 163, 187, 188, 189, 205, 206, 207, 208, 209, 210, 234, 235, 271, 272, 273, 274, 275, 276, 277, 287, 288 };
-        public static readonly int[] ES_0x016_Germania = { 191, 192};
+        public static readonly int[] ES_0x016_Germania = { 191, 192 };
         public static readonly int[] ES_0x033_Dione_II = { 99, 100, 135, 136, 427, 428, 460, 461 };
-        public static readonly int[] Annapurna = { 139, 201, 202, 203, 230, 231 };
+        public static readonly int[] Annapurna = { 139, 201, 202, 203, 230, 231, 232, 233, 234, 322, 447, 466, 491, 498, 547, 582 };
         public static readonly int[] Desolata = { 679, 680 };
-        public static readonly int[] Infinity_Spear = { 119, 120, 161, 162, 163, 164, 221, 222, 231, 232, 241, 242, 250, 251, 263, 264 };
+        public static readonly int[] Infinity_Spear = { 119, 120, 163, 164, 165, 221, 222, 231, 232, 241, 242, 250, 251, 263, 264 };
         public static readonly int[] bngl_metro_11 = { 157, 158, 391, 392, 393, 394, 395, 396, 397, 431, 432 };
-        public static readonly int[] bngl_nova_split_11 = { 13, 14, 33, 34, 121, 122, 151, 152, 173, 174, 211, 212, 245, 246 };
-        public static readonly int[] bngl_wipeoutzone = { 1125, 1126 };
-        public static readonly int[] DandelionCircuit = { -394, -395 };
-        public static readonly int[] Astra_Magnesium = { 176, 177, 201, 202 };
-        public static readonly int[] Serenewoods = { 208, 209, 210, 211, 212, 213, 214, 231, 232, 233, 234, 235 };
+        public static readonly int[] bngl_nova_split_11 = { 13, 14, 33, 34, 121, 122, 151, 152, 173, 174, 211, 212, 245, 246, 324, 367 };
+        public static readonly int[] bngl_wipeoutzone = { -517, -533, 388, 389, 390, 403, 404, 405, 418, 523, 524, 660, 661, 666, 667, 777, 778, 944, 945, 972, 973, 974, 975, 976, 977, 1000, 1001, 1029, 1030, 1031, 1061, 1125, 1126, 1192, 1194, 2252, 2253 };
+        public static readonly int[] DandelionCircuit = { -327, -351, -352, -381, -382, -394, -395, -396, -397, -431 };
+        public static readonly int[] Astra_Magnesium = { -421, 176, 177, 201, 202 };
+        public static readonly int[] Serenewoods = { 208, 209, 210, 211, 212, 213, 214, 231, 232, 233, 234, 235, -589 };
         public static readonly int[] Cobbledark = { -543 };
         public static readonly int[] SW1R_Bumpys_Breakers = { 106, 107, 108, 109, 306, 307, 308, 309, 310, 482, 483 };
         public static readonly int[] SW1R_Malastare_100 = { 87, 88, 89, 90, 91, 92, 93, 94, 95, 101, 102, 103, 107, 108, 109, 110, };
         public static readonly int[] SW1R_Scrappers_Run = { 83, 84, 148, 149 };
         public static readonly int[] SW1R_The_Boonta_Eve_Classic = { 308, 309, 310, 579, 580 };
+        public static readonly int[] SW1R_Boonta_Eve_Training_Course = { 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54 };
         public static readonly int[] SW1R_Aquilaris_Classic = { 139, 140, 141, 142, 143, 144, 145, 146, 147, 196, 197, 198, 199, 200, 201, 236, 238, 239, 240, 241, 242, 243, 244, 249, 251, 252 };
         public static readonly int[] NFS1_Alpine = { 430, 431, 432, 433 };
         public static readonly int[] NFS1_Transtropolis = { 357, 358, 359, 360 };
@@ -3372,19 +3838,238 @@ namespace ClassLibrary1HUD
         public static readonly int[] Aerodive = { 93, 94, 191, 192 };
         public static readonly int[] Escalation_Project = { 39, 40, 41, 42, 43, 44, 176, 177, 178, 179, 255, 256, 270, 288, 302, 403, 404, 423, 424, 425, 426, 480, 481 }; //note that 179 is included so it can be UNMARKED as JUMP
         public static readonly int[] Kaiten = { 145, 146, 158, 159, 206, 207 };
-        public static readonly int[] Loch_Aberton = { 152, 153, -452, -453, -468, -469, -478, -479, -491, -492 };
-        public static readonly int[] Parashant = { 233, 234, 235, 315, 316 };
-        public static readonly int[] Stone_Run = { 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 263, 361 };
-        public static readonly int[] Trinity_Coast = { 232 };
+        public static readonly int[] Loch_Aberton = { 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 152, 153, -442, -444, -445, -446, -447, -452, -453, -468, -469, -478, -479, -491, -492, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395 };
+        public static readonly int[] Parashant = { 233, 234, 235, 315, 316, 530, 569 };
+        public static readonly int[] Stone_Run = { 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 263, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367 };
+        public static readonly int[] Trinity_Coast = { 231, 451, 479, 480, 481, 482, 483, 0, 1 };
         public static readonly int[] wtrp_wo1_korodera = { 108, 109, 110, 349, 350 };
-        public static readonly int[] wtrp_wo2097_spilskinanke = { 136, 137, 148, 149, 159, 160, 204, 205, 206, 207, 214, 215, 216, 217, 224, 225, 226, 227, 306, 307, 334, 335 };
+        public static readonly int[] wtrp_wo2097_spilskinanke = { 82, 102, 136, 137, 148, 149, 159, 160, 204, 205, 206, 207, 214, 215, 216, 217, 224, 225, 226, 227, 306, 307, 334, 335 };
         public static readonly int[] wtrp_wo2097_vostok_island = { 10, 11, 34, 35, 43, 44, 75, 76, 134, 135, 136, 137, 149, 150, 151, 152, 153, 195, 196, 215, 216 };
         public static readonly int[] wtrp_wo3_manor_top = { 78, 79, 91, 92, 132, 133, 142, 143, 152, 153, 162, 163 };
-        public static readonly int[] moltocaldo_desert = { 172, 173, 188, 189, 205, 206, 218, 219, 404, 405 };
-        public static readonly int[] Sunken_City = { 120, 121, 285, 286 };
+        public static readonly int[] moltocaldo_desert = { 172, 173, 188, 189, 205, 206, 218, 219, 374, 404, 405, -427, -460, -461 };
+        public static readonly int[] Sunken_City = { 120, 121, 285, 286, 418, -508, -547 };
+        //Pitlane-related (but also other sources of misalignment) below
+        public static readonly int[] Atacama = { 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, /*160, 161,*/ 162, 163, 285, 286, 287, 288, 289, 304, 305, 306, 307, 308, 309, 310 }; //section 161 should be omitted in terms of correctness but the jump at sections 162 and 163 renders its exclusion mostly meaningless, so it has been included
+        public static readonly int[] Atacama_Reverse = { 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 279, 280, 281, 282, 283, 284, 285, 300, 301, 302, 303, 304, 308, 309, 310 };
+        public static readonly int[] Cairodrome_II = { 530, 531, 561, 562 };
+        public static readonly int[] Cairodrome_II_Reverse = { 533, 534, 564, 565 };
+        public static readonly int[] Cassandra = { 250, 284 };
+        public static readonly int[] Cassandra_Reverse = { 12, 46 };
+        public static readonly int[] Kanlaon_Peak = { 237, 261 };
+        public static readonly int[] Skyline_Sprint = { -397, -425 };
+        public static readonly int[] Aciknovae = { 621 };
+        public static readonly int[] Aciknovae_Reverse = { 245, 246, 247, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358, 359, 466, 467, 468, 469, 470, 471, 472, 473, 474, 475, 476, 477, 594 };
+        public static readonly int[] Nova_Split_Reverse = { 108, 109, 110, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 171, 172, 173, 196, 197, 198, 304, 324, 368 };
+        public static readonly int[] Ishtar_Citadel = { 316, 329, 331 };
+        public static readonly int[] Ishtar_Citadel_Reverse = { 312, 313, 328 };
+        public static readonly int[] Arrivon_XI = { 366 };
+        public static readonly int[] Arrivon_XI_Reverse = { 343 };
+        public static readonly int[] Utah_Project = { 288, 306 };
+        public static readonly int[] Utah_Project_Reverse = { 287, 305 };
+        public static readonly int[] Atlantica = { 187, 189, 349, 350, 351, 352, 353, 354, 355, 356, 357, 432 };
+        public static readonly int[] Atlantica_Reverse = { 47, 48, 49, 50, 51, 52, 53, 54, 79, 80, 81, 96, 408 };
+        public static readonly int[] Tokyo_Bowl = { 194, 237 };
+        public static readonly int[] Tokyo_Bowl_Reverse = { 193, 236 };
+        public static readonly int[] Lujiazui_Park_Reverse = { 392 };
+        public static readonly int[] Pocono_Circuit = { 202, 203, 238 };
+        public static readonly int[] Pocono_Circuit_Reverse = { 205, 240, 241 };
+        public static readonly int[] Arrivon_Falls = { 318, 319, 351 };
+        public static readonly int[] Arrivon_Falls_Reverse = { 349, 351 };
+        public static readonly int[] Meads_Pass = { 221, 222, 252, 253 };
+        public static readonly int[] Meads_Pass_Reverse = { 221, 251, 252 };
+        public static readonly int[] Pacheon = { 309, 338 };
+        public static readonly int[] Pacheon_Reverse = { 308, 336 };
+        public static readonly int[] Hydrome_Bed = { 33, 34, 35, 50, 51, 52, 82, 85, 86, 87, 105, 106, 107, 112, 113, 114, 146, 147, 148, 191, 192, 241, 242, 243, 322, 351 };
+        public static readonly int[] Arrivon_Peak = { 128, 129, 130, 131, 296, 318 };
+        public static readonly int[] Brattelva_Circuit = { 396, 397, 431, 433 };
+        public static readonly int[] Brattelva_Circuit_Reverse = { 394, 395, 431, 429 };
+        public static readonly int[] Alice_Mountain = { 263, 264, 291, 293 };
+        public static readonly int[] Alice_Mountain_Reverse = { 264, 291, 292 };
+        public static readonly int[] Forgotten_Coast = { 333, 334, 366, 368 };
+        public static readonly int[] Forgotten_Coast_Reverse = { 334, 335, 365, 367 };
+        public static readonly int[] Maria_Tide = { 32, 33, 34, 35, 36, 68, 69, 70, 71, 292, 293 };
+        public static readonly int[] Maria_Tide_Reverse = { 216, 217, 218, 219, 220, 221, 253, 254, 255, 256, 257, 258, 323, 325 };
+        public static readonly int[] Europa = { 359, 386, 387 };
+        public static readonly int[] Europa_Reverse = { 80, 81, 212, 213, 418, 444, 445 };
+        public static readonly int[] Utah_Dam = { 520, 550 };
+        public static readonly int[] Utah_Dam_Reverse = { 549 };
+        public static readonly int[] Nova_Park = { 342, 385 };
+        public static readonly int[] Nova_Park_Reverse = { 343, 386 };
+        public static readonly int[] Vespera_Heights = { 449, 477 };
+        public static readonly int[] Vespera_Heights_Reverse = { 149, 150, 151, 170, 176, 177, 178, 472, 500 };
+        public static readonly int[] Pines_Complex_Course_1 = { 328, 329, 367 };
+        public static readonly int[] Pines_Complex_Course_1_Reverse = { 327, 364, 366 };
+        public static readonly int[] Pines_Complex_Course_2 = { 139, 140, 405, 570, 571, 588, 589, 627 };
+        public static readonly int[] Pines_Complex_Course_2_Reverse = { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 451, 452, 555, 556, 635, 637 };
+        public static readonly int[] Pines_Complex_Course_3 = { 35, 36, 37, 623, 624, 625, 686, 687, 725 };
+        public static readonly int[] Pines_Complex_Course_3_Reverse = { 54, 55, 56, 255, 256, 257, 567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580, 581, 582, 583, 584, 585, 586, 587, 588, 589, 590, 591, 592, 642, 643, 644, 722, 724 };
+        public static readonly int[] Basis_Divide = { 387, 387, 430 };
+        public static readonly int[] Basis_Divide_Reverse = { 384, 427 };
+        public static readonly int[] Gullfoss_Run = { 304, 334 };
+        public static readonly int[] Gullfoss_Run_Reverse = { 66, 67, 79, 80, 331 };
+        public static readonly int[] Oceana = { 189, 190, 191, 192, 193, 194, 195, 196, 197, 262, 431, 432, 456, 458 };
+        public static readonly int[] Oceana_Reverse = { 189, 238, 433, 460 };
+        public static readonly int[] Omega_Loop = { 241, 290, 291, 292, 310, 384, 414, 645, 676, 678 };
+        public static readonly int[] Omega_Loop_Reverse = { 229, 259, 333, 382, 383, 384, 645, 678 };
+        public static readonly int[] Maceno_Bay = { 11, 274, 275, 310, 311 };
+        public static readonly int[] Maceno_Bay_Reverse = { 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 308, 309 };
+        public static readonly int[] Therma_Fumos = { 331, 369, 370 };
+        public static readonly int[] Therma_Fumos_Reverse = { 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 331, 332, 369, 370 };
+        public static readonly int[] Maceno_Interchange = { 230, 231, 232, 233, 234, 235, 236, 237, 368, 369, 370, 371, 372, 373, 374, 434, 435, 467, 468 };
+        public static readonly int[] Maceno_Interchange_Reverse = { 44, 45, 47, 53, 54, 55, 56, 176, 181, 182, 183, 184, 185, 186, 436, 437, 469, 470 };
+        public static readonly int[] Freyr_Falls = { 14, 15, 16, 75, 76, 77, 82, 83, 84, 95, 96, 97, 178, 261, 262, 263, 264, 296, 297, 298, 303, 304, 305, 306, 521, 541, 542, 551, 552, 553, 579, 580, 581, 587, 588, 589, 593, 594, 595, 602, 603, 668, 670 };
+        public static readonly int[] Freyr_Falls_Reverse = { 9, 10, 16, 17, 18, 23, 24, 31, 32, 59, 60, 70, 71, 261, 305, 306, 307, 313, 314, 315, 504, 514, 515, 528, 529, 534, 535, 536, 615, 616, 666, 668 };
+        public static readonly int[] Alto_Overseer = { 586, 616, 617, 618, 619 };
+        public static readonly int[] Alto_Overseer_Reverse = { 586, 587, 588, 589, 619 };
+        public static readonly int[] Maceno_Peak = { 503, 504, 528, 529, 530, 531 };
+        public static readonly int[] Maceno_Peak_Reverse = { 505, 506, 507, 508, 532, 534 };
+        public static readonly int[] Vega_Square = { 211, 212, 213, 243, 244 };
+        public static readonly int[] Vega_Square_Reverse = { 217, 218, 248, 249 };
+        public static readonly int[] Route_05 = { 446, 476, 477, 478 };
+        public static readonly int[] Route_05_Reverse = { 443, 444, 475, 476 };
+        public static readonly int[] Thunderhead = { 168, 309, 348, 349 };
+        public static readonly int[] Thunderhead_Reverse = { 350, 386, 389 };
+        public static readonly int[] Basin = { 496, 497, 527, 528 };
+        public static readonly int[] Basin_Reverse = { 86, 87, 88, 446, 447, 448, 461, 463, 493, 494 };
+        public static readonly int[] Metro = { 391, 392, 393, 394, 395, 396, 397, 398, 559, 560, 590, 591 };
+        public static readonly int[] Metro_Reverse = { 34, 35, 36, 222, 223, 224, 242, 243, 244, 376, 377, 378, 399, 400, 401, 458, 459, 460, 514, 515, 545, 546 };
+        public static readonly int[] Caldera = { 361, 362, 394, 395 };
+        public static readonly int[] Caldera_Reverse = { 362, 394, 395 };
+        public static readonly int[] Project_9 = { 554, 555, 584, 586 };
+        public static readonly int[] Project_9_Reverse = { 584, 585 };
+        public static readonly int[] Haze = { 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 301, 302, 303, 305, 306, 330, 331, 332, 333, 495, 496, 533, 534 };
+        public static readonly int[] Haze_Reverse = { 87, 88, 159, 160, 186, 187, 188, 189, 190, 231, 232, 240, 241, 242, 243, 244, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 533, 534 };
+        public static readonly int[] Helios_Descent = { 294, 295, 296, 297, 303, 304, 305, 659, 660, 699, 701 };
+        public static readonly int[] Helios_Ascent = { 346, 347, 348, 349, 354, 355, 356, 654, 655, 694, 696 };
+        public static readonly int[] Port_Ares = { 109, 138, 139, 173, 176, 225, 226, 285, 286, 287, 288, 289, 290, 291, 292, 358, 360, 479, 514, 515 };
+        public static readonly int[] Port_Ares_Reverse = { 116, 117, 118, 187, 188, 189, 190, 248, 249, 478, 479, 513, 514 };
+        public static readonly int[] GT_Special_Stage_City = { 80, 81, 82, 241, 242, 243, 267, 268, 269, 361, 362, 363, 1012 };
+        public static readonly int[] GT_Special_Stage_City_Reverse = { 460, 1107, 1108, 1109, 1201, 1202, 1203, 1226, 1227, 1228, 1388, 1389, 1390 };
+        public static readonly int[] GT_Autumn_Ring = { 166 };
+        public static readonly int[] GT_Autumn_Ring_Reverse = { 298, 439 };
+        public static readonly int[] GT_Autumn_Ring_Mini = { 92, 93, 94, 160, 161, 162, 163, 164, 165, 229, 230, -721 };
+        public static readonly int[] GT_Autumn_Ring_Mini_Reverse = { 30, 95, 96, 97, 98, 99, 100 };
+        public static readonly int[] GT_Clubman_Stage_Route_5 = { 435, 438 };
+        public static readonly int[] GT_Clubman_Stage_Route_5_Reverse = { 17 };
+        public static readonly int[] GT_High_Speed_Ring = { -464, -487, 59, 60, 61, 88, 89, 90, 120, 121, 122, 193, 194, 195, 291, 292, 293, 320, 321, 322, 365, 366, 367, 375, 376, 377, 388, 389, 390, 409, 410, 411 };
+        public static readonly int[] GT_High_Speed_Ring_Reverse = { 17, 35, 36, 37, 57, 58, 59, 70, 71, 72, 80, 81, 82, 125, 126, 127, 154, 155, 156, 252, 253, 254, 325, 326, 327, 357, 358, 359, 385, 386, 387 };
+        public static readonly int[] GT_Special_Stage_Route_11_GT1 = { 80, 81, 82, 241, 242, 243, 267, 268, 269, 361, 362, 363, 368 };
+        public static readonly int[] GT_Special_Stage_Route_11_GT1_Reverse = { 409, 410, 411, 503, 504, 505, 529, 530, 531, 535, 690, 691, 692, };
+        public static readonly int[] GT_Special_Stage_Route_11_GT3 = { 80, 81, 82 };
+        public static readonly int[] GT_Special_Stage_Route_11_GT3_Reverse = { 629, 630, 631 };
+        public static readonly int[] GT_Special_Stage_Route_5 = { 496, 497, 498, 508, 509, 510, 684, 687 };
+        public static readonly int[] GT_Special_Stage_Route_5_reverse = { 17, 194, 195, 196, 206, 207, 208 }; //lowercase r in reverse intentional
+        public static readonly int[] Harvest_Bastion = { 319, 327, 338, 353, 371, 381, 400, 404, 405, 417, 418, 442, 449, 450, 468, 469, 520, 521, 610, 644 };
+        public static readonly int[] Trinity_Coast_Reverse = { 480 };
+        public static readonly int[] Ceres_Waypoint = { 335, 486, 487, 488, 489, 490, 491, 492, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, };
+        public static readonly int[] Ceres_Waypoint_Reverse = { 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, /*544, 545,*/ 4, 5, 6, 7, 8, 9, 10, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160 };
+        public static readonly int[] Gemini_Glacier = { 60, 154, 290, 291, 420, 421, 422, 423, 424, 460, 461, 462, 463 };
+        public static readonly int[] Gemini_Glacier_Reverse = { 123, 124, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 419, 420, 421, 422, 423, 458, 459, 460, 461, 462 };
+        public static readonly int[] GT_Deep_Forest = { 115, 116, 117, 257, 258, 259, 441, 442 };
+        public static readonly int[] GT_Deep_Forest_reverse = { 47, 230, 231, 232, 372, 373, 374, }; //lowercase r in reverse intentional
+        public static readonly int[] GT_Grand_Valley_East_Section = { 150, 203, 296, 332, 333, 334, 404, 405, 406, 428, 430 };
+        public static readonly int[] GT_Grand_Valley_East_Section_Reverse = { 65, 66, 67, 100, 101, 102, 196, 197, 198, 402, 403, 404, 425, 426, 427 };
+        public static readonly int[] GT_Grand_Valley_Speedway = { 311, 312, 313, 403, 404, 405, 626, 696, 697, 698, 720, 722 };
+        public static readonly int[] GT_Grand_Valley_Speedway_Reverse = { 286, 378, 379, 380, 539, 694, 695, 716, 717, 718 };
+        public static readonly int[] GPL_Montjuic_69 = { 587, 588, 617, 618, 619, 620, 621, 622, 623 };
+        public static readonly int[] Pier_97 = { 64, 65, 66, 67, -68, -69, -70, -71, -72, -73, 84, 85, 86, 87, -100, -101, -102, -103, -104, -105, -106, -107, 212, 213, 214, 277, 278, 279, -460, -461, -462, -463, -464, -465, -466, -467, -468, -388, 359, 360, 361, 362, 363, 387, 388, 389, 390, 391, 392, -522, -523, -524, -525, -526, -452, -453, -454, -455, -456, -457, -458, -459, -557, -558, -559, -560, -561, -562, -563, -564, -565, -566, -947, -948, -949, -950, -951, -952, -953, -954, -955, -956, -957, -958, -959, -960, -961, -962, -963, -964 };
+        public static readonly int[] bngl_harpstone_5 = { 93, 94, 166, 206 };
+        public static readonly int[] bngl_harpstone_expert_5 = { 171, 172, 273, 274, 275, 276, 277, 278, 317 };
+        public static readonly int[] BNGL_Utah_Project_6 = { 491 };
+        public static readonly int[] bngl_xl_prototype_2 = { 0, 192, 193, 302, 303, 403 };
+        public static readonly int[] bngl_xl_prototype_2_zone_edition = { 0, 192, 193, 302, 303, 403 };
+        public static readonly int[] bngl_0x002_2 = { 0, 244, 245, 266, 267, 287, 288, 391 };
+        public static readonly int[] bngl_0x001_2 = { 226, 227, 335 };
+        public static readonly int[] bngl_0x001_5 = { 457, 482 };
+        public static readonly int[] bngl_0x002_5 = { 378, 379, 411, 412 };
+        public static readonly int[] BNGL_0x002_6 = { 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 168, 170, 171, 172, 244, 245, 257, 258, 288, 289, 303, 304, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 355, 356, 362, 363 };
+        public static readonly int[] bngl_0x003_2 = { 0, 1, 21, 22, 37, 38, 54, 55, 72, 73, 121, 122, -150, -149, -506, -507, 130, 131, 146, 147, 157, 158, 190, 191, 264, 265, 266, 267 };
+        public static readonly int[] BNGL_0x003_6 = { 209, 210, 218, 219, 228, 229, 369 };
+        public static readonly int[] bngl_aciknovae_1 = { 40, 41, 42, 43, 44, 45, 132, 133, 134, 135, 156, 157, 158, 159, 183, 184, 185, 186, 187, 209, 210, 211, 212, 215, 216, 217, 218, 231 };
+        public static readonly int[] bngl_aciknovae_5 = { 53, 54, 55, 56, 192, 193, 194, 195, 225, 226, 227, 228, 229, 280, 281, 343, 371 };
+        public static readonly int[] BNGL_Aciknovae_6 = { 4, 5, 110, 111, 228, 229, 286, 287, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 394, 395, 396, 477, 478, 479, 632 };
+        public static readonly int[] bngl_aciknovae_8 = { 4, 5, 110, 111, 228, 229, 286, 287, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 394, 395, 396, 477, 478, 479, 632 };
+        public static readonly int[] bngl_aciknovae_OG = { 108, 109, 390, 391, 457, 458, 566, 567, 686, 687 };
+        public static readonly int[] bngl_arrivon_example = { 281, 304 };
+        public static readonly int[] bngl_arrivon_peak_94 = { 8, 9, 10, 21, 22, 23, 91, 92, 93, 211, 212, 230, 231, 232, 233, 234, 302, 303, 304, 305 };
+        public static readonly int[] bngl_arrivonxi_6 = { 359, 360, 453 };
+        public static readonly int[] bngl_atlantica_5 = { 70, 71, 219, 250, 286 };
+        public static readonly int[] bngl_atlanticaOG = { 34, 35, 144, 145, 167, 168, 169 };
+        public static readonly int[] bngl_cassandra_5 = { 162, 181 };
+        public static readonly int[] BNGL_Dover_beta = { 425, 426, 489 };
+        public static readonly int[] bngl_dtt_open = { 15, 16, 17, -17, 26, 27, 28, 46, 47, 48, 192, 193, -201, 230, 239, 240, 241, 343, 344, 345, 348, 368, 369, 372, 373, 374 - 403, -760, -1055 };
+        public static readonly int[] bngl_dtt_advanced = { 15, 16, 17, 192, 193, 348, 372, 373, 374 };
+        public static readonly int[] bngl_dtt_oval = { 141 };
+        public static readonly int[] bngl_dtt_expert = { 15, 16, 17, 46, 47, 48, 343, 344, 345, 368, 369 };
+        public static readonly int[] bngl_dtt_intermediate = { 15, 16, 17, 26, 27, 28, 230, 239, 240, 241 };
+        public static readonly int[] bngl_gare_d_europa_remake_1 = { 363, 339, 340 };
+        public static readonly int[] bngl_handling_tutorial_7 = { 171, 172 };
+        public static readonly int[] bngl_harpstone_3 = { -197, -217 };
+        public static readonly int[] bngl_harpstone_6 = { 202, 203 };
+        public static readonly int[] bngl_harpstone_9 = { 202, 203 };
+        public static readonly int[] bngl_harpstone_open_5 = { 93, 94, 165, 166, 185, 206, -208, -307, -308, -409, -410, -411, -412 };
+        public static readonly int[] bngl_ishtar_citadel_1 = { 15, 16, 301 };
+        public static readonly int[] bngl_ishtar_citadel_2 = { 0, 15, 16, 32, 33, 49, 50, 398 };
+        public static readonly int[] bngl_ishtar_citadel_4 = { 29, 30, 31, 160, 161 };
+        public static readonly int[] BNGL_Ishtar_Citadel_5 = { 363, 364, 454, 455 };
+        public static readonly int[] bngl_ishtar_citadel_7 = { 316, 331 };
+        public static readonly int[] bngl_ishtar_citadel_9 = { 316, 331 };
+        public static readonly int[] bngl_kahawai_bay_1 = { 31, 32, 77, 112, 151, 152, 255, 256 };
+        public static readonly int[] bngl_kahawai_bay_3 = { 46, 47, 114, 115, 116, 117, 150, 151, 170, 171 };
+        public static readonly int[] bngl_korodera_remake_2 = { 72, 73, 74, 103, 104, 105, 112, 122, 123, 124, 352, 353, 515, 516, 517, 518 };
+        public static readonly int[] bngl_lujiazui_park_9 = { 2, 3 };
+        public static readonly int[] bngl_luna_1 = { 0, 78, 79, 124, 125 };
+        public static readonly int[] bngl_luna_2 = { 0, 78, 79, 124, 125 };
+        public static readonly int[] bngl_luna_7 = { 192, 193, 350, 351 };
+        public static readonly int[] bngl_luna_prototype_6 = { 248, 250, 269, 270, 453, 454, 569 };
+        public static readonly int[] bngl_maceno_climb = { 620, 621, 622 };
+        public static readonly int[] bngl_maceno_reef_5 = { 281 };
+        public static readonly int[] bngl_marina_rush_4 = { 230, 231 };
+        public static readonly int[] bngl_marina_rush_4_VR = { 230, 231 };
+        public static readonly int[] bngl_mission = { -487, -511, -512 };
+        public static readonly int[] BNGL_Nova_Split_7 = { 41, 42, 56, 57, 77, 78, 91, 92, 108, 109, 336, 337, 405, 406, 429 };
+        public static readonly int[] bngl_nova_split_9_unused = { 78, 79, 94, 95, 112, 113, 124, 125, 142, 143, 221, 222, 223, 224, 231, 232, 233, 234, 332, 355, 356, 357, 358 };
+        public static readonly int[] bngl_omega_harbor_6 = { 120, 121, 267, 268, 278, 279, 717, 760 };
+        public static readonly int[] bngl_omega_harbor_7 = { 505, 506, 512, 513, 519, 520, 529, 530 };
+        public static readonly int[] bngl_pr0x001_93 = { 103, 104, 166, 167, 177, 178, 277, 278, 358, 359, 454, 455 };
+        public static readonly int[] bngl_pr0x001_94 = { 361, 362, 427, 428 };
+        public static readonly int[] bngl_pr0x002_94 = { 31, 32, 50, 51, 190, 191 };
+        public static readonly int[] bngl_pr0x003_94 = { 323, 324, 445, 446 };
+        public static readonly int[] bngl_pr0x004_94 = { 275, 276, 277, 278, 279, 280, 328, 329, 366, 367 };
+        public static readonly int[] bngl_speed_stadium_7 = { 99, 100 };
+        public static readonly int[] bngl_spilskinanke_remake_2 = { 82, 136, 137, 148, 149, 159, 160, 204, 205, 206, 207, 214, 215, 216, 217, 224, 225, 226, 227, 306, 307, 334, 335 };
+        public static readonly int[] bngl_stanza_inter_remake_2 = { 76, 99, 100, 101, 102, 103, 113, 114, 115, 116, 117, 118, 128, 129, 130, 131, 132, 156 };
+        public static readonly int[] bngl_track09_6 = { 263, 264, 377, 378, 445, 446, 525, 552 };
+        public static readonly int[] bngl_utah_project_1_1 = { 85, 86, 87, 149, 150 };
+        public static readonly int[] bngl_utah_project_2 = { 315 };
+        public static readonly int[] bngl_utah_project_4 = { 316 };
+        public static readonly int[] bngl_utah_project_7 = { 155, 156, 288, 305 };
+        public static readonly int[] bngl_utah_project_9 = { 155, 156, 288, 305 };
+        public static readonly int[] bngl_utah_project_wip1 = { 290 };
+        public static readonly int[] bngl_utah_example = { 137, 165 };
+        public static readonly int[] bngl_zephyr_ridge_3 = { 0, 273 };
+        public static readonly int[] bngl_zephyr_ridge_5 = { 0, 273 };
+        public static readonly int[] bngl_zephyr_ridge_6 = { 205, 206, 352, 384 };
+        public static readonly int[] bngl_zephyr_ridge_8 = { 205, 206, 352, 384 };
+        public static readonly int[] bngl_zephyr_ridge_8_unused = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 52, 53, 54, 74, 75, 76, 90, 91, 92, 200, 201, 299, 300, 301, 323, 324, 325, 400, 401, 402, 403, 404, 405, 406 };
+        public static readonly int[] POD_Burrow = { 25, 26, 27, 31, 32, 33, 34, 35, 36, 37, 44, 52, 53, 54, 60, 74, 75, 76, 77, 78, 83, 84, 85, 86, 87, 113, 117, 118, 119, 120 };
+        public static readonly int[] POD_City = { 24, 35, 49, 53, 74, 75, 76, 77 };
+        public static readonly int[] POD_DownTown = { 48, 67, 68, 69, 70, 71, 72, 76, 77, 84, 94 };
+        public static readonly int[] POD_Factory = { 0, 12, 19, 22, 26, 49, 59, 101, 102, 122, 123, 128, 129, 130, 151, 152, 161, 196, 242 };
+        public static readonly int[] POD_Galleria = { 73, 77, 85, 91, 98, 104, 112, 117, 118, 134, 135, 136, 144, 145, 146, 147, 148, 162, 205, 214, 230 };
+        public static readonly int[] POD_Loon = { 2, 3, 4, 5, 15, 16, 17, 18, 19, 20, 21, 22, 23, 26, 27, 28, 32, 33, 34, 58, 59, 60, 68, 69, 70, 75, 76, 77, 78, 79, 80, 101, 113, 126, 127, 153, 154, 160, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 189, 209, 210, 211, 215, 216 };
+        public static readonly int[] POD_Magnetic = { 64, 72 };
+        public static readonly int[] POD_Nuke = { 110 };
+        public static readonly int[] POD_Plant_21 = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 149, 150 };
+        public static readonly int[] POD_Pompeii = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 56, 57, 58, 59, 60, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239 };
+        public static readonly int[] POD_ZED = { 0, 1, 2, 42, 64, 118, 119, 120, 121, 122, 123, 124, 125, 126, 134, 141, 214 };
+        public static readonly int[] POD_VeitLand = { 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 49, 60, 88, 89, 90, 131, 148 };
+        public static readonly int[] POD_Road70 = { 18, 61, 62, 65, 66, 72, 73, 74, 81, 86, 91, 96, 102, 103, 107, 113, 118, 132, 137, 143, 148, 155, 160, 167, 172, 178, 208, 209, 221, 222, 223, 224, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 277, 340, 341, 342, 343, 344, -481, 363, 376, 377, 378, 379 };
 
         public bool Needs_Jump_Flags_Set_To_Normal_Boolean;
         public bool Use_Track_Creator_Defined_Jump_Flags;
+        public bool ZeroGravityTrack; //Currently specific to Ceres Waypoint + Reverse, Kuiper Overturn doesn't seem to need manual definition.
+        public static int[] ZeroGravitySectionDefinitions;
 
         public bool In_Override_Normal;
         public bool In_Override_Jump;
@@ -3400,6 +4085,12 @@ namespace ClassLibrary1HUD
                     Needs_Jump_Flags_Set_To_Normal_Boolean = false;
                     Use_Track_Creator_Defined_Jump_Flags = true;
                     return Array.Empty<int>();
+
+                case "Cassandra":
+                    return Cassandra;
+
+                case "Cassandra Reverse":
+                    return Cassandra_Reverse;
 
                 case "BNGL-Arrivon Falls 8":
                     return BNGL_Arrivon_Falls_8;
@@ -3447,6 +4138,12 @@ namespace ClassLibrary1HUD
                 case "Cairodrome":
                     return Cairodrome;
 
+                case "Cairodrome II":
+                    return Cairodrome_II;
+
+                case "Cairodrome II Reverse":
+                    return Cairodrome_II_Reverse;
+
                 case "Canyonlands":
                     return Canyonlands;
 
@@ -3470,6 +4167,9 @@ namespace ClassLibrary1HUD
 
                 case "Kamanneq":
                     return Kamanneq;
+
+                case "Kanlaon Peak":
+                    return Kanlaon_Peak;
 
                 case "Lumenar V":
                     return Lumenar_V;
@@ -3558,6 +4258,9 @@ namespace ClassLibrary1HUD
                 case "(SW1R) The Boonta Eve Classic":
                     return SW1R_The_Boonta_Eve_Classic;
 
+                case "(SW1R) Boonta Eve Training Course":
+                    return SW1R_Boonta_Eve_Training_Course;
+
                 case "(SW1R) Aquilaris Classic":
                     return SW1R_Aquilaris_Classic;
 
@@ -3612,6 +4315,661 @@ namespace ClassLibrary1HUD
 
                 case "Sunken City":
                     return Sunken_City;
+
+                case "Skyline Sprint":
+                    return Skyline_Sprint;
+
+                case "Atacama":
+                    return Atacama;
+
+                case "Atacama Reverse":
+                    return Atacama_Reverse;
+
+                case "Pier 97":
+                    return Pier_97;
+
+                case "Aciknovae":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Aciknovae;
+
+                case "Aciknovae Reverse":                    
+                    return Aciknovae_Reverse;
+
+                case "Nova Split Reverse":
+                    return Nova_Split_Reverse;
+
+                case "Ishtar Citadel":
+                    return Ishtar_Citadel;
+
+                case "Ishtar Citadel Reverse":
+                    return Ishtar_Citadel_Reverse;
+
+                case "Arrivon XI":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Arrivon_XI;
+
+                case "Arrivon XI Reverse":
+                    return Arrivon_XI_Reverse;
+
+                case "Utah Project":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Utah_Project;
+
+                case "Utah Project Reverse":                    
+                    return Utah_Project_Reverse;
+
+                case "Atlantica":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Atlantica;
+
+                case "Atlantica Reverse":                    
+                    return Atlantica_Reverse;
+
+                case "Tokyo Bowl":
+                    return Tokyo_Bowl;
+
+                case "Tokyo Bowl Reverse":
+                    return Tokyo_Bowl_Reverse;
+
+                case "Lujiazui Park Reverse":
+                    return Lujiazui_Park_Reverse;
+
+                case "Pocono Circuit":
+                    return Pocono_Circuit;
+
+                case "Pocono Circuit Reverse":
+                    return Pocono_Circuit_Reverse;
+
+                case "Arrivon Falls":
+                    return Arrivon_Falls;
+
+                case "Arrivon Falls Reverse":
+                    return Arrivon_Falls_Reverse;
+
+                case "Meads Pass":
+                    return Meads_Pass;
+
+                case "Meads Pass Reverse":
+                    return Meads_Pass_Reverse;
+
+                case "Pacheon":
+                    return Pacheon;
+
+                case "Pacheon Reverse":
+                    return Pacheon_Reverse;
+
+                case "Hydrome Bed":                    
+                    return Hydrome_Bed;
+
+                case "Arrivon Peak":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Arrivon_Peak;
+
+                case "Brattelva Circuit":
+                    return Brattelva_Circuit;
+
+                case "Brattelva Circuit Reverse":
+                    return Brattelva_Circuit_Reverse;
+
+                case "Alice Mountain":
+                    return Alice_Mountain;
+
+                case "Alice Mountain Reverse":
+                    return Alice_Mountain_Reverse;
+
+                case "Forgotten Coast":
+                    return Forgotten_Coast;
+
+                case "Forgotten Coast Reverse":
+                    return Forgotten_Coast_Reverse;
+
+                case "Maria Tide":
+                    return Maria_Tide;
+
+                case "Maria Tide Reverse":
+                    return Maria_Tide_Reverse;
+
+                case "Europa":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Europa;
+
+                case "Europa Reverse":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Europa_Reverse;
+
+                case "Utah Dam":
+                    return Utah_Dam;
+
+                case "Utah Dam Reverse":
+                    return Utah_Dam_Reverse;
+
+                case "Nova Park":
+                    return Nova_Park;
+
+                case "Nova Park Reverse":
+                    return Nova_Park_Reverse;
+
+                case "Vespera Heights":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Vespera_Heights;
+
+                case "Vespera Heights Reverse":                    
+                    return Vespera_Heights_Reverse;
+
+                case "Pines Complex Course 1":
+                    return Pines_Complex_Course_1;                
+
+                case "Pines Complex Course 1 Reverse":
+                    return Pines_Complex_Course_1_Reverse;
+
+                case "Pines Complex Course 2":                    
+                    return Pines_Complex_Course_2;
+
+                case "Pines Complex Course 2 Reverse":
+                    return Pines_Complex_Course_2_Reverse;
+
+                case "Pines Complex Course 3":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Pines_Complex_Course_3;
+
+                case "Pines Complex Course 3 Reverse":                    
+                    return Pines_Complex_Course_3_Reverse;
+
+                case "Basis Divide":
+                    return Basis_Divide;
+
+                case "Basis Divide Reverse":
+                    return Basis_Divide_Reverse;
+
+                case "Gullfoss Run":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Gullfoss_Run;
+
+                case "Gullfoss Run Reverse":
+                    return Gullfoss_Run_Reverse;
+
+                case "Oceana":
+                    return Oceana;
+
+                case "Oceana Reverse":
+                    return Oceana_Reverse;
+
+                case "Omega Loop":
+                    return Omega_Loop;
+
+                case "Omega Loop Reverse":
+                    return Omega_Loop_Reverse;
+
+                case "Maceno Bay":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Maceno_Bay;
+
+                case "Maceno Bay Reverse":
+                    return Maceno_Bay_Reverse;
+
+                case "Therma Fumos":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Therma_Fumos;
+
+                case "Therma Fumos Reverse":                    
+                    return Therma_Fumos_Reverse;
+
+                case "Maceno Interchange":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Maceno_Interchange;
+
+                case "Maceno Interchange Reverse":                    
+                    return Maceno_Interchange_Reverse;
+
+                case "Freyr Falls":                    
+                    return Freyr_Falls;
+
+                case "Freyr Falls Reverse":                    
+                    return Freyr_Falls_Reverse;
+
+                case "Alto Overseer":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Alto_Overseer;
+
+                case "Alto Overseer Reverse":                    
+                    return Alto_Overseer_Reverse;
+
+                case "Maceno Peak":
+                    return Maceno_Peak;
+
+                case "Maceno Peak Reverse":
+                    return Maceno_Peak_Reverse;
+
+                case "Vega Square":
+                    return Vega_Square;
+
+                case "Vega Square Reverse":
+                    return Vega_Square_Reverse;
+
+                case "Route 05":
+                    return Route_05;
+
+                case "Route 05 Reverse":
+                    return Route_05_Reverse;
+
+                case "Thunderhead":
+                    return Thunderhead;
+
+                case "Thunderhead Reverse":
+                    return Thunderhead_Reverse;
+
+                case "Basin":
+                    return Basin;
+
+                case "Basin Reverse":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Basin_Reverse;
+
+                case "Metro":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Metro;
+
+                case "Metro Reverse":
+                    return Metro_Reverse;
+
+                case "Caldera":
+                    return Caldera;
+
+                case "Caldera Reverse":
+                    return Caldera_Reverse;
+
+                case "Project 9":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Project_9;
+
+                case "Project 9 Reverse":
+                    return Project_9_Reverse;
+
+                case "Haze":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Haze;
+
+                case "Haze Reverse":
+                    return Haze_Reverse;
+
+                case "Helios Descent":
+                    return Helios_Descent;
+
+                case "Helios Ascent":
+                    return Helios_Ascent;
+
+                case "Port Ares":
+                    return Port_Ares;
+
+                case "Port Ares Reverse":
+                    return Port_Ares_Reverse;
+
+                case "GT-Special Stage City":
+                    return GT_Special_Stage_City;
+
+                case "GT-Special Stage City Reverse":
+                    return GT_Special_Stage_City_Reverse;
+
+                case "GT-Autumn Ring":
+                    return GT_Autumn_Ring;
+
+                case "GT-Autumn Ring Reverse":
+                    return GT_Autumn_Ring_Reverse;
+
+                case "GT-Autumn Ring Mini":
+                    return GT_Autumn_Ring_Mini;
+
+                case "GT-Autumn Ring Mini Reverse":
+                    return GT_Autumn_Ring_Mini_Reverse;
+
+                case "GT-Clubman Stage Route 5":
+                    return GT_Clubman_Stage_Route_5;
+
+                case "GT-Clubman Stage Route 5 Reverse":
+                    return GT_Clubman_Stage_Route_5_Reverse;
+
+                case "GT-High Speed Ring":
+                    return GT_High_Speed_Ring;
+
+                case "GT-High Speed Ring Reverse":
+                    return GT_High_Speed_Ring_Reverse;
+
+                case "GT-Special Stage Route 11 GT1":
+                    return GT_Special_Stage_Route_11_GT1;
+
+                case "GT-Special Stage Route 11 GT1 Reverse":
+                    return GT_Special_Stage_Route_11_GT1_Reverse;
+
+                case "GT-Special Stage Route 11 GT3":
+                    return GT_Special_Stage_Route_11_GT3;
+
+                case "GT-Special Stage Route 11 GT3 Reverse":
+                    return GT_Special_Stage_Route_11_GT3_Reverse;
+
+                case "GT-Special Stage Route 5":
+                    return GT_Special_Stage_Route_5;
+
+                case "GT-Special Stage Route 5 reverse":
+                    return GT_Special_Stage_Route_5_reverse;
+
+                case "Harvest Bastion":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Harvest_Bastion;
+
+                case "Trinity Coast Reverse":
+                    return Trinity_Coast_Reverse;
+
+                case "Ceres Waypoint":
+                    return Ceres_Waypoint;
+
+                case "Ceres Waypoint Reverse":
+                    return Ceres_Waypoint_Reverse;
+
+                case "Gemini Glacier":
+                    return Gemini_Glacier;
+
+                case "Gemini Glacier Reverse":
+                    return Gemini_Glacier_Reverse;
+
+                case "GT-Deep Forest":
+                    return GT_Deep_Forest;
+
+                case "GT-Deep Forest reverse":
+                    return GT_Deep_Forest_reverse;
+
+                case "GT-Grand Valley East Section":
+                    return GT_Grand_Valley_East_Section;
+
+                case "GT-Grand Valley East Section Reverse":
+                    return GT_Grand_Valley_East_Section_Reverse;
+
+                case "GT-Grand Valley Speedway":
+                    return GT_Grand_Valley_Speedway;
+
+                case "GT-Grand Valley Speedway Reverse":
+                    return GT_Grand_Valley_Speedway_Reverse;
+
+                case "[GPL] Montjuic '69":
+                    return GPL_Montjuic_69;
+
+                case "bngl-harpstone 5":
+                    return bngl_harpstone_5;
+
+                case "bngl-harpstone expert 5":
+                    return bngl_harpstone_expert_5;
+
+                case "BNGL-Utah Project 6":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return BNGL_Utah_Project_6;
+
+                case "bngl-xl prototype 2":
+                    return bngl_xl_prototype_2;
+
+                case "bngl-xl prototype 2 zone edition":
+                    return bngl_xl_prototype_2_zone_edition;
+
+                case "bngl-0x002 2":
+                    return bngl_0x002_2;
+
+                case "bngl-0x001 2":
+                    return bngl_0x001_2;
+
+                case "bngl-0x001 5":
+                    return bngl_0x001_5;
+
+                case "bngl-0x002 5":
+                    return bngl_0x002_5;
+
+                case "BNGL-0x002 6":
+                    return BNGL_0x002_6;
+
+                case "bngl-0x003 2":
+                    return bngl_0x003_2;
+
+                case "BNGL-0x003 6":
+                    return BNGL_0x003_6;
+
+                case "bngl-aciknovae 1":
+                    return bngl_aciknovae_1;
+
+                case "bngl-aciknovae 5":
+                    return bngl_aciknovae_5;
+
+                case "BNGL-Aciknovae 6":
+                    return BNGL_Aciknovae_6;
+
+                case "bngl-aciknovae 8":
+                    return bngl_aciknovae_8;
+
+                case "bngl-aciknovae OG":
+                    return bngl_aciknovae_OG;
+
+                case "bngl-arrivon example":
+                    return bngl_arrivon_example;
+
+                case "bngl-arrivon peak 94":
+                    return bngl_arrivon_peak_94;
+
+                case "bngl-arrivonxi 6":
+                    return bngl_arrivonxi_6;
+
+                case "bngl-atlantica 5":
+                    return bngl_atlantica_5;
+
+                case "bngl-atlanticaOG":
+                    return bngl_atlanticaOG;
+
+                case "bngl-cassandra 5":
+                    return bngl_cassandra_5;
+
+                case "BNGL-Dover beta":
+                    return BNGL_Dover_beta;
+
+                case "bngl-dtt open":
+                    return bngl_dtt_open;
+
+                case "bngl-dtt advanced":
+                    return bngl_dtt_advanced;
+
+                case "bngl-dtt oval":
+                    return bngl_dtt_oval;
+
+                case "bngl-dtt expert":
+                    return bngl_dtt_expert;
+
+                case "bngl-dtt intermediate":
+                    return bngl_dtt_intermediate;
+
+                case "bngl-gare d europa remake 1":
+                    return bngl_gare_d_europa_remake_1;
+
+                case "bngl-handling tutorial 7":
+                    return bngl_handling_tutorial_7;
+
+                case "bngl-harpstone 3":
+                    return bngl_harpstone_3;
+
+                case "bngl-harpstone 6":
+                    return bngl_harpstone_6;
+
+                case "bngl-harpstone 9":
+                    return bngl_harpstone_9;
+
+                case "bngl-harpstone open 5":
+                    return bngl_harpstone_open_5;
+
+                case "bngl-ishtar citadel 1":
+                    return bngl_ishtar_citadel_1;
+
+                case "bngl-ishtar citadel 2":
+                    return bngl_ishtar_citadel_2;
+
+                case "bngl-ishtar citadel 4":
+                    return bngl_ishtar_citadel_4;
+
+                case "BNGL-Ishtar Citadel 5":
+                    return BNGL_Ishtar_Citadel_5;
+
+                case "bngl-ishtar citadel 7":
+                    return bngl_ishtar_citadel_7;
+
+                case "bngl-ishtar citadel 9":
+                    return bngl_ishtar_citadel_9;
+
+                case "bngl-kahawai bay 1":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return bngl_kahawai_bay_1;
+
+                case "bngl-kahawai bay 3":
+                    return bngl_kahawai_bay_3;
+
+                case "bngl-korodera remake 2":
+                    return bngl_korodera_remake_2;
+
+                case "bngl-lujiazui park 9":
+                    return bngl_lujiazui_park_9;
+
+                case "bngl-luna 1":
+                    return bngl_luna_1;
+
+                case "bngl-luna 2":
+                    return bngl_luna_2;
+
+                case "bngl-luna 7":
+                    return bngl_luna_7;
+
+                case "bngl-luna prototype 6":
+                    return bngl_luna_prototype_6;
+
+                case "bngl-maceno climb":
+                    return bngl_maceno_climb;
+
+                case "bngl-maceno reef 5":
+                    return bngl_maceno_reef_5;
+
+                case "bngl-marina rush 4":
+                    return bngl_marina_rush_4;
+
+                case "bngl-marina rush 4 VR":
+                    return bngl_marina_rush_4_VR;
+
+                case "bngl-mission":
+                    return bngl_mission;
+
+                case "BNGL-Nova Split 7":
+                    return BNGL_Nova_Split_7;
+
+                case "bngl-nova split 9 unused":
+                    return bngl_nova_split_9_unused;
+
+                case "bngl-omega harbor 6":
+                    return bngl_omega_harbor_6;
+
+                case "bngl-omega harbor 7":
+                    return bngl_omega_harbor_7;
+
+                case "bngl-pr0x001 93":
+                    return bngl_pr0x001_93;
+
+                case "bngl-pr0x001 94":
+                    return bngl_pr0x001_94;
+
+                case "bngl-pr0x002 94":
+                    return bngl_pr0x002_94;
+
+                case "bngl-pr0x003 94":
+                    return bngl_pr0x003_94;
+
+                case "bngl-pr0x004 94":
+                    return bngl_pr0x004_94;
+
+                case "bngl-speed stadium 7":
+                    return bngl_speed_stadium_7;
+
+                case "bngl-spilskinanke remake 2":
+                    return bngl_spilskinanke_remake_2;
+
+                case "bngl-stanza inter remake 2":
+                    return bngl_stanza_inter_remake_2;
+
+                case "bngl-track09 6":
+                    return bngl_track09_6;
+
+                case "bngl-utah project 1-1":
+                    return bngl_utah_project_1_1;
+
+                case "bngl-utah project 2":
+                    return bngl_utah_project_2;
+
+                case "bngl-utah project 4":
+                    return bngl_utah_project_4;
+
+                case "bngl-utah project 7":
+                    return bngl_utah_project_7;
+
+                case "bngl-utah project 9":
+                    return bngl_utah_project_9;
+
+                case "bngl-utah project wip1":
+                    return bngl_utah_project_wip1;
+
+                case "bngl-utah example":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return bngl_utah_example;
+
+                case "bngl-zephyr ridge 3":
+                    return bngl_zephyr_ridge_3;
+
+                case "bngl-zephyr ridge 5":
+                    return bngl_zephyr_ridge_5;
+
+                case "bngl-zephyr ridge 6":
+                    return bngl_zephyr_ridge_6;
+
+                case "bngl-zephyr ridge 8":
+                    return bngl_zephyr_ridge_8;
+
+                case "bngl-zephyr ridge 8-unused":
+                    return bngl_zephyr_ridge_8_unused;
+
+                case "(POD) Burrow":
+                    return POD_Burrow;
+
+                case "(POD) City":
+                    return POD_City;
+
+                case "(POD) DownTown":
+                    return POD_DownTown;
+
+                case "(POD) Factory":
+                    return POD_Factory;
+
+                case "(POD) Galleria":
+                    return POD_Galleria;
+
+                case "(POD) Loon":
+                    return POD_Loon;
+
+                case "(POD) Magnetic":
+                    return POD_Magnetic;
+
+                case "(POD) Nuke":
+                    return POD_Nuke;
+
+                case "(POD) Plant 21":
+                    return POD_Plant_21;
+
+                case "(POD) Pompeii":
+                    return POD_Pompeii;
+
+                case "(POD) ZED":
+                    return POD_ZED;
+
+                case "(POD) VeitLand":
+                    return POD_VeitLand;
+
+                case "(POD) Road70":
+                    return POD_Road70;
             }
         }
 
@@ -3621,14 +4979,25 @@ namespace ClassLibrary1HUD
 
             //Has_Left_Jump_And_Is_Grounded_Boolean = true;
 
-            Scene activeScene = SceneManager.GetActiveScene();
-            Track_Display_Name = ContentManager.Instance.GetTrackBySceneName(activeScene.name).DisplayName;
+            Track_Display_Name = ContentManager.GetCurrentTrack().DisplayName;
+            //DebugConsole.Log("|" + Track_Display_Name + "|");
+
+            if (Track_Display_Name == "Ceres Waypoint" || Track_Display_Name == "Ceres Waypoint Reverse")
+            {
+                ZeroGravityTrack = true;
+                ZeroGravitySectionDefinitions = Manually_Set_Section_Jump_Flags(Track_Display_Name);
+            }
 
             foreach (NgTrackData.Section section in NgTrackData.TrackManager.Instance.data.sections)
             {
-                if (Manually_Set_Section_Jump_Flags(Track_Display_Name).Contains(section.index) && (Needs_Jump_Flags_Set_To_Normal_Boolean == true) && ((section.index == 179) || (Manually_Set_Section_Jump_Flags(Track_Display_Name) == Antelao)))
+                if (Manually_Set_Section_Jump_Flags(Track_Display_Name).Contains(section.index) && (Needs_Jump_Flags_Set_To_Normal_Boolean == true) && (((section.index == 179) && (Manually_Set_Section_Jump_Flags(Track_Display_Name) == Escalation_Project)) || (Manually_Set_Section_Jump_Flags(Track_Display_Name) == Antelao)))
                 {
                     section.type = NgTrackData.E_SECTIONTYPE.NORMAL;
+                }
+
+                if ((Cheats.IntFromPhysicsMod() == 0) && (VanillaPlusHUDOptions.ModMenuOptions.ForceNoTiltLock2159 == true))
+                {
+                    section.NoTiltLock = true;
                 }
             }
 
@@ -3649,7 +5018,7 @@ namespace ClassLibrary1HUD
             Internal_Camera_Rotation = TargetShip.ShipCamera.transform.rotation.eulerAngles;
             
             Tilt_Lock_Rotation_Quaternion = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, 0f);
-
+            
 
 
             if (Manually_Set_Section_Jump_Flags(Track_Display_Name).Contains(TargetShip.CurrentSection.index))
@@ -3691,14 +5060,26 @@ namespace ClassLibrary1HUD
             }
 
 
+
+            if (ZeroGravityTrack == true && !ZeroGravitySectionDefinitions.Contains(TargetShip.CurrentSection.index))
+            {
+                TargetShip.PysSim.isShipGrounded = true;
+            }
+
+
+
             if ((Cheats.IntFromPhysicsMod() == 1) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.CameraBehavior2280 == 1))
             {
                 TiltLock2280(); //2280 TILT LOCK BEHAVIOR
             }
-            else if ((Cheats.IntFromPhysicsMod() == 1) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.CameraBehavior2280 == 2))
+            else if (((Cheats.IntFromPhysicsMod() == 1) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.CameraBehavior2280 == 2))/* || ((Cheats.IntFromPhysicsMod() == 0) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.ForcePseudohugger2159 == true))*/)
             {
                 Pseudohugger(); //2280 PSEUDOHUGGER BEHAVIOR
             }
+            //else if (((Cheats.IntFromPhysicsMod() == 0) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.ForcePseudohugger2159 == true)))
+            //{
+            //    Pseudohugger2159(); //2159 PSEUDOHUGGER BEHAVIOR
+            //}
                         
             Previous_Pseudohugger_Rotation_Quaternion = Pseudohugger_Rotation_Quaternion;
             //Previous_Intermediate_Rotation_Quaternion = Intermediate_Rotation_Quaternion;
@@ -3726,7 +5107,7 @@ namespace ClassLibrary1HUD
 
                 Tiltlock_Maglocked_Interpolation_Ratio += Time.deltaTime * Rotation_Time;
 
-                Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(Tilt_Lock_Rotation_Quaternion, Quaternion.Euler(transform.InverseTransformDirection(TargetShip.ShipCamera.transform.rotation.eulerAngles)), Tiltlock_Maglocked_Interpolation_Ratio);
+                Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(Tilt_Lock_Rotation_Quaternion, TargetShip.ShipCamera.transform.rotation, Tiltlock_Maglocked_Interpolation_Ratio); //Formerly, Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(Tilt_Lock_Rotation_Quaternion, Quaternion.Euler(transform.InverseTransformDirection(TargetShip.ShipCamera.transform.rotation.eulerAngles)), Tiltlock_Maglocked_Interpolation_Ratio);
 
                 TargetShip.ShipCamera.transform.rotation = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Target_Tilt_Lock_Rotation_Quaternion.eulerAngles.z);
             }            
@@ -3769,10 +5150,66 @@ namespace ClassLibrary1HUD
 
             TargetShip.ShipCamera.transform.rotation = Target_Pseudohugger_Rotation_Quaternion;
         }
+
+        //public void Pseudohugger2159()
+        //{
+        //    if ((In_Override_Jump || In_Creator_Defined_Jump) || (TargetShip.PysSim.isShipGrounded == false))
+        //    {
+        //        Has_Entered_Jump_Boolean = true;
+        //        Stored_Pseudohugger_Rotation_Quaternion = Previous_Pseudohugger_Rotation_Quaternion;
+        //    }
+        //    else if ((In_Override_Normal || In_Creator_Defined_Normal) && (TargetShip.PysSim.isShipGrounded == true))
+        //    {
+        //        Has_Entered_Jump_Boolean = false;
+        //    }
+
+        //    if (Has_Entered_Jump_Boolean == false)
+        //    {
+        //        Stored_Pseudohugger_Rotation_Quaternion = Previous_Pseudohugger_Rotation_Quaternion;
+        //        Pseudohugger_Rotation_Quaternion = Quaternion.Slerp(Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Stored_Pseudohugger_Rotation_Quaternion.eulerAngles.z), Quaternion.LookRotation(TargetShip.ShipCamera.transform.forward, TargetShip.InterpolatedSection.Up), TargetShip.PysSim.GroundedTime/* * Rotation_Time*/);
+        //        Target_Pseudohugger_Rotation_Quaternion = Pseudohugger_Rotation_Quaternion;
+        //    }
+        //    else
+        //    {
+        //        Pseudohugger_Rotation_Quaternion = Quaternion.Slerp(Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Stored_Pseudohugger_Rotation_Quaternion.eulerAngles.z), Tilt_Lock_Rotation_Quaternion, TargetShip.PysSim.AirTime);
+        //        Target_Pseudohugger_Rotation_Quaternion = Pseudohugger_Rotation_Quaternion;
+        //    }
+
+        //    TargetShip.ShipCamera.transform.rotation = Target_Pseudohugger_Rotation_Quaternion;
+        //}
     }
 
     public class Camera_Height_Adjustments : ScriptableHud
     {
+        public static readonly Vector3 Internal_Camera_Offset_2159 = new Vector3(0f, 0.2f, 0f);
+        public static readonly Vector3 Camera_Correction_Offset_2280 = new Vector3(0f, -0.1f, 0.3f);
+        public static readonly Vector3 Cockpit_Camera_Offset_2280 = new Vector3(0f, 0.1f, 0f);
+        //public static readonly Vector3 Cockpit_Camera_Offset_2159 = new Vector3(0f, 0.1f, -0.1f);
+        public MeshRenderer MainHullMesh;
+        public MeshRenderer ShieldMesh;
+        public MeshRenderer CockpitMesh;
+        public MeshRenderer VR_CockpitMesh;
+        public MeshRenderer VR_CockpitMesh_NC;
+
+        public Vector3 MainHullMesh_Initial_Local_Position;
+        //public Vector3 ShieldMesh_Initial_Local_Position;
+        //public Vector3 CockpitMesh_Initial_Local_Position;
+        //public Vector3 VR_CockpitMesh_Initial_Local_Position;
+        //public Vector3 VR_CockpitMesh_NC_Initial_Local_Position;
+
+        //public Vector3 MainHullMesh_Adjusted_Local_Position;
+        //public Vector3 ShieldMesh_Adjusted_Local_Position;
+        //public Vector3 CockpitMesh_Adjusted_Local_Position;
+        //public Vector3 VR_CockpitMesh_Adjusted_Local_Position;
+        //public Vector3 VR_CockpitMesh_NC_Adjusted_Local_Position;
+
+        //public Vector3 MainHullMesh_Adjusted_Local_Position_Canopy_Nosecam;
+        //public Vector3 ShieldMesh_Adjusted_Local_Position_Canopy_Nosecam;
+
+        //public Vector3 MainHullMesh_Negative_Local_Position;
+        //public Vector3 ShieldMesh_Negative_Local_Position;
+
+
         public override void Start()
         {
             base.Start();
@@ -3780,42 +5217,140 @@ namespace ClassLibrary1HUD
             RawImage HideTexture2 = CustomComponents.GetById<RawImage>("RearViewMirrorTexture");
             Destroy(HideTexture2);
 
+            MainHullMesh = TargetShip.Settings.REF_MESH.GetComponent<MeshRenderer>();
+            ShieldMesh = TargetShip.Settings.REF_SHIELD.GetComponent<MeshRenderer>();
+            CockpitMesh = TargetShip.Settings.REF_COCKPITMESH.GetComponent<MeshRenderer>();
+            VR_CockpitMesh = TargetShip.Settings.REF_VRCOCKPITMESH.GetComponent<MeshRenderer>();
+            VR_CockpitMesh_NC = TargetShip.Settings.REF_VRCOCKPITMESHNOCANOPY.GetComponent<MeshRenderer>();
+
+            MainHullMesh_Initial_Local_Position = MainHullMesh.transform.localPosition;
+            //ShieldMesh_Initial_Local_Position = ShieldMesh.transform.localPosition;
+            //CockpitMesh_Initial_Local_Position = CockpitMesh.transform.localPosition;
+            //VR_CockpitMesh_Initial_Local_Position = VR_CockpitMesh.transform.localPosition;
+            //VR_CockpitMesh_NC_Initial_Local_Position = VR_CockpitMesh_NC.transform.localPosition;
+
+            //MainHullMesh_Adjusted_Local_Position = MainHullMesh_Initial_Local_Position + Internal_Camera_Offset_2159;
+            //ShieldMesh_Adjusted_Local_Position = ShieldMesh_Initial_Local_Position + Internal_Camera_Offset_2159;
+            //CockpitMesh_Adjusted_Local_Position = CockpitMesh_Initial_Local_Position + Internal_Camera_Offset_2159;
+            //VR_CockpitMesh_Adjusted_Local_Position = VR_CockpitMesh_Initial_Local_Position + Internal_Camera_Offset_2159;
+            //VR_CockpitMesh_NC_Adjusted_Local_Position = VR_CockpitMesh_NC_Initial_Local_Position + Internal_Camera_Offset_2159;
+
+            //MainHullMesh_Adjusted_Local_Position_Canopy_Nosecam = MainHullMesh_Initial_Local_Position + Camera_Correction_Offset_2280;
+            //ShieldMesh_Adjusted_Local_Position_Canopy_Nosecam = ShieldMesh_Initial_Local_Position + Camera_Correction_Offset_2280;
+
+            //MainHullMesh_Negative_Local_Position = MainHullMesh_Initial_Local_Position - Internal_Camera_Offset_2159;
+            //ShieldMesh_Negative_Local_Position = ShieldMesh_Initial_Local_Position - Internal_Camera_Offset_2159;
         }
 
         public override void Update()
         {
             base.Update();
 
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.AdjustmentAlignmentFixToggle == true)
+            {
+                //Forces cache refresh which helps to produce the correct alignment, without this the interior cockpit mesh and camera position will misalign in 2159 when using the internal camera height. Other misalignment issues may also be occurring without this fix.
+                //However, this 'fix' misaligns everything else, so it's an option toggle.
+                var DummyVariableForReadingInto0 = TargetShip.ShipCameraTransform.localPosition; //CAMERA
+                //var DummyVariableForReadingInto1 = MainHullMesh.transform.localPosition; //MAIN HULL
+                //var DummyVariableForReadingInto2 = ShieldMesh.transform.localPosition; //SHIELD
+                //var DummyVariableForReadingInto3 = CockpitMesh.transform.localPosition; //COCKPIT
+                //var DummyVariableForReadingInto4 = VR_CockpitMesh.transform.localPosition; //VR COCKPIT
+                //var DummyVariableForReadingInto5 = VR_CockpitMesh_NC.transform.localPosition; //VR COCKPIT, NO CANOPY
+            }
+
             if (TargetShip.CamSim.CameraMode == 2 && !TargetShip.FinishedEvent)
             {
-                if ((Cheats.IntFromPhysicsMod() == 1) && VanillaPlusHUDOptions.ModMenuOptions.CanopyCameraAdjustment2280 == 0)
+                if (Cheats.IntFromPhysicsMod() == 1)
                 {
-                    TargetShip.ShipCamera.transform.localPosition = Vector3.up * ((TargetShip.ShipToShipCollider.size.y / 2f) - 0.085f); //Raise the 2280 Internal Camera to the same camera height as 2159 Internal Camera (most recently (TargetShip.ShipToShipCollider.size.y / 1.25f))
+                    if (VanillaPlusHUDOptions.ModMenuOptions.CanopyCameraAdjustment2280 == 0)
+                    {
+                        TargetShip.ShipCameraTransform.localPosition = Cockpit_Camera_Offset_2280;
+
+                        //BONNETCAM MESH
+                        if (VanillaPlusHUDOptions.ModMenuOptions.CanopyMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
+                        {
+                            MainHullMesh.enabled = true;
+                            MainHullMesh.transform.localPosition = Vector3.zero;
+                            ShieldMesh.transform.localPosition = Vector3.zero;
+                        }
+
+                        //HIDDEN MESH
+                        else
+                        {
+                            MainHullMesh.enabled = false;
+                            MainHullMesh.transform.localPosition = Vector3.zero;
+                            ShieldMesh.transform.localPosition = Vector3.zero;
+                            //Reset to default position                            
+                        }
+                    }
+                    else
+                    {
+                        //BONNETCAM MESH
+                        if (VanillaPlusHUDOptions.ModMenuOptions.CanopyMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
+                        {
+                            MainHullMesh.enabled = true;
+                            MainHullMesh.transform.localPosition = Camera_Correction_Offset_2280;
+                            ShieldMesh.transform.localPosition = Camera_Correction_Offset_2280; //In both cases the shield mesh is positioned wrong so we need to correct it                            
+                        }
+
+                        //HIDDEN MESH
+                        else
+                        {
+                            MainHullMesh.enabled = false;
+                            MainHullMesh.transform.localPosition = Vector3.zero; //Reset to default position /*This line doesn't actually need to be here*/
+                            ShieldMesh.transform.localPosition = Camera_Correction_Offset_2280; //In both cases the shield mesh is positioned wrong so we need to correct it                            
+                        }
+                    }
+                }
+                else if (Cheats.IntFromPhysicsMod() != 1) //This could just be an else
+                {
+                    if (VanillaPlusHUDOptions.ModMenuOptions.CanopyMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
+                    {
+                        MainHullMesh.enabled = true;
+                    }
+                    else
+                    {
+                        MainHullMesh.enabled = false;
+                    }
                 }
             }
 
-            if (TargetShip.CamSim.CameraMode == 3 && !TargetShip.FinishedEvent)
+            else if (TargetShip.CamSim.CameraMode == 3 && !TargetShip.FinishedEvent)
             {
-                TargetShip.Settings.REF_SHIELD.transform.localPosition = Vector3.up * ((TargetShip.ShipToShipCollider.size.y / 2f) - 0.085f);
 
-                if ((Cheats.IntFromPhysicsMod() == 1))
+                if (Cheats.IntFromPhysicsMod() == 1)
                 {
                     //RAISED COCKPIT CAMERA
                     if (VanillaPlusHUDOptions.ModMenuOptions.CockpitCameraAdjustment2280 == 0)
                     {
-                        TargetShip.ShipCamera.transform.localPosition = Vector3.up * ((TargetShip.ShipToShipCollider.size.y / 2f) - 0.085f); //(most recently (TargetShip.ShipToShipCollider.size.y / (341f / 180f))), before that it was (26f / 15f); //Raise the 2280 Cockpit Camera to the same camera height as 2159 Internal Camera (formerly)
+                        TargetShip.ShipCameraTransform.localPosition = Cockpit_Camera_Offset_2280;
 
                         //NOSECAM MESH
-                        if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0))
+                        if (VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
                         {
-                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * ((TargetShip.ShipToShipCollider.size.y / 2f) - (250f / 1024f)); //(most recently (TargetShip.ShipToShipCollider.size.y / (341f / 180f))),Raise the 2280 Cockpit Mesh 174f/60f (-132f/60f for default camera height) seems to be the magic number, maybe higher, also recall 68/15f
+                            CockpitMesh.transform.localPosition = Vector3.zero;
+                            VR_CockpitMesh.transform.localPosition = Vector3.zero;
+                            VR_CockpitMesh_NC.transform.localPosition = Vector3.zero;
+                            ShieldMesh.transform.localPosition = Vector3.zero;
+                            CockpitMesh.enabled = false;
+                            VR_CockpitMesh.enabled = false;
+                            VR_CockpitMesh_NC.enabled = false;
+                            MainHullMesh.enabled = true;
+                            MainHullMesh.transform.localPosition = Vector3.zero;
                         }
 
                         //INTERIOR COCKPIT MESH
                         else
                         {
-                            //Lock cockpit transform to camera transform
-                            TargetShip.CockpitParent.GetChild(0).localPosition = TargetShip.ShipCamera.transform.localPosition;
+                            CockpitMesh.transform.localPosition = Cockpit_Camera_Offset_2280;
+                            VR_CockpitMesh.transform.localPosition = Cockpit_Camera_Offset_2280;
+                            VR_CockpitMesh_NC.transform.localPosition = Cockpit_Camera_Offset_2280;
+                            ShieldMesh.transform.localPosition = Cockpit_Camera_Offset_2280;
+                            CockpitMesh.enabled = true;
+                            VR_CockpitMesh.enabled = true;
+                            VR_CockpitMesh_NC.enabled = true;
+                            MainHullMesh.enabled = false;
                         }
                     }
 
@@ -3823,39 +5358,106 @@ namespace ClassLibrary1HUD
                     else
                     {
                         //NOSECAM MESH
-                        if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0))
+                        if (VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
                         {
-                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * (-(TargetShip.ShipToShipCollider.size.y / 2f) + (13f / 1024f));
+                            CockpitMesh.enabled = false;
+                            VR_CockpitMesh.enabled = false;
+                            VR_CockpitMesh_NC.enabled = false;
+                            MainHullMesh.enabled = true;
+                            MainHullMesh.transform.localPosition = -Cockpit_Camera_Offset_2280;
+                            ShieldMesh.transform.localPosition = -Cockpit_Camera_Offset_2280;
                         }
 
                         //INTERIOR COCKPIT MESH
                         else
                         {
+                            CockpitMesh.enabled = true;
+                            VR_CockpitMesh.enabled = true;
+                            VR_CockpitMesh_NC.enabled = true;
+                            CockpitMesh.transform.localPosition = Vector3.zero;
+                            VR_CockpitMesh.transform.localPosition = Vector3.zero;
+                            VR_CockpitMesh_NC.transform.localPosition = Vector3.zero;
+                            MainHullMesh.enabled = false;
+                            MainHullMesh.transform.localPosition = Vector3.zero;
+                            ShieldMesh.transform.localPosition = Vector3.zero;
                             //Reset to default position
-                            TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.zero;
                         }
                     }
                 }
 
-                else if (((Cheats.IntFromPhysicsMod() == 0) || ((Cheats.IntFromPhysicsMod() == 2))))
+                else if (Cheats.IntFromPhysicsMod() != 1) //This could just be an else
                 {
-                    //NOSECAM MESH
-                    if ((VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0))
+                    //RAISED COCKPIT CAMERA
+                    if (VanillaPlusHUDOptions.ModMenuOptions.CockpitCameraAdjustment2159 == 0)
                     {
-                        TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.up * (-(TargetShip.ShipToShipCollider.size.y / 2f) + (13f / 1024f)); //(most recently TargetShip.ShipToShipCollider.size.y / (-132f / 60f))
+                        TargetShip.ShipCameraTransform.localPosition = Internal_Camera_Offset_2159;
+
+                        //NOSECAM MESH
+                        if (VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
+                        {
+                            CockpitMesh.enabled = false;
+                            VR_CockpitMesh.enabled = false;
+                            VR_CockpitMesh_NC.enabled = false;
+                            MainHullMesh.enabled = true;
+                            MainHullMesh.transform.localPosition = MainHullMesh_Initial_Local_Position;
+                            ShieldMesh.transform.localPosition = Vector3.zero;
+                            CockpitMesh.transform.localPosition = Vector3.zero;
+                            VR_CockpitMesh.transform.localPosition = Vector3.zero;
+                            VR_CockpitMesh_NC.transform.localPosition = Vector3.zero;
+                        }
+
+                        //INTERIOR COCKPIT MESH
+                        else
+                        {
+                            CockpitMesh.enabled = true;
+                            VR_CockpitMesh.enabled = true;
+                            VR_CockpitMesh_NC.enabled = true;
+                            MainHullMesh.enabled = false;
+                            ShieldMesh.transform.localPosition = Internal_Camera_Offset_2159;
+                            CockpitMesh.transform.localPosition = Internal_Camera_Offset_2159;
+                            VR_CockpitMesh.transform.localPosition = Internal_Camera_Offset_2159;
+                            VR_CockpitMesh_NC.transform.localPosition = Internal_Camera_Offset_2159;
+                        }
                     }
 
-                    //INTERIOR COCKPIT MESH
+                    //INTERNAL COCKPIT CAMERA
                     else
                     {
-                        //Reset to default position
-                        TargetShip.CockpitParent.GetChild(0).localPosition = Vector3.zero;
+                        //NOSECAM MESH
+                        if (VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
+                        {
+                            CockpitMesh.enabled = false;
+                            VR_CockpitMesh.enabled = false;
+                            VR_CockpitMesh_NC.enabled = false;
+                            MainHullMesh.enabled = true;
+                            MainHullMesh.transform.localPosition = -Internal_Camera_Offset_2159;
+                            ShieldMesh.transform.localPosition = -Internal_Camera_Offset_2159;
+                        }
+
+                        //INTERIOR COCKPIT MESH
+                        else
+                        {
+                            CockpitMesh.enabled = true;
+                            VR_CockpitMesh.enabled = true;
+                            VR_CockpitMesh_NC.enabled = true;
+                            MainHullMesh.enabled = false;
+                            MainHullMesh.transform.localPosition = Vector3.zero;
+                            ShieldMesh.transform.localPosition = Vector3.zero;
+                            CockpitMesh.transform.localPosition = Vector3.zero;
+                            VR_CockpitMesh.transform.localPosition = Vector3.zero;
+                            VR_CockpitMesh_NC.transform.localPosition = Vector3.zero;
+                            //Reset to default position
+                        }
                     }
                 }
             }
             else
             {
-                TargetShip.Settings.REF_SHIELD.transform.localPosition = Vector3.zero;
+                ShieldMesh.transform.localPosition = Vector3.zero;
+                MainHullMesh.transform.localPosition = MainHullMesh_Initial_Local_Position;
+                CockpitMesh.transform.localPosition = Vector3.zero;
+                VR_CockpitMesh.transform.localPosition = Vector3.zero;
+                VR_CockpitMesh_NC.transform.localPosition = Vector3.zero;
             }
         }
     }
@@ -3867,9 +5469,22 @@ namespace ClassLibrary1HUD
         public Text Hunter_Warning_Text;
         public Text Shield_Timer_Text;
 
+        public float Hunter_Projectile_Distance_From_Target;
+
+        public float Self_Destruct_Timer = 0f;
+
+        public NgUi.RaceUi.HUD.EliminatorHud Eliminator_Hud;
+        public NgUi.RaceUi.HUD.NetworkNameTags Network_Name_Tags;
+        public bool Visibility_Toggle_State = true;
+
+        public int Smartshift_Direction;
+
         public override void Start()
         {
             base.Start();
+
+            Eliminator_Hud = HudRegister.CurrentHudManager.Huds.OfType<NgUi.RaceUi.HUD.EliminatorHud>().FirstOrDefault();
+            Network_Name_Tags = HudRegister.CurrentHudManager.Huds.OfType<NgUi.RaceUi.HUD.NetworkNameTags>().FirstOrDefault();
 
             Final_Lap_Warning_Text = CustomComponents.GetById<Text>("FinalLapWarning");
             Tremor_Warning_Text = CustomComponents.GetById<Text>("TremorWarning");
@@ -3899,6 +5514,20 @@ namespace ClassLibrary1HUD
 
         public override void Update()
         {
+            if (TargetShip.AutopilotActivated)
+            {
+                Smartshift_Direction = 0;
+            }
+
+            if (TargetShip.Input.AxisSteer > 0)
+            {
+                Smartshift_Direction = 1;
+            }
+            else if (TargetShip.Input.AxisSteer < 0)
+            {
+                Smartshift_Direction = -1;
+            }            
+
             if (Race.QuakeExists && NgPickups.Physical.Tremor.Instance.Owner != TargetShip && VanillaPlusHUDOptions.ModMenuOptions.TremorWarningToggle)
             {
                 Tremor_Warning_Text.enabled = true;
@@ -3910,7 +5539,17 @@ namespace ClassLibrary1HUD
 
             if (NgPickups.Physical.Projectiles.HunterProjectile.CurrentProjectile != null && VanillaPlusHUDOptions.ModMenuOptions.HunterWarningToggle)
             {
-                Hunter_Warning_Text.enabled = true;
+                Hunter_Projectile_Distance_From_Target = NgPickups.Physical.Projectiles.HunterProjectile.CurrentProjectile.TargetShip.InverseTransformPoint(NgPickups.Physical.Projectiles.HunterProjectile.CurrentProjectile.Body.position).magnitude;
+
+                if (Hunter_Projectile_Distance_From_Target <= 30f) //Same as audible range of Hunter
+                {
+                    Hunter_Warning_Text.text = "HUNTER: " + string.Format("{0:N1}", Hunter_Projectile_Distance_From_Target) + "m";
+                    Hunter_Warning_Text.enabled = true;
+                }
+                else
+                {
+                    Hunter_Warning_Text.enabled = false;
+                }
             }
             else
             {
@@ -3927,9 +5566,66 @@ namespace ClassLibrary1HUD
                 Shield_Timer_Text.enabled = false;
             }
 
-            if (NgIo.NgIn.GetButtonDown("Previous Song", 0) && VanillaPlusHUDOptions.ModMenuOptions.SkipSongBackwardToggle == true && NgGameState.IsPaused == false)
+            if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.PreviousSongKeyCode))
             {
                 NgMusic.MusicPlayer.Instance.PlayPreviousSong(false); //the boolean passed here is whether or not to allow random song selection
+            }
+
+            if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.BarrelRollKeyCode))
+            {
+                TargetShip.PysSim.PerformBarrelRoll(TargetShip.PysSim.prevTurnInput);
+            }
+
+            if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.SideshiftLeftKeyCode))
+            {
+                TargetShip.PysSim.StartSideshift(-1);
+            }
+
+            if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.SideshiftRightKeyCode))
+            {
+                TargetShip.PysSim.StartSideshift(1);
+            }
+
+            if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.SmartshiftKeyCode))
+            {
+                TargetShip.PysSim.StartSideshift(Smartshift_Direction);
+            }
+
+            if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.NameTag_And_ShieldBars_Visibility_Toggle_KeyCode))
+            {
+                Visibility_Toggle_State = !Visibility_Toggle_State;
+
+                if (Visibility_Toggle_State == false)
+                {
+                    Eliminator_Hud.Close();
+                    Network_Name_Tags.Close();
+                    if (VanillaPlusHUDOptions.ModMenuOptions.VisibilityToggleAffectsRechargeSum == true)
+                    {
+                        Recharge_Sum.Instance.Close();
+                    }
+                }
+                else
+                {
+                    Eliminator_Hud.Open();
+                    Network_Name_Tags.Open();
+                    if (VanillaPlusHUDOptions.ModMenuOptions.VisibilityToggleAffectsRechargeSum == true)
+                    {
+                        Recharge_Sum.Instance.Open();
+                    }
+                }
+            }
+
+            if (Input.GetKey(VanillaPlusHUDOptions.ModMenuOptions.SelfDestructKeyCode))
+            {
+                Self_Destruct_Timer += Time.deltaTime;
+                if (Self_Destruct_Timer >= VanillaPlusHUDOptions.ModMenuOptions.SelfDestructTimer)
+                {
+                    TargetShip.ShieldIntegrity = -1f;
+                }
+            }
+            else
+            {
+                Self_Destruct_Timer = 0f;
             }
         }
     }
@@ -3961,20 +5657,20 @@ namespace ClassLibrary1HUD
 
         public override void Update()
         {
-            if (TargetShip.CurrentPlace < Ships.Active.Count)
+            if (TargetShip.CurrentPlace < Ships.Active.Count) //Not in last place
             {
                 Overtaking_Ship = Ships.FindShipInPlace(TargetShip.CurrentPlace + 1);
-                Longitudinal_Offset_Float = Ships.SectionOffsetBetween(TargetShip, Overtaking_Ship);
+                Longitudinal_Offset_Float = TargetShip.InverseTransformPoint(Overtaking_Ship.PhysicsPosition).magnitude;
             }
-            else if (TargetShip.CurrentPlace == Ships.Active.Count && Ships.Active.Count != 1)
+            else if (TargetShip.CurrentPlace == Ships.Active.Count && Ships.Active.Count != 1) //In last place
             {
                 Overtaking_Ship = Ships.FindShipInPlace(TargetShip.CurrentPlace - 1);
-                Longitudinal_Offset_Float = Ships.SectionOffsetBetween(Overtaking_Ship, TargetShip);
+                Longitudinal_Offset_Float = TargetShip.InverseTransformPoint(Overtaking_Ship.PhysicsPosition).magnitude;
             }
-            else
+            else //only 1 ship on the track
             {
                 Overtaking_Ship = TargetShip;
-                Longitudinal_Offset_Float = 25f;
+                Longitudinal_Offset_Float = 50f;
             }
 
             Raw_Offset = TargetShip.ShipCameraTransform.InverseTransformPoint(Overtaking_Ship.PhysicsPosition);
@@ -3982,7 +5678,20 @@ namespace ClassLibrary1HUD
             Lateral_Offset_Float = Raw_Offset.x;
 
             Overtake_Warning_Pipper_Image.rectTransform.anchoredPosition = Vector2.Lerp(Pipper_Left_Position, Pipper_Right_Position, ((Mathf.Clamp(Lateral_Offset_Float, -4f, 4f) + 4f) / 8f));
-            Overtake_Warning_Pipper_Image.fillAmount = ((1f - (Mathf.Clamp(Longitudinal_Offset_Float, 0f, 25f) * 0.04f)));
+            Overtake_Warning_Pipper_Image.fillAmount = ((1f - (Mathf.Clamp(Longitudinal_Offset_Float, 0f, 50f) * 0.02f)));
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarVisibility == 1 && Overtake_Warning_Pipper_Image.fillAmount < (0.27f/27f)) //The Overtake Warning Pipper Image is 27 px tall, <1/27 means that the pipper would appear completely empty anyway
+            {
+                Overtake_Warning_Background_Image.enabled = false;
+                Overtake_Warning_Outline_Image.enabled = false;
+                Overtake_Warning_Pipper_Image.enabled = false;
+            }
+            else
+            {
+                Overtake_Warning_Background_Image.enabled = true;
+                Overtake_Warning_Outline_Image.enabled = true;
+                Overtake_Warning_Pipper_Image.enabled = true;
+            }
         }
     }
 
@@ -3997,11 +5706,80 @@ namespace ClassLibrary1HUD
         public Text Speedlap_Time_Name;
         public Text Speedlap_Time_Readout;
 
+        public string Track_Scene_Name;
+        public string Track_Scene_Save_File_Name;
+        public string Precision_Save_Path;
+
+        public GmPrecision Precision_Gamemode_Instance;
+
         public float Speedlap_Best_Time_Milliseconds;
         public string Speedlap_Best_Time_Units;
 
         public float Speedlap_Time_Milliseconds;
         public string Speedlap_Time_Units;
+
+        public void Retrieve_Precision_Best_Time_From_Disk()
+        {
+            Precision_Save_Path = Directory.GetCurrentDirectory();
+            Precision_Save_Path += "/User/Save/Precision/";
+
+            Track_Scene_Name = ContentManager.GetCurrentTrack().SceneName;
+            Track_Scene_Save_File_Name = Track_Scene_Name + ".sav";
+
+            Precision_Save_Path += Track_Scene_Save_File_Name;
+
+            Precision_Save_Path = Path.GetFullPath(Precision_Save_Path);
+
+            if (File.Exists(Precision_Save_Path))
+            {
+                byte[] Byte_Array = File.ReadAllBytes(Precision_Save_Path);
+                
+                Speedlap_Best_Time_Milliseconds = BitConverter.ToSingle(Byte_Array, 1);
+            }
+            else
+            {
+                Speedlap_Best_Time_Milliseconds = -1f;
+            }
+        }
+
+        public void Retrieve_Speed_Lap_Best_Time_From_Disk()
+        {
+            string Speed_Lap_Save_Path = Directory.GetCurrentDirectory();
+            Speed_Lap_Save_Path += "/User/Save/Times/";
+
+            string Track_Display_Name = ContentManager.GetCurrentTrack().DisplayName;
+            string Track_Display_Save_File_Name =  "Speed Lap" + "_" + Track_Display_Name + "_" + NgStr.GetEventSpeedClassName() + "_" + NgStr.ShipToSaveFileString();
+            //Alternatively,                       "Speed Lap" + "_" + Track_Scene_Name + "_" + RaceManager.Instance.SpeedClass.ToString() + "_" + TargetShip.TargetShipData.CategorySortClass + "_" + NgStr.PhysicsModToSaveFileString() + ".bin";
+
+            if (Cheats.IntFromPhysicsMod() == 0)
+            {
+                Track_Display_Save_File_Name += ".bin";
+            }
+            else
+            {
+                Track_Display_Save_File_Name += "_" + NgStr.PhysicsModToSaveFileString() + ".bin";
+            }
+
+            Speed_Lap_Save_Path += Track_Display_Save_File_Name;
+
+            Speed_Lap_Save_Path = Path.GetFullPath(Speed_Lap_Save_Path);
+
+            if (File.Exists(Speed_Lap_Save_Path))
+            {
+                byte[] Byte_Array = File.ReadAllBytes(Speed_Lap_Save_Path);
+
+                Speedlap_Best_Time_Milliseconds = BitConverter.ToSingle(Byte_Array, 0);
+            }
+            else
+            {
+                Speedlap_Best_Time_Milliseconds = -1f;
+            }
+        }
+
+        public void UpdateLapTime(float time)
+        {
+            Speedlap_Best_Time_Milliseconds = time;
+        }
 
         public override void Start()
         {
@@ -4019,15 +5797,32 @@ namespace ClassLibrary1HUD
             Speedlap_Best_Readout.text = "–:––.––";
             Speedlap_Time_Readout.text = "–:––.––";
 
+            if (RaceManager.CurrentGamemode as GmPrecision != null)
+            {
+                Retrieve_Precision_Best_Time_From_Disk();
+            }            
+
+            if (RaceManager.CurrentGamemode as GmSpeedLap != null)
+            {
+                Retrieve_Speed_Lap_Best_Time_From_Disk();
+            }
+
+            NgUiEvents.OnGamemodeUpdateBestTime += UpdateLapTime;
+        }
+
+        public override void OnDestroy()
+        {
+            NgUiEvents.OnGamemodeUpdateBestTime -= UpdateLapTime;
         }
 
         public override void Update()
         {
             base.Update();
-            
-            if (TargetShip.BestLapTime != 0f)
-            {
-                Speedlap_Best_Time_Milliseconds = TargetShip.BestLapTime;
+
+            Precision_Gamemode_Instance = RaceManager.CurrentGamemode as GmPrecision;
+
+            if (Speedlap_Best_Time_Milliseconds > 0f)
+            {                
                 Speedlap_Best_Time_Units = FloatToTime.Convert(Speedlap_Best_Time_Milliseconds, "0:00.00");
             }
             else
@@ -4038,6 +5833,30 @@ namespace ClassLibrary1HUD
             Speedlap_Best_Readout.text = Speedlap_Best_Time_Units;
 
             Speedlap_Time_Readout.text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00");
+
+            if (Precision_Gamemode_Instance != null)
+            {
+                if (TargetShip.CurrentLapTime < Precision_Gamemode_Instance.AuthorTimes.PlatinumTarget)
+                {
+                    Speedlap_Time_Readout.color = Position_Counter.Platinum_Color;
+                }
+                else if (TargetShip.CurrentLapTime < Precision_Gamemode_Instance.AuthorTimes.GoldTarget)
+                {
+                    Speedlap_Time_Readout.color = Position_Counter.Gold_Color;
+                }
+                else if (TargetShip.CurrentLapTime < Precision_Gamemode_Instance.AuthorTimes.SilverTarget)
+                {
+                    Speedlap_Time_Readout.color = Position_Counter.Silver_Color;
+                }
+                else if (TargetShip.CurrentLapTime < Precision_Gamemode_Instance.AuthorTimes.BronzeTarget)
+                {
+                    Speedlap_Time_Readout.color = Position_Counter.Bronze_Color;
+                }
+                else
+                {
+                    Speedlap_Time_Readout.color = Color.white;
+                }
+            }            
         }
     }
 
@@ -4355,7 +6174,7 @@ namespace ClassLibrary1HUD
             Stored_Shield_Charge_Bar.fillAmount = 0f;
             Stored_Zones_Bar.fillAmount = 0f;
 
-            if (VanillaPlusHUDOptions.ModMenuOptions.LoweredBarrierWarningToggle == false)
+            if (VanillaPlusHUDOptions.ModMenuOptions.BarrierWarningPosition == 0) //BarrierWarningPosition = top
             {
                 Barrier_Zone_Count.rectTransform.anchoredPosition = Lowered_Barrier_Zone_Count_Starting_Position_Vector + Raised_Barrier_Warning_Adjust_Vector;
                 Barrier_Warning_Images[0].rectTransform.anchoredPosition = Lowered_Barrier_Left_Warning_Starting_Position_Vector + Raised_Barrier_Warning_Adjust_Vector;
@@ -4506,6 +6325,11 @@ namespace ClassLibrary1HUD
 
         public void BarrierWarning(ShipController ship, NgPickups.Physical.Barrier barrier, int trackSide)
         {
+            if (NgSettings.Gameplay.MirrorEnabled)
+            {
+                trackSide *= -1;
+            }
+
             Barrier_Warning_Side_Index = trackSide + 1;
             StartCoroutine(Barrier_Warning_Flasher());
         }

@@ -1,4 +1,4 @@
-MD5: 66CE8AFAEEE96C0C5F621504EFC04345
+MD5: 93A3F8B6AFEEBCEF764AD5D465C982BB
 ___________________________________________________________________________________________________________
 
 
@@ -14,6 +14,8 @@ BallisticNG\User\Mods\Code Mods\VanillaPlus\
 Audio
 Weapons
 config.ini
+CONTROLLER BINDS GUIDE.txt
+KEYBOARD BINDS GUIDE.txt
 README.txt
 VanillaPlus.dll
 VanillaPlus.ini
@@ -49,12 +51,13 @@ ________________________________________________________________________________
 
 ABOUT 'Always Recompile'
 The provided zip includes the C# script files which the game compiled into the included VanillaPlus.dll file, which is what actually gets loaded as a code mod.
-Consequently, enabling Always Recompile will work, but it may end up changing the MD5 hash of the .dll file (included at the top of this README) as a result of the recompilation.
+Consequently, enabling Always Recompile will work, but it *WILL* change the MD5 hash of the .dll file (included at the top of this README) as a result of the recompilation.
 The 'Allow Matching' lobby config option used for BallisticN/v/ lobbies checks clients' mod .dll file MD5 hashes and compares them against the MD5 hashes of the host's mod .dll file.
 If these hashes don't match and 'Allow Matching' is being used, the game will not let you connect to the host.
 The in-game debug console (opened with CTRL+BACKSPACE) will show you an error message and report your file's MD5 hash.
 
 If this happens, simply delete the VanillaPlus folder from your codemods folder and repeat the installation process.
+Note that as of Version 1.1.1, VanillaPlusHUD will log its version number and MD5 hash in the in-game debug console whenever you launch the game.
 
 If you want to check your file hash easily (no command line required), my suggestion would be to install TC4Shell (I am not affiliated with or sponsored by TC4Shell in any way).
 TC4Shell is a shareware model file archiver software, similar to WinRAR or 7-Zip.
