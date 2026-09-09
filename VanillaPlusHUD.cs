@@ -4065,6 +4065,12 @@ namespace ClassLibrary1HUD
         public static readonly int[] POD_ZED = { 0, 1, 2, 42, 64, 118, 119, 120, 121, 122, 123, 124, 125, 126, 134, 141, 214 };
         public static readonly int[] POD_VeitLand = { 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 49, 60, 88, 89, 90, 131, 148 };
         public static readonly int[] POD_Road70 = { 18, 61, 62, 65, 66, 72, 73, 74, 81, 86, 91, 96, 102, 103, 107, 113, 118, 132, 137, 143, 148, 155, 160, 167, 172, 178, 208, 209, 221, 222, 223, 224, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 277, 340, 341, 342, 343, 344, -481, 363, 376, 377, 378, 379 };
+        public static readonly int[] bngl_harpstone_11 = { 202, 203, 410, 439 };
+        public static readonly int[] bngl_harpstone_reverse_11 = { 414, 443 };
+        public static readonly int[] bngl_aciknovae_11 = { 594, 632 };
+        public static readonly int[] bngl_aciknovae_reverse_11 = { 355, 356, 357, 358, 472, 473, 474, 592, 630 };
+        public static readonly int[] bngl_marina_rush_9 = { 269, 297 };
+        public static readonly int[] bngl_marina_rush_reverse_9 = { -2, -32, 269, 270, 271, 295, 296, 297, 298 };
 
         public bool Needs_Jump_Flags_Set_To_Normal_Boolean;
         public bool Use_Track_Creator_Defined_Jump_Flags;
@@ -4970,6 +4976,25 @@ namespace ClassLibrary1HUD
 
                 case "(POD) Road70":
                     return POD_Road70;
+
+                case "bngl-harpstone 11":
+                    return bngl_harpstone_11;
+
+                case "bngl-harpstone reverse 11":
+                    return bngl_harpstone_reverse_11;
+
+                case "bngl-aciknovae 11":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return bngl_aciknovae_11;
+
+                case "bngl-aciknovae reverse 11":
+                    return bngl_aciknovae_reverse_11;
+
+                case "bngl-marina rush 9":
+                    return bngl_marina_rush_9;
+
+                case "bngl-marina rush reverse 9":
+                    return bngl_marina_rush_reverse_9;
             }
         }
 
