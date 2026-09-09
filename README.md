@@ -27,7 +27,7 @@ Check out Dekaid's GT3HUD and Dinir's Streamliner HUD (they're both much more pr
 - Practice
 
 ### Supported Version(s\)
-- 1.4.1.4
+- 1.4.1.6
 
 ### Features
 
@@ -48,14 +48,31 @@ Check out Dekaid's GT3HUD and Dinir's Streamliner HUD (they're both much more pr
 15. Speed Pad Timer: Bar that fills up and decays based on remaining speed bad boost timer, with accompanying readout (readout text can be disabled\). While functional in 2280, information conveyed is less inherently useful due to the changes 2280 makes to speed pad function. Displayed next to rear view mirror by default, can be lowered to be displayed below the Relative Time Readout, or centered to be displayed above it.
 16. Speed Pad Colour Pulse: The Throttle Bar (Yellow\) will pulse from dark blue to light blue when you pass over a speed pad.
 17. Energy Bar Colour Breakpoints: Energy Bar will cycle through colours based on damage breakpoints informed by worst-case and best-case damage received from weapons (Calculated from standard-roster ship shield and firepower stats, prototypes like the NX2000 excluded.\)
-18. Canopy Camera Adjust for 2280: Users can choose to raise the position of the internal camera to be more similar to 2159 in 2280.
-19. Cockpit Camera Adjust for 2280: Users can choose to raise the position of the cockpit camera to be more similar to 2159 in 2280.
-20. Cockpit Mesh Adjust: Users can choose whether to have the cockpit interior or the ship's nose/forward hull visible when using the cockpit camera in any physics mode.
-21. (EXPERIMENTAL\) Alternate Camera Modes for 2280: Users can choose to have the camera's tilt lock to world up (similar to 2159 camera behavior\) in 2280 except when on maglock or no-tilt-lock surfaces, or orientate to the track surface at all times (similar to Floorhugger\).
-22. Extra Warnings: Users can choose to receive visual warnings when it's the final lap of a race, when an enemy Tremor is active, or when a Hunter missile is active, and the amount of time remaining on an active shield. For Survival and Upsurge, users have the choice of receiving visual alerts for when the current zone being progressed through is considered perfect (Survival-specific\), when the amount of zones possessed by an Upsurge ship is at the max (Upsurge-specific\), and when the Upsurge zone target is within reach (Upsurge-specific\).
-23. Overtake Radar: Wipeout HD inspired proximity warning, shows you how far ahead you are of the ship behind you. If in last place, instead shows how close you are to the ship in the next position.
-24. Skip Song Backward: You can now play the previous song in-game without having to pause!
-25. Position Counter Colors: The position counter will now change color based on your position in a race; Red for last place, bronze for third place, silver for second place, and gold for first place.
-26. Zone colors for Survival/Upsurge HUD elements: Users can choose to have the colors of the current zone apply to parts of the HUD, adding some visual flair without significant decreases in HUD readability (only tested with default survival/virtual palettes\).
-27. Extra Weapon Information: Users can choose to have additional information displayed next to the weapon icon for certain pickups. For Hellstorm, the total number of unique locked-on targets will be displayed. For Missile, the lock-on "signal integrity" will be displayed, indicating how close you are to losing the lock. For Autopilot, the amount of time before autopilot attempts to disengage will be displayed, followed by the amount of time before autopilot is forcibly disengaged. For Energy Wall, the side of the track on which the energy wall will be deployed will be displayed.
-28. Cannon Firerate Override: Users can choose to reduce their ship's firepower (weapon effectiveness, i.e. how damaging the ship's weapons are\) in exchange for faster-firing cannons, or to lower their ship's cannon firerate in exchange for greater firepower.
+18. Canopy Camera Adjust for 2280: Users can choose to raise the position of the internal camera to be the same as 2159 in 2280.
+19. Cockpit Camera Adjust for 2280: Users can choose to raise the position of the cockpit camera to be the same as 2159 in 2280.
+20. Cockpit Camera Adjust for 2159: Users can choose to raise the position of the cockpit camera to be the same as the internal camera height in 2159.
+21. Cockpit Mesh Adjust: Users can choose whether to have the cockpit interior or the ship's nose/forward hull visible when using the cockpit camera in any physics mode.
+22. Canopy Mesh Adjust: Users can choose whether to have the ship's nose/forward hull visible or hidden when using the internal camera in any physics mode.
+23. (EXPERIMENTAL\) Alternate Camera Modes for 2280: Users can choose to have the camera's tilt lock to world up (similar to 2159 camera behavior\) in 2280 except when on maglock or no-tilt-lock surfaces, or orientate to the track surface at all times (similar to Floorhugger\).
+24. Extra Warnings: Users can choose to receive visual warnings when it's the final lap of a race, when an enemy Tremor is active, or when a Hunter missile is active, and the amount of time remaining on an active shield. For Survival and Upsurge, users have the choice of receiving visual alerts for when the current zone being progressed through is considered perfect (Survival-specific\), when the amount of zones possessed by an Upsurge ship is at the max (Upsurge-specific\), and when the Upsurge zone target is within reach (Upsurge-specific\).
+25. Overtake Radar: Wipeout HD inspired proximity warning, shows you how far ahead you are of the ship behind you. If in last place, instead shows how close you are to the ship in the next position.
+27. Position Counter Colors: The position counter will now change color based on your position in a race; Red for last place, bronze for third place, silver for second place, and gold for first place.
+28. Zone colors for Survival/Upsurge HUD elements: Users can choose to have the colors of the current zone apply to parts of the HUD, adding some visual flair without significant decreases in HUD readability (only tested with default survival/virtual palettes\).
+29. Extra Weapon Information: Users can choose to have additional information displayed next to the weapon icon for certain pickups. For Hellstorm, the total number of unique locked-on targets will be displayed. For Missile, the lock-on "signal integrity" will be displayed, indicating how close you are to losing the lock. For Autopilot, the amount of time before autopilot attempts to disengage will be displayed, followed by the amount of time before autopilot is forcibly disengaged. For Energy Wall, the side of the track on which the energy wall will be deployed will be displayed.
+30. Cannon Firerate Override: Users can choose to reduce their ship's firepower (weapon effectiveness, i.e. how damaging the ship's weapons are\) in exchange for faster-firing cannons, or to lower their ship's cannon firerate in exchange for greater firepower.
+31. Pitlane Indicator Position: Users can choose to display the pitlane indicator at the middle (Default), top, lower middle, or bottom of the screen.
+32. Recharge Sum Position: Users can choose to display the recharge sum readout at the middle (Default), lower middle, or bottom of the screen.
+33. Hyperthrust Bar Visibility: Users can choose to have the hyperthrust bar hide itself when inactive.
+34. Speed Pad Counter Visibility: Users can choose to have the speed pad counter hide itself when inactive.
+35. Speed Pad Timer Visibility: Users can choose to have the speed pad timer hide itself when inactive.
+36. Overtake Radar Visibility: Users can choose to have the overtake radar timer hide itself when inactive.
+37. Force No Tilt Lock in 2159: Users can choose to convert the entire track surface to no tilt lock for a different handling experience/self-imposed handicap.
+38. Barrel Roll Keybind: Users can choose to bind a keyboard key or gamepad button to single-button barrel rolls using this mapping.
+39. Sideshift Left Keybind: Users can choose to bind a keyboard key or gamepad button to single-button leftward sideshifts using this mapping.
+40. Sideshift Right Keybind: Users can choose to bind a keyboard key or gamepad button to single-button rightward sideshifts using this mapping.
+41. Smartshift Keybind: Users can choose to bind a keyboard key or gamepad button to single-button, context-sensitive sideshifts using this mapping. Sideshifts inputted this way will be executed in the direction in which the user last inputted a steer.
+42. Previous Song Keybind: Users can choose to bind a keyboard key or gamepad button to skip to the previous song in the in-game music playlist using this mapping.
+43. Name Tag And Shield Bar Visibility Toggle Keybind: Users can choose to bind a keyboard key or gamepad button to toggle the visibility of the name tag and shield bar ship overlays using this mapping.
+44. Visibility Toggle Affects Recharge Sum: Users can choose to have the name tag and shield bar visibility toggle keybind affect the recharge sum readout as well.
+45. Self-Destruct Keybind: Users can choose to bind a keyboard key or gamepad button to execute a self-destruct.
+46. Self Destruct Timer: Users can choose to set the time for which the self-destruct button must be held before the self-destruct triggers. Leave this set to 0 for instant self-destruct on keypress or buttonpress.
