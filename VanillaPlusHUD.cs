@@ -3819,7 +3819,9 @@ namespace ClassLibrary1HUD
         public static readonly int[] Desolata = { 679, 680 };
         public static readonly int[] Infinity_Spear = { 119, 120, 163, 164, 165, 221, 222, 231, 232, 241, 242, 250, 251, 263, 264 };
         public static readonly int[] bngl_metro_11 = { 157, 158, 391, 392, 393, 394, 395, 396, 397, 431, 432 };
-        public static readonly int[] bngl_nova_split_11 = { 13, 14, 33, 34, 121, 122, 151, 152, 173, 174, 211, 212, 245, 246, 324, 367 };
+        public static readonly int[] bngl_metro_reverse_11 = { 34, 35, 36, 222, 223, 224, 242, 243, 244, 377, 378, 379, 399, 400, 401, 505, 506, 507, 553, 554, 555 };
+        public static readonly int[] bngl_nova_split_11 = { 13, 14, 33, 34, 121, 122, 151, 152, 173, 174, 211, 212, 245, 246, 309, 310, 311, 324, 367 };
+        public static readonly int[] bngl_nova_split_reverse_11 = { 11, 12, 13, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, /*185, 186, 187, 188, 189, 190, 191, 192, 193, 194,*/ 195, 196, 197, 198, 199, 200, 201, /*202, 203, 204, 205,*/ 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 300, 301, 302, 303, 304, 305, 306, 307, 308, 330, 361, 362, 363, 364, 373 };
         public static readonly int[] bngl_wipeoutzone = { -517, -533, 388, 389, 390, 403, 404, 405, 418, 523, 524, 660, 661, 666, 667, 777, 778, 944, 945, 972, 973, 974, 975, 976, 977, 1000, 1001, 1029, 1030, 1031, 1061, 1125, 1126, 1192, 1194, 2252, 2253 };
         public static readonly int[] DandelionCircuit = { -327, -351, -352, -381, -382, -394, -395, -396, -397, -431 };
         public static readonly int[] Astra_Magnesium = { -421, 176, 177, 201, 202 };
@@ -4071,6 +4073,7 @@ namespace ClassLibrary1HUD
         public static readonly int[] bngl_aciknovae_reverse_11 = { 355, 356, 357, 358, 472, 473, 474, 592, 630 };
         public static readonly int[] bngl_marina_rush_9 = { 269, 297 };
         public static readonly int[] bngl_marina_rush_reverse_9 = { -2, -32, 269, 270, 271, 295, 296, 297, 298 };
+        public static readonly int[] bngl_maceno_bay_5 = { 35, 36, 37, 38, 367, 400 };
 
         public bool Needs_Jump_Flags_Set_To_Normal_Boolean;
         public bool Use_Track_Creator_Defined_Jump_Flags;
@@ -4234,8 +4237,14 @@ namespace ClassLibrary1HUD
                 case "bngl-metro 11":
                     return bngl_metro_11;
 
+                case "bngl-metro reverse 11":
+                    return bngl_metro_reverse_11;
+
                 case "bngl-nova split 11":
                     return bngl_nova_split_11;
+
+                case "bngl-nova split reverse 11":
+                    return bngl_nova_split_reverse_11;
 
                 case "bngl-wipeoutzone":
                     return bngl_wipeoutzone;
@@ -4995,6 +5004,9 @@ namespace ClassLibrary1HUD
 
                 case "bngl-marina rush reverse 9":
                     return bngl_marina_rush_reverse_9;
+
+                case "bngl-maceno bay 5":
+                    return bngl_maceno_bay_5;
             }
         }
 
