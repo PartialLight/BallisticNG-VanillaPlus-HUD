@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
@@ -4074,6 +4075,8 @@ namespace ClassLibrary1HUD
         public static readonly int[] bngl_marina_rush_9 = { 269, 297 };
         public static readonly int[] bngl_marina_rush_reverse_9 = { -2, -32, 269, 270, 271, 295, 296, 297, 298 };
         public static readonly int[] bngl_maceno_bay_5 = { 35, 36, 37, 38, 367, 400 };
+        public static readonly int[] Zephyr_Climb = { 62, 63, 64, 65, 66, 147, 148, 149, 150, 151, 172, 173, 174, 175, 208, 209, 210 };
+        public static readonly int[] Zephyr_Climb_Reverse = { 133, 134, 135, 136, 137, 281, 282, 283, 304, 305, 306, 353, 354, 355, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397 };
 
         public bool Needs_Jump_Flags_Set_To_Normal_Boolean;
         public bool Use_Track_Creator_Defined_Jump_Flags;
@@ -5007,6 +5010,13 @@ namespace ClassLibrary1HUD
 
                 case "bngl-maceno bay 5":
                     return bngl_maceno_bay_5;
+
+                case "Zephyr Climb":
+                    Use_Track_Creator_Defined_Jump_Flags = true;
+                    return Zephyr_Climb;
+
+                case "Zephyr Climb Reverse":                    
+                    return Zephyr_Climb_Reverse;
             }
         }
 
