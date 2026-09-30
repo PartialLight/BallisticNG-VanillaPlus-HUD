@@ -3085,14 +3085,14 @@ namespace ClassLibrary1HUD
 
             if (TargetShip.CurrentLap % 5 == 0 && TargetShip.CurrentLap != 0)
             {
-                Lap_Texts[4].text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00").ToString();
+                Lap_Texts[4].text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00");
             }
             else if (TargetShip.CurrentLap % 5 > 0)
             {
-                Lap_Texts[((TargetShip.CurrentLap % 5) - 1)].text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00").ToString();
+                Lap_Texts[((TargetShip.CurrentLap % 5) - 1)].text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00");
             }
 
-            Total_Time.text = FloatToTime.Convert(TargetShip.TotalRaceTime, "0:00.00").ToString();
+            Total_Time.text = FloatToTime.Convert(TargetShip.TotalRaceTime, "0:00.00");
 
             if (TargetShip.IsPerfectLap)
             {
