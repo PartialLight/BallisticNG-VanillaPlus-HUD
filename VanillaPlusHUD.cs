@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
@@ -269,8 +268,12 @@ namespace ClassLibrary1HUD
             {
                 RegisterInternalHud("Eliminator"); //Shield bars
             }
+
+            if (NgNetworkBase.CurrentNetwork != null || NgSettings.Hud.PositionBoardInSingleplayer == true)
+            {
+                RegisterInternalHud("NetworkPeerList"); //Positionboard on the right side of the screen
+            }
             
-            RegisterInternalHud("NetworkPeerList"); //Positionboard on the right side of the screen
             RegisterInternalHud("KnockoutShipTracker"); //The position/lap progress tracker on the left side of the screen
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
@@ -862,7 +865,11 @@ namespace ClassLibrary1HUD
             RegisterHud<Throttle_Bar>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Throttle Bar.prefab");
             RegisterInternalHud("KnockoutShipTracker");
             RegisterHud<Position_Counter>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Position Counter Field.prefab");
-            RegisterInternalHud("NetworkPeerList");
+
+            if (NgNetworkBase.CurrentNetwork != null || NgSettings.Hud.PositionBoardInSingleplayer == true)
+            {
+                RegisterInternalHud("NetworkPeerList"); //Positionboard on the right side of the screen
+            }
 
             if ((VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2159 && Cheats.IntFromPhysicsMod() == 0) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirror2280 && Cheats.IntFromPhysicsMod() == 1) || (VanillaPlusHUDOptions.ModMenuOptions.RearViewMirrorFloorhugger && Cheats.IntFromPhysicsMod() == 2))
             {
@@ -1492,20 +1499,21 @@ namespace ClassLibrary1HUD
 
             Last_Attacker_Name = CustomComponents.GetById<Text>("LastAttackerName");
             Last_Attacker_Name.text = "";
-            Last_Attacker_Name.enabled = false;
+            //Last_Attacker_Name.enabled = false;
+            Last_Attacker_Name.enabled = true;
         }
 
         public override void Update()
         {
             base.Update();
 
-            Last_Attacker_Name.enabled = true;
+            //Last_Attacker_Name.enabled = true;
 
-            if (TargetShip.LastAttacker != null)
+            if (TargetShip.LastAttacker != null && Last_Attacker_Name.text != TargetShip.LastAttacker.ShipName)
             {
                 Last_Attacker_Name.text = TargetShip.LastAttacker.ShipName;
             }
-            else
+            else if (TargetShip.LastAttacker == null && Last_Attacker_Name.text != "")
             {
                 Last_Attacker_Name.text = "";
             }
@@ -3253,7 +3261,7 @@ namespace ClassLibrary1HUD
 
             if (RaceManager.CurrentGamemode.Configuration.ShipsCanAbsorbPickups == true && TargetShip.CurrentPickup.GetCurrentAbsorbAmount() != 0)
             {
-                Absorb_Text.text = "+" + TargetShip.CurrentPickup.GetCurrentAbsorbAmount().ToString();
+                Absorb_Text.text = "+" + TargetShip.CurrentPickup.GetCurrentAbsorbAmount().ToString("F2");
             }
             else
             {
@@ -3517,15 +3525,15 @@ namespace ClassLibrary1HUD
 
             if (TargetShip.ShieldIntegrity > Plasma_WCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_5; //White
-            if (TargetShip.ShieldIntegrity > Plasma_BCDR && TargetShip.ShieldIntegrity <= Plasma_WCDR)
+            else if (TargetShip.ShieldIntegrity > Plasma_BCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_4; //Blue
-            if (TargetShip.ShieldIntegrity > Rockets_WCDR && TargetShip.ShieldIntegrity <= Plasma_BCDR)
+            else if (TargetShip.ShieldIntegrity > Rockets_WCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_3; //Green
-            if (TargetShip.ShieldIntegrity > Missile_WCDR && TargetShip.ShieldIntegrity <= Rockets_WCDR)
+            else if (TargetShip.ShieldIntegrity > Missile_WCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_2; //Yellow
-            if (TargetShip.ShieldIntegrity > Tremor_WCDR && TargetShip.ShieldIntegrity <= Missile_WCDR)
+            else if (TargetShip.ShieldIntegrity > Tremor_WCDR)
                 Energy_Bar_Image.color = Color_Breakpoint_1; //Orange
-            if (TargetShip.ShieldIntegrity >= 0.00001f && TargetShip.ShieldIntegrity <= Tremor_WCDR)
+            else if (TargetShip.ShieldIntegrity >= 0.00001f)
                 Energy_Bar_Image.color = Color_Breakpoint_0; //Red
 
             if (10f < TargetShip.ShieldIntegrity && TargetShip.ShieldIntegrity <= 25f && !Energy_Low_Coroutine_Running)
@@ -3978,7 +3986,7 @@ namespace ClassLibrary1HUD
         public static readonly int[] Pier_97 = { 64, 65, 66, 67, -68, -69, -70, -71, -72, -73, 84, 85, 86, 87, -100, -101, -102, -103, -104, -105, -106, -107, 212, 213, 214, 277, 278, 279, -460, -461, -462, -463, -464, -465, -466, -467, -468, -388, 359, 360, 361, 362, 363, 387, 388, 389, 390, 391, 392, -522, -523, -524, -525, -526, -452, -453, -454, -455, -456, -457, -458, -459, -557, -558, -559, -560, -561, -562, -563, -564, -565, -566, -947, -948, -949, -950, -951, -952, -953, -954, -955, -956, -957, -958, -959, -960, -961, -962, -963, -964 };
         public static readonly int[] bngl_harpstone_5 = { 93, 94, 166, 206 };
         public static readonly int[] bngl_harpstone_expert_5 = { 171, 172, 273, 274, 275, 276, 277, 278, 317 };
-        public static readonly int[] BNGL_Utah_Project_6 = { 491 };
+        public static readonly int[] BNGL_Utah_Project_6 = { 20, 21, 491 };
         public static readonly int[] bngl_xl_prototype_2 = { 0, 192, 193, 302, 303, 403 };
         public static readonly int[] bngl_xl_prototype_2_zone_edition = { 0, 192, 193, 302, 303, 403 };
         public static readonly int[] bngl_0x002_2 = { 0, 244, 245, 266, 267, 287, 288, 391 };
@@ -3995,7 +4003,7 @@ namespace ClassLibrary1HUD
         public static readonly int[] bngl_aciknovae_OG = { 108, 109, 390, 391, 457, 458, 566, 567, 686, 687 };
         public static readonly int[] bngl_arrivon_example = { 281, 304 };
         public static readonly int[] bngl_arrivon_peak_94 = { 8, 9, 10, 21, 22, 23, 91, 92, 93, 211, 212, 230, 231, 232, 233, 234, 302, 303, 304, 305 };
-        public static readonly int[] bngl_arrivonxi_6 = { 359, 360, 453 };
+        public static readonly int[] bngl_arrivonxi_6 = { 359, 360, 361, 453 };
         public static readonly int[] bngl_atlantica_5 = { 70, 71, 219, 250, 286 };
         public static readonly int[] bngl_atlanticaOG = { 34, 35, 144, 145, 167, 168, 169 };
         public static readonly int[] bngl_cassandra_5 = { 162, 181 };
@@ -4077,11 +4085,17 @@ namespace ClassLibrary1HUD
         public static readonly int[] bngl_maceno_bay_5 = { 35, 36, 37, 38, 367, 400 };
         public static readonly int[] Zephyr_Climb = { 62, 63, 64, 65, 66, 147, 148, 149, 150, 151, 172, 173, 174, 175, 208, 209, 210 };
         public static readonly int[] Zephyr_Climb_Reverse = { 133, 134, 135, 136, 137, 281, 282, 283, 304, 305, 306, 353, 354, 355, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397 };
+        public static readonly int[] Hel_II = { 49, 50, 109, 110, 111, 227, 243, 379, 380 };
+        public static readonly int[] Kena_Divide = { 140, 141, 211, 212, 213, 319, 358 };
+        public static readonly int[] Shalbatana = { 226, 227, 238, 239, 246, 247, 253, 254, 270, 297 };
+        public static readonly int[] Track1 = { 18, 19, 20, 342, 364 };
 
         public bool Needs_Jump_Flags_Set_To_Normal_Boolean;
         public bool Use_Track_Creator_Defined_Jump_Flags;
         public bool ZeroGravityTrack; //Currently specific to Ceres Waypoint + Reverse, Kuiper Overturn doesn't seem to need manual definition.
         public static int[] ZeroGravitySectionDefinitions;
+
+        public bool Jump_Flag_Set_For_This_Section;
 
         public bool In_Override_Normal;
         public bool In_Override_Jump;
@@ -5017,6 +5031,18 @@ namespace ClassLibrary1HUD
 
                 case "Zephyr Climb Reverse":                    
                     return Zephyr_Climb_Reverse;
+
+                case "Hel II":
+                    return Hel_II;
+
+                case "Kena Divide":
+                    return Kena_Divide;
+
+                case "Shalbatana":
+                    return Shalbatana;
+
+                case "Track1":
+                    return Track1;
             }
         }
 
@@ -5065,17 +5091,29 @@ namespace ClassLibrary1HUD
             Internal_Camera_Rotation = TargetShip.ShipCamera.transform.rotation.eulerAngles;
             
             Tilt_Lock_Rotation_Quaternion = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, 0f);
-            
 
+            Jump_Flag_Set_For_This_Section = (Array.IndexOf(Manually_Set_Section_Jump_Flags(Track_Display_Name), TargetShip.CurrentSection.index) != -1);
 
-            if (Manually_Set_Section_Jump_Flags(Track_Display_Name).Contains(TargetShip.CurrentSection.index))
-            {
-                In_Override_Jump = true;
-            }
-            else
-            {
-                In_Override_Jump = false;
-            }
+            In_Override_Jump = Jump_Flag_Set_For_This_Section;
+            In_Override_Normal = !Jump_Flag_Set_For_This_Section;
+
+            //if (Manually_Set_Section_Jump_Flags(Track_Display_Name).Contains(TargetShip.CurrentSection.index))
+            //{
+            //    In_Override_Jump = true;
+            //}
+            //else
+            //{
+            //    In_Override_Jump = false;
+            //}
+
+            //if ((Manually_Set_Section_Jump_Flags(Track_Display_Name).Contains(TargetShip.CurrentSection.index)) == false)
+            //{
+            //    In_Override_Normal = true;
+            //}
+            //else
+            //{
+            //    In_Override_Normal = false;
+            //}
 
             if ((Use_Track_Creator_Defined_Jump_Flags == true) && (TargetShip.CurrentSection.type == NgTrackData.E_SECTIONTYPE.JUMP))
             {
@@ -5084,18 +5122,7 @@ namespace ClassLibrary1HUD
             else 
             {
                 In_Creator_Defined_Jump = false;
-            }
-
-
-
-            if ((Manually_Set_Section_Jump_Flags(Track_Display_Name).Contains(TargetShip.CurrentSection.index)) == false)
-            {
-                In_Override_Normal = true;
-            }
-            else
-            {
-                In_Override_Normal = false;
-            }
+            }            
 
             if ((Use_Track_Creator_Defined_Jump_Flags == true) && (TargetShip.CurrentSection.type == NgTrackData.E_SECTIONTYPE.NORMAL))
             {
