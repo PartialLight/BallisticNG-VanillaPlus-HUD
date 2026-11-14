@@ -1,4 +1,5 @@
-MD5: CE2B7F2AF23C7482A4C43B6CE26FBA88
+MD5: 19C780671AAB7892294061F5A322A968
+VERSION: 1.1.2
 ___________________________________________________________________________________________________________
 
 
@@ -12,10 +13,9 @@ Your final folder structure should look like this:
 BallisticNG\User\Mods\Code Mods\VanillaPlus\
 
 Audio
+BINDINGS GUIDES
 Weapons
 config.ini
-CONTROLLER BINDS GUIDE.txt
-KEYBOARD BINDS GUIDE.txt
 README.txt
 VanillaPlus.dll
 VanillaPlus.ini

@@ -1,0 +1,31 @@
+XBOX/XInput Controller ("xpad driver"):
+
+A=JoystickButton0
+B=JoystickButton1
+X=JoystickButton2
+Y=JoystickButton3
+Left Bumper=JoystickButton4
+Right Bumper=JoystickButton5
+⧉/View/Back=JoystickButton6
+≡/Menu/Start=JoystickButton7
+Guide Button=JoystickButton8
+LS ('Left Stick' AKA L3) = JoystickButton9
+RS ('Right Stick' AKA R3) = JoystickButton10 (I recommend using this as your self-destruct button)
+
+PLAYSTATION/DInput Controller ("kernel driver"):
+
+CROSS=JoystickButton0
+CIRCLE=JoystickButton1
+TRIANGLE=JoystickButton2
+SQUARE=JoystickButton3
+L1=JoystickButton4
+R1=JoystickButton5
+Share/Select=JoystickButton8
+Option/Start=JoystickButton9
+PS Button=JoystickButton10
+L3=JoystickButton11
+R3=JoystickButton12 (I recommend using this as your self-destruct button)
+
+
+L2=JoystickButton6 (not sure if this works, since L2 is technically an 'axis')
+R2=JoystickButton7 (not sure if this works, since R2 is technically an 'axis')

@@ -30,7 +30,6 @@ using NgUi.RaceUi;
 
 namespace ClassLibrary1HUD
 {
-
     public class HudRegister : CodeMod
     {
         string id = "VanillaPlus";
@@ -45,7 +44,7 @@ namespace ClassLibrary1HUD
 
         public override void OnRegistered(string modPath)
         {
-            DebugConsole.Log($"<color=#F3E5AB>[VanillaPlusHUD Version 1.1.1]</color> MD5 hash: {CodeModLoader.ActiveMods.Find(x => x.Name == id).DllMd5.ToUpper()}");
+            DebugConsole.Log($"<color=#ABF3CD>[VanillaPlusHUD Version 1.1.2]</color> MD5 hash: {CodeModLoader.ActiveMods.Find(x => x.Name == id).DllMd5.ToUpper()}");
 
             NgNetworkBase.OnNetworkStart += ConnectToLobby;
             End_Beep = LoadWavFile((modPath + "/Audio/mpcountdownend.wav"));
@@ -78,7 +77,7 @@ namespace ClassLibrary1HUD
             CustomHudRegistry.RegisterWeaponSprite("hellstorm", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Hellstorm.png")));
             CustomHudRegistry.RegisterWeaponSprite("hunter", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Hunter.png")));
             //switch (VanillaPlusHUDOptions.ModMenuOptions.MissileIconStyle)
-            switch (ini.ReadValue("Settings", "MissileIconStyle_ID", VanillaPlusHUDOptions.ModMenuOptions.MissileIconStyle))
+            switch (ini.ReadValue("Weapon Icons", "MissileIconStyle_ID", VanillaPlusHUDOptions.ModMenuOptions.MissileIconStyle))
             {
                 case 0:
                     CustomHudRegistry.RegisterWeaponSprite("missile", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Missile.png")));
@@ -91,7 +90,7 @@ namespace ClassLibrary1HUD
             CustomHudRegistry.RegisterWeaponSprite("plasma", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Plasma.png")));
             CustomHudRegistry.RegisterWeaponSprite("tremor", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Quake.png")));
             //switch (VanillaPlusHUDOptions.ModMenuOptions.RocketsIconStyle)
-            switch (ini.ReadValue("Settings", "RocketsIconStyle_ID", VanillaPlusHUDOptions.ModMenuOptions.RocketsIconStyle))
+            switch (ini.ReadValue("Weapon Icons", "RocketsIconStyle_ID", VanillaPlusHUDOptions.ModMenuOptions.RocketsIconStyle))
             {
                 case 0:
                     CustomHudRegistry.RegisterWeaponSprite("rockets", id, CustomHudRegistry.LoadSpriteFromDisk(Path.Combine(modPath, "Weapons/Rockets.png")));
@@ -141,7 +140,7 @@ namespace ClassLibrary1HUD
 
         public void MultiplayerCountdownStarted(NgMp.Packets.NgCountdownHeaders type)
         {
-            if (type.ToString() == "StartGameSound")
+            if (type == NgMp.Packets.NgCountdownHeaders.StartGameSound)
             {
                 StartGameCounter += 1;
             }
@@ -419,9 +418,19 @@ namespace ClassLibrary1HUD
             RegisterInternalHud("NotificationBuffer"); //Have to make my own
             RegisterInternalHud("WrongWayDisplay"); //Wrong Way indicator
 
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceNameTags)
+            {
+                RegisterInternalHud("NetworkNameTags"); //Nametags
+            }
+
             if (VanillaPlusHUDOptions.ModMenuOptions.RespawnDarkenerToggle)
             {
                 RegisterInternalHud("RespawnDarkener"); //Fade to black on respawn
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.ForceShieldBars)
+            {
+                RegisterInternalHud("Eliminator"); //Shield bars
             }
 
             if (NgNetworkBase.CurrentNetwork != null)
@@ -808,6 +817,11 @@ namespace ClassLibrary1HUD
             if (VanillaPlusHUDOptions.ModMenuOptions.LastAttackerToggle)
             {
                 RegisterHud<Last_Attacker>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Last Attacker.prefab");
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumToggle)
+            {
+                RegisterHud<Recharge_Sum>(HudRegister.VanillaPlusHUD, "Assets/MYFOLDER/HUDs/Tutorial/Recharge Sum.prefab"); //TEST IN ELIMINATOR AND ON SW1R TRACKS ON REGULAR RACE
             }
 
             if (VanillaPlusHUDOptions.ModMenuOptions.DamageFlasherToggle)
@@ -1315,9 +1329,13 @@ namespace ClassLibrary1HUD
         public Text Extra_Weapon_Information_Readout;
         public Text Lethal_Missile_Damage_Indicator;
 
+        public static readonly string[] Hellstorm_Lock_Strings = { "×0", "×1", "×2", "×3", "×4" };
+
         public float Shield_Time_Remaining;
         public float Missile_Lockon_Strength;
+        public float Missile_Lockon_Distance;
         public int Hellstorm_Lock_Count;
+        public bool Mirror_Mode_Is_Enabled;
 
         public float Autopilot_Timer;
 
@@ -1354,6 +1372,7 @@ namespace ClassLibrary1HUD
 
             Extra_Weapon_Information_Outline = Extra_Weapon_Information_Readout.GetComponent<Outline>();
 
+            Mirror_Mode_Is_Enabled = NgSettings.Gameplay.MirrorEnabled;
             Energy_Wall_Left_Readout.enabled = false;
             Energy_Wall_Right_Readout.enabled = false;
             Extra_Weapon_Information_Readout.enabled = false;
@@ -1382,7 +1401,7 @@ namespace ClassLibrary1HUD
 
                     if (Hellstorm_Lock_Count > 0)
                     {
-                        Extra_Weapon_Information_Readout.text = "×" + Hellstorm_Lock_Count.ToString();
+                        Extra_Weapon_Information_Readout.text = Hellstorm_Lock_Strings[Hellstorm_Lock_Count];
                         Extra_Weapon_Information_Readout.color = Hellstorm_Indigo;
                         //Extra_Weapon_Information_Outline.effectColor = Color.white;
                         Extra_Weapon_Information_Readout.enabled = true;
@@ -1403,11 +1422,13 @@ namespace ClassLibrary1HUD
 
                     if (LockonSystem_Instance.TargetLockon != null)
                     {
+                        Missile_Lockon_Distance = TargetShip.InverseTransformPoint(LockonSystem_Instance.TargetLockon.PhysicsPosition).magnitude;
+
                         Missile_Lockon_Strength = 100 * Mathf.Min(
-                            (LockonSystem_Instance.MaxLockDistance - TargetShip.InverseTransformPoint(LockonSystem_Instance.TargetLockon.PhysicsPosition).magnitude),
-                            (TargetShip.InverseTransformPoint(LockonSystem_Instance.TargetLockon.PhysicsPosition).magnitude - LockonSystem_Instance.MinLockDistance)
+                            (LockonSystem_Instance.MaxLockDistance - Missile_Lockon_Distance),
+                            (Missile_Lockon_Distance - LockonSystem_Instance.MinLockDistance)
                             ) / (0.85f * ((LockonSystem_Instance.MaxLockDistance + LockonSystem_Instance.MinLockDistance) / 2f));
-                        Extra_Weapon_Information_Readout.text = string.Format("{0:N0}", Missile_Lockon_Strength) + "%";
+                        Extra_Weapon_Information_Readout.text = Missile_Lockon_Strength.ToString("0'%'");
                         Extra_Weapon_Information_Readout.color = Missile_Fuchsia;
                         Extra_Weapon_Information_Readout.enabled = true;
 
@@ -1437,11 +1458,11 @@ namespace ClassLibrary1HUD
                         
                         if (Autopilot_Timer < 0f)
                         {
-                            Extra_Weapon_Information_Readout.text = string.Format("{0:N2}", 3f + Autopilot_Timer);
+                            Extra_Weapon_Information_Readout.text = (3f + Autopilot_Timer).ToString("0.00");
                         }
                         else
                         {
-                            Extra_Weapon_Information_Readout.text = string.Format("{0:N2}", Autopilot_Timer);
+                            Extra_Weapon_Information_Readout.text = Autopilot_Timer.ToString("0.00");
                         }
                         
                         Extra_Weapon_Information_Readout.color = Autopilot_Cyan;
@@ -1459,7 +1480,7 @@ namespace ClassLibrary1HUD
 
                     if (TargetShip.CurrentSection.InverseTransformPoint(TargetShip.PhysicsPosition).x < 0f) //Ship is on left side of section
                     {
-                        if (NgSettings.Gameplay.MirrorEnabled)
+                        if (Mirror_Mode_Is_Enabled)
                         {
                             Energy_Wall_Left_Readout.enabled = true;
                             Energy_Wall_Right_Readout.enabled = false;
@@ -1473,7 +1494,7 @@ namespace ClassLibrary1HUD
                     }
                     else //Ship is on right side of section
                     {
-                        if (NgSettings.Gameplay.MirrorEnabled)
+                        if (Mirror_Mode_Is_Enabled)
                         {
                             Energy_Wall_Right_Readout.enabled = true;
                             Energy_Wall_Left_Readout.enabled = false;
@@ -1492,6 +1513,8 @@ namespace ClassLibrary1HUD
     public class Last_Attacker : ScriptableHud
     {
         public Text Last_Attacker_Name;
+        public ShipController Cached_Last_Attacker;
+        public string Cached_Ship_Name;
 
         public override void Start()
         {
@@ -1509,15 +1532,20 @@ namespace ClassLibrary1HUD
 
             //Last_Attacker_Name.enabled = true;
 
-            if (TargetShip.LastAttacker != null && Last_Attacker_Name.text != TargetShip.LastAttacker.ShipName)
+            Cached_Last_Attacker = TargetShip.LastAttacker;
+            if (Cached_Last_Attacker != null)
             {
-                Last_Attacker_Name.text = TargetShip.LastAttacker.ShipName;
+                Cached_Ship_Name = Cached_Last_Attacker.ShipName;
             }
-            else if (TargetShip.LastAttacker == null && Last_Attacker_Name.text != "")
+            else
             {
-                Last_Attacker_Name.text = "";
+                Cached_Ship_Name = "";
             }
-            
+
+            if (Last_Attacker_Name.text != Cached_Ship_Name)
+            {
+                Last_Attacker_Name.text = Cached_Ship_Name;
+            }
         }
     }
 
@@ -1532,8 +1560,9 @@ namespace ClassLibrary1HUD
         public float Energy_Difference;
 
         public float Non_Pitlane_Energy_Restore_Value;
+        public float Restores_Before_Recharge;
         public float Absorbed_While_In_Pitlane_Restore_Value = 0f;
-        public float Previous_Shield_Integity;
+        public float Previous_Shield_Integrity;
         public float Current_Shield_Integrity;
 
         public Vector2 Recharge_Sum_Readout_Default_Position;
@@ -1544,11 +1573,36 @@ namespace ClassLibrary1HUD
         public int Current_Section_Index;
         public int Previous_Section_Index;
 
+        public bool Has_Track_Restore;
+        public bool Is_Escalation_Project = false;
+        public bool Is_In_Escalation_Project_Damage_Zone = false;
+        public NgTrackData.Zones.DamageZone Escalation_Project_Damage_Zone;
+        public int Track_Restore_Section;
+        public float Track_Restore_Amount;
+        public Coroutine Recharge_Sum_Routine_Handle;
+        public static readonly WaitForSeconds CachedWaitForSeconds = new WaitForSeconds(1.5f);
+
         public bool Recharge_Sum_Coroutine_Running;
+        public bool Recharge_Sum_Waiting;
+
+        public bool Is_Ship_In_Damage_Zone()
+        {
+            var ships = Escalation_Project_Damage_Zone.TrackedShips;
+            int damagezoneShips = ships.Count;
+
+            for (int s = 0; s < damagezoneShips; s++)
+            {
+                if (ships[s].Target == TargetShip)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         public override void Start()
         {
-            base.Start();
+            base.Start();            
 
             Recharge_Sum_Readout = CustomComponents.GetById<Text>("RechargeSumReadout");
             Recharge_Sum_Readout.text = "";
@@ -1558,8 +1612,91 @@ namespace ClassLibrary1HUD
 
             Track_Display_Name = ContentManager.GetCurrentTrack().DisplayName;
 
+            if (Track_Display_Name == "Escalation Project")
+            {
+                Is_Escalation_Project = true;
+                Escalation_Project_Damage_Zone = FindObjectOfType<NgTrackData.Zones.DamageZone>();                
+            }
+
+            switch (Track_Display_Name)
+            {
+                default:
+                    Has_Track_Restore = false;
+                    break;
+
+                case "(NFS1) Alpine":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 1877;
+                    Track_Restore_Amount = 50f;                    
+                    break;
+
+                case "(NFS1) Autumn Valley":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 1;
+                    Track_Restore_Amount = 20f;                    
+                    break;
+
+                case "(NFS1) Transtropolis":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 0;
+                    Track_Restore_Amount = 40f;                    
+                    break;
+
+                case "(SW1R) Beedo's Wild Ride":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 4;
+                    Track_Restore_Amount = 40f;                    
+                    break;
+
+                case "(SW1R) Boonta Eve Training Course":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 0;
+                    Track_Restore_Amount = 20f;                    
+                    break;
+
+                case "(SW1R) Bumpy's Breakers":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 1;
+                    Track_Restore_Amount = 60f;                    
+                    break;
+
+                case "(SW1R) Fire Mountain Rally":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 0;
+                    Track_Restore_Amount = 80f;                    
+                    break;
+
+                case "(SW1R) Malastare 100":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 185;
+                    Track_Restore_Amount = 20f;                    
+                    break;
+
+                case "(SW1R) Scrapper's Run":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 1;
+                    Track_Restore_Amount = 25f;                    
+                    break;
+
+                case "(SW1R) The Boonta Eve Classic":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 0;
+                    Track_Restore_Amount = 80f;                    
+                    break;
+
+                case "[GPL] Torino '55":
+                    Has_Track_Restore = true;
+                    Track_Restore_Section = 0;
+                    Track_Restore_Amount = 50f;                    
+                    break;
+            }
+
             NgRaceEvents.OnShipAbsorb += AbsorbRechargeSum;
             NgRaceEvents.OnShipUse += EPackRechargeSum;
+            if (HudRegister.CurrentHudManager is EliminatorHudManager)
+            {
+                NgRaceEvents.OnStartLineTriggered += EliminatorRechargeSum;
+            }
 
             switch (VanillaPlusHUDOptions.ModMenuOptions.RechargeSumPosition)
             {
@@ -1578,141 +1715,88 @@ namespace ClassLibrary1HUD
         {
             NgRaceEvents.OnShipAbsorb -= AbsorbRechargeSum;
             NgRaceEvents.OnShipUse -= EPackRechargeSum;
+            NgRaceEvents.OnStartLineTriggered -= EliminatorRechargeSum;
+
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+
+            base.OnDestroy();
         }
 
         public override void Update()
         {
-            base.Update();
+            base.Update();            
+
+            if (Is_Escalation_Project)
+            {
+                Is_In_Escalation_Project_Damage_Zone = Is_Ship_In_Damage_Zone();
+            }
+
+            if (TargetShip.CurrentSection == null)
+            {
+                return;
+            }
 
             Current_Section_Index = TargetShip.CurrentSection.index;
 
             Current_Shield_Integrity = TargetShip.ShieldIntegrity;
 
-            if ((RaceManager.CurrentGamemode as GmUpsurge != null) && (Current_Shield_Integrity > Previous_Shield_Integity) && !TargetShip.ShipRestrained)
+            if ((Current_Shield_Integrity > Previous_Shield_Integrity) && !Is_In_Escalation_Project_Damage_Zone && (RaceManager.CurrentGamemode is GmUpsurge) && !TargetShip.ShipRestrained)
             {
-                Non_Pitlane_Energy_Restore_Value = Mathf.Min(20f, (Mathf.Min((TargetShip.ShieldIntegrity + 20f), 100f) - Previous_Shield_Integity));
-                StartCoroutine(Recharge_Sum_Duration());
+                Register_Restore(20f);
+                Start_Recharge_Sum();
             }
 
-            if (NgModes.GmSurvivalBackend.Instance != null && (Current_Shield_Integrity > Previous_Shield_Integity) && !TargetShip.ShipRestrained)
+            if ((Current_Shield_Integrity > Previous_Shield_Integrity) && !Is_In_Escalation_Project_Damage_Zone && NgModes.GmSurvivalBackend.Instance != null && !TargetShip.ShipRestrained)
             {
-                Non_Pitlane_Energy_Restore_Value = Mathf.Min(GmSurvivalBackend.Instance.ShieldRecovery, (Mathf.Min((TargetShip.ShieldIntegrity + GmSurvivalBackend.Instance.ShieldRecovery), 100f) - Previous_Shield_Integity));
-                StartCoroutine(Recharge_Sum_Duration());
+                Register_Restore(GmSurvivalBackend.Instance.ShieldRecovery);
+                Start_Recharge_Sum();
             }
 
-            switch (Track_Display_Name)
+            if (Has_Track_Restore == true && Current_Section_Index == Track_Restore_Section && Current_Section_Index != Previous_Section_Index)
             {
-                case "(NFS1) Alpine":
-                    if (TargetShip.CurrentSection.index == 1877 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(50f, (Mathf.Min((TargetShip.ShieldIntegrity + 50f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }                    
-                    break;
-
-                case "(NFS1) Autumn Valley":
-                    if (TargetShip.CurrentSection.index == 1 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(20f, (Mathf.Min((TargetShip.ShieldIntegrity + 20f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }
-                    break;
-
-                case "(NFS1) Transtropolis":
-                    if (TargetShip.CurrentSection.index == 0 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(40f, (Mathf.Min((TargetShip.ShieldIntegrity + 40f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }
-                    break;
-
-                case "(SW1R) Beedo's Wild Ride":
-                    if (TargetShip.CurrentSection.index == 4 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(40f, (Mathf.Min((TargetShip.ShieldIntegrity + 40f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }
-                    break;
-
-                case "(SW1R) Boonta Eve Training Course":
-                    if (TargetShip.CurrentSection.index == 0 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(20f, (Mathf.Min((TargetShip.ShieldIntegrity + 20f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }
-                    break;
-
-                case "(SW1R) Bumpy's Breakers":
-                    if (TargetShip.CurrentSection.index == 1 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(60f, (Mathf.Min((TargetShip.ShieldIntegrity + 60f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }
-                    break;
-
-                case "(SW1R) Fire Mountain Rally":
-                    if (TargetShip.CurrentSection.index == 0 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(80f, (Mathf.Min((TargetShip.ShieldIntegrity + 80f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }
-                    break;
-
-                case "(SW1R) Malastare 100":
-                    if (TargetShip.CurrentSection.index == 185 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(20f, (Mathf.Min((TargetShip.ShieldIntegrity + 20f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }
-                    break;
-
-                case "(SW1R) Scrapper's Run":
-                    if (TargetShip.CurrentSection.index == 1 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(25f, (Mathf.Min((TargetShip.ShieldIntegrity + 25f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }
-                    break;
-
-                case "(SW1R) The Boonta Eve Classic":
-                    if (TargetShip.CurrentSection.index == 0 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(80f, (Mathf.Min((TargetShip.ShieldIntegrity + 80f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }
-                    break;
-
-                case "[GPL] Torino '55":
-                    if (TargetShip.CurrentSection.index == 0 && Current_Section_Index != Previous_Section_Index)
-                    {
-                        Non_Pitlane_Energy_Restore_Value = Mathf.Min(50f, (Mathf.Min((TargetShip.ShieldIntegrity + 50f), 100f) - Previous_Shield_Integity));
-                        StartCoroutine(Recharge_Sum_Duration());
-                    }
-                    break;
+                Register_Restore(Track_Restore_Amount);
+                Start_Recharge_Sum();
             }
 
-            if (TargetShip.IsRecharging && !Recharge_Sum_Coroutine_Running)
-            {
-                //Recharge_Sum_Readout.enabled = true;
-
-                Time_Spent_Recharging += Time.deltaTime;
-                Potential_Energy_Recharge = Time_Spent_Recharging * 20f;
-
-                StartCoroutine(Recharge_Sum_Duration());
-            }
-            else if (TargetShip.IsRecharging && Recharge_Sum_Coroutine_Running)
+            if (TargetShip.IsRecharging)
             {
                 Time_Spent_Recharging += Time.deltaTime;
                 Potential_Energy_Recharge = Time_Spent_Recharging * 20f;
+
+                if (!Recharge_Sum_Coroutine_Running || Recharge_Sum_Waiting)
+                {
+                    Start_Recharge_Sum();
+                }
             }
-            else
+            else if (!Recharge_Sum_Coroutine_Running)
             {
                 Energy_Before_Recharge = TargetShip.ShieldIntegrity;
             }
 
-            Previous_Shield_Integity = TargetShip.ShieldIntegrity;
+            if (Is_In_Escalation_Project_Damage_Zone)
+            {
+                if (TargetShip.IsShieldActivated && TargetShip.CurrentPickup is PickupAutopilot)
+                {
+                    Time_Spent_Recharging += Time.deltaTime * 0.5f;
+                }
+                else
+                {
+                    Time_Spent_Recharging += Time.deltaTime;
+                }
+                Potential_Energy_Recharge = Time_Spent_Recharging * 5f * TargetShip.Settings.DAMAGE_MULT; // -0.5 "damage" applied every 0.1 seconds = 5 energy restored per second
 
-            Previous_Section_Index = TargetShip.CurrentSection.index;
+                if (!Recharge_Sum_Coroutine_Running || Recharge_Sum_Waiting)
+                {
+                    Start_Recharge_Sum();
+                }
+            }
+
+            Previous_Shield_Integrity = Current_Shield_Integrity;
+
+            Previous_Section_Index = Current_Section_Index;
         }
 
         public void AbsorbRechargeSum(ShipController ship, float shieldRestored)
@@ -1721,73 +1805,117 @@ namespace ClassLibrary1HUD
             {
                 if (TargetShip.IsRecharging)
                 {
-                    Absorbed_While_In_Pitlane_Restore_Value = shieldRestored;
+                    Absorbed_While_In_Pitlane_Restore_Value += shieldRestored;
                 }
 
-                Non_Pitlane_Energy_Restore_Value = Mathf.Min(shieldRestored, (Mathf.Min((TargetShip.ShieldIntegrity + shieldRestored), 100f) - Previous_Shield_Integity));
-                StartCoroutine(Recharge_Sum_Duration());
+                Register_Restore(shieldRestored);
+                Start_Recharge_Sum();
             }
         }
 
         public void EPackRechargeSum(ShipController ship, PickupBase pickup)
         {
-            if (ship == TargetShip && pickup as PickupEPack != null)
+            if (ship == TargetShip && pickup is PickupEPack)
             {
                 if (TargetShip.IsRecharging)
                 {
-                    Absorbed_While_In_Pitlane_Restore_Value = 25f;
+                    Absorbed_While_In_Pitlane_Restore_Value += 25f;
                 }
 
-                Non_Pitlane_Energy_Restore_Value = Mathf.Min(25f, (Mathf.Min((TargetShip.ShieldIntegrity + 25f), 100f) - Previous_Shield_Integity));
-                StartCoroutine(Recharge_Sum_Duration());
+                Register_Restore(25f);
+                Start_Recharge_Sum();
             }
+        }
+
+        public void EliminatorRechargeSum(ShipController ship)
+        {
+            if (ship == TargetShip)
+            {                
+                Register_Restore(8f);
+                Start_Recharge_Sum();
+            }
+        }
+
+        void Register_Restore(float amount)
+        {
+            float gain = Mathf.Min(amount, (Mathf.Min((TargetShip.ShieldIntegrity + amount), 100f) - Previous_Shield_Integrity));
+
+            if (!TargetShip.IsRecharging)
+            {
+                Restores_Before_Recharge += gain;
+            }
+
+            if (Recharge_Sum_Coroutine_Running == true)
+            {
+                Non_Pitlane_Energy_Restore_Value += gain;
+            }
+            else
+            {
+                Non_Pitlane_Energy_Restore_Value = gain;
+            }
+        }
+
+        void Start_Recharge_Sum()
+        {
+            if (Recharge_Sum_Routine_Handle != null) 
+            {
+                StopCoroutine(Recharge_Sum_Routine_Handle);
+            }
+            
+            Recharge_Sum_Routine_Handle = StartCoroutine(Recharge_Sum_Duration());
         }
 
         IEnumerator Recharge_Sum_Duration()
         {
             Recharge_Sum_Coroutine_Running = true;
+            Recharge_Sum_Waiting = false;
 
             if (Non_Pitlane_Energy_Restore_Value >= 0.05f)
             {
-                Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Non_Pitlane_Energy_Restore_Value);
+                Recharge_Sum_Readout.text = Non_Pitlane_Energy_Restore_Value.ToString("+0.0");
             }
             else
             {
                 Recharge_Sum_Readout.text = "";
             }
-            
 
-            while (TargetShip.IsRecharging)
+            while (TargetShip.IsRecharging || Is_In_Escalation_Project_Damage_Zone)
             {
-                if (TargetShip.ShieldIntegrity < 100)
+                if (Is_In_Escalation_Project_Damage_Zone)
                 {
-                    Energy_Difference = TargetShip.ShieldIntegrity - Energy_Before_Recharge;
-                    Recharge_Sum_Readout.text = "+" + string.Format("{0:N1}", Energy_Difference);
+                    Energy_Difference = Potential_Energy_Recharge;
                 }
-                else if (TargetShip.ShieldIntegrity >= 100)
+                else if (Current_Shield_Integrity < 100)
                 {
-                    Recharge_Sum_Readout.text = "∆" + string.Format("{0:N1}", Mathf.Max((Energy_Difference - Absorbed_While_In_Pitlane_Restore_Value), Potential_Energy_Recharge));
+                    Energy_Difference = Current_Shield_Integrity - Energy_Before_Recharge;
+                }
+
+                if (Current_Shield_Integrity >= 100 || (TargetShip.IsShieldActivated && !(TargetShip.CurrentPickup is PickupAutopilot) && TargetShip.IsRecharging == false))
+                {
+                    Recharge_Sum_Readout.text = Mathf.Max(Energy_Difference - Absorbed_While_In_Pitlane_Restore_Value - Restores_Before_Recharge, Potential_Energy_Recharge).ToString("∆0.0");
+                }
+                else
+                {
+                    Recharge_Sum_Readout.text = Energy_Difference.ToString("+0.0;-0.0");
                 }
 
                 yield return null;
             }
 
-            Absorbed_While_In_Pitlane_Restore_Value = 0f;
+            Recharge_Sum_Waiting = true;
 
-            float Recharge_Linger_Start_Time = Time.time;
-            float Recharge_Linger_End_Time = Time.time + 1.5f;
+            yield return CachedWaitForSeconds;
 
-            while (Recharge_Linger_Start_Time <= Recharge_Linger_End_Time)
-            {
-                Recharge_Linger_Start_Time += Time.deltaTime;
-
-                yield return null;
-            }
             Recharge_Sum_Readout.text = "";
             Time_Spent_Recharging = 0f;
             Energy_Difference = 0f;
+            Non_Pitlane_Energy_Restore_Value = 0f;
+            Restores_Before_Recharge = 0f;
+            Absorbed_While_In_Pitlane_Restore_Value = 0f;
+            Energy_Before_Recharge = TargetShip.ShieldIntegrity;
             //Recharge_Sum_Readout.enabled = false;
 
+            Recharge_Sum_Waiting = false;
             Recharge_Sum_Coroutine_Running = false;
         }
     }
@@ -1801,11 +1929,8 @@ namespace ClassLibrary1HUD
         public Image Right_Pitlane_Indicator_Arrow_1;
         public Image Right_Pitlane_Indicator_Arrow_2;
         public Image Right_Pitlane_Indicator_Arrow_3;
-
-        public int Pitlane_Indicator_Section_Index;
+        
         public int Pitlane_Side;
-        public int Pitlane_Current_Section;
-        public int Pitlane_Previous_Section;
 
         public Image[] Left_Pitlane_Arrows;
         public Image[] Right_Pitlane_Arrows;
@@ -1813,39 +1938,20 @@ namespace ClassLibrary1HUD
 
         public Vector2 Arrow_1_Start_Position;
         public Vector2 Arrow_2_Start_Position;
-        public Vector2 Arrow_3_Start_Position;
-        public float Arrow_Shift_Distance;
+        public Vector2 Arrow_3_Start_Position;        
         public Vector2 Arrow_Shift_Vector;
 
-        public float Pitlane_Indicator_Animation_Duration;
-        public float Pitlane_Indicator_Animation_Start_Time;
-        public float Pitlane_Indicator_Animation_End_Time;
+        public float Elapsed_Time;
+        public const float Pitlane_Indicator_Animation_Duration = 4.35f;
+        public const float Fill_Scale = 1.034f / 0.45f;
+        public Image Arrow_1;
+        public Image Arrow_2;
+        public Image Arrow_3;
+        public Vector2[] Left_Start_Positions;
+        public Vector2[] Right_Start_Positions;
+        public Vector2[] Pitlane_Start_Positions;
 
-        public float First_Arrow_Blink_On_1_Time;
-        public float First_Arrow_Blink_Off_Time;
-        public float First_Arrow_Blink_On_2_Time;
-
-        public float Second_Arrow_Blink_On_1_Time;
-        public float Second_Arrow_Blink_Off_Time;
-        public float Second_Arrow_Blink_On_2_Time;
-
-        public float Third_Arrow_Blink_On_1_Time;
-        public float Third_Arrow_Blink_Off_Time;
-        public float Third_Arrow_Blink_On_2_Time;
-
-        public float First_Arrow_Pre_Blink_Time;
-
-        public float First_Arrow_End_Animation_Time_1;
-        public float First_Arrow_End_Animation_Time_2;
-        public float First_Arrow_End_Animation_Time_3;
-
-        public float Second_Arrow_End_Animation_Time_1;
-        public float Second_Arrow_End_Animation_Time_2;
-        public float Second_Arrow_End_Animation_Time_3;
-
-        public float Third_Arrow_End_Animation_Time_1;
-        public float Third_Arrow_End_Animation_Time_2;
-        public float Third_Arrow_End_Animation_Time_3;
+        public float Pitlane_Indicator_Animation_Start_Time;        
 
         public Vector2 Left_Pitlane_Indicator_Arrow_1_Default_Position;
         public Vector2 Left_Pitlane_Indicator_Arrow_2_Default_Position;
@@ -1862,187 +1968,160 @@ namespace ClassLibrary1HUD
 
         IEnumerator Pitlane_Indicator_Animation()
         {
-            Pitlane_Indicator_Animation_Duration = 4.35f;
+            Elapsed_Time = 0f;
             Pitlane_Indicator_Animation_Start_Time = Time.time;
-            Pitlane_Indicator_Animation_End_Time = Pitlane_Indicator_Animation_Start_Time + Pitlane_Indicator_Animation_Duration;
 
-            First_Arrow_Blink_On_1_Time = Pitlane_Indicator_Animation_Start_Time + 0.15f;
-            First_Arrow_Blink_Off_Time = Pitlane_Indicator_Animation_Start_Time + 0.3f;
-            First_Arrow_Blink_On_2_Time = Pitlane_Indicator_Animation_Start_Time + 0.45f;
+            Arrow_1 = Pitlane_Arrows[0];
+            Arrow_2 = Pitlane_Arrows[1];
+            Arrow_3 = Pitlane_Arrows[2];
 
-            Second_Arrow_Blink_On_1_Time = Pitlane_Indicator_Animation_Start_Time + 0.6f;
-            Second_Arrow_Blink_Off_Time = Pitlane_Indicator_Animation_Start_Time +0.75f;
-            Second_Arrow_Blink_On_2_Time = Pitlane_Indicator_Animation_Start_Time + 0.9f;
+            Arrow_1_Start_Position = Pitlane_Start_Positions[0];
+            Arrow_2_Start_Position = Pitlane_Start_Positions[1];
+            Arrow_3_Start_Position = Pitlane_Start_Positions[2];
 
-            Third_Arrow_Blink_On_1_Time = Pitlane_Indicator_Animation_Start_Time + 1.05f;
-            Third_Arrow_Blink_Off_Time = Pitlane_Indicator_Animation_Start_Time + 1.2f;
-            Third_Arrow_Blink_On_2_Time = Pitlane_Indicator_Animation_Start_Time + 1.35f;
+            Arrow_Shift_Vector = new Vector2(21f * Pitlane_Side, 0);            
 
-            //FIRST ARROW PRE-BLINK
-            First_Arrow_Pre_Blink_Time = Pitlane_Indicator_Animation_Start_Time + 2.85f;
-
-            //MoveToward and blink off, maybe reduce fill over time
-            First_Arrow_End_Animation_Time_1 = Pitlane_Indicator_Animation_Start_Time + 3f;
-            First_Arrow_End_Animation_Time_2 = Pitlane_Indicator_Animation_Start_Time + 3.15f;
-            First_Arrow_End_Animation_Time_3 = Pitlane_Indicator_Animation_Start_Time + 3.3f;
-
-            Second_Arrow_End_Animation_Time_1 = Pitlane_Indicator_Animation_Start_Time + 3.45f;
-            Second_Arrow_End_Animation_Time_2 = Pitlane_Indicator_Animation_Start_Time + 3.6f;
-            Second_Arrow_End_Animation_Time_3 = Pitlane_Indicator_Animation_Start_Time + 3.75f;
-
-            Third_Arrow_End_Animation_Time_1 = Pitlane_Indicator_Animation_Start_Time + 3.9f;
-            Third_Arrow_End_Animation_Time_2 = Pitlane_Indicator_Animation_Start_Time + 4.05f;
-            Third_Arrow_End_Animation_Time_3 = Pitlane_Indicator_Animation_Start_Time + 4.2f;
-
-            Arrow_1_Start_Position = Pitlane_Arrows[0].rectTransform.anchoredPosition;
-            Arrow_2_Start_Position = Pitlane_Arrows[1].rectTransform.anchoredPosition;
-            Arrow_3_Start_Position = Pitlane_Arrows[2].rectTransform.anchoredPosition;
-            Arrow_Shift_Distance = 21f * Pitlane_Side;
-            Arrow_Shift_Vector = new Vector2(Arrow_Shift_Distance, 0);
-
-
-            while (Time.time <= Pitlane_Indicator_Animation_End_Time)
+            while (Elapsed_Time <= Pitlane_Indicator_Animation_Duration)
             {
-                
-
                 //FIRST ARROW
-                if (Pitlane_Indicator_Animation_Start_Time < Time.time && Time.time <= First_Arrow_Blink_On_1_Time) //Blink first arrow + pit text on
+                if (0f < Elapsed_Time && Elapsed_Time <= 0.15f) //Blink first arrow + pit text on
                 {
                     Pitlane_Indicator_Field_Name.enabled = true;
-                    Pitlane_Arrows[0].enabled = true;
-                    Pitlane_Arrows[0].fillAmount = ((Time.time - Pitlane_Indicator_Animation_Start_Time) * 1.034f / (First_Arrow_Blink_On_2_Time - Pitlane_Indicator_Animation_Start_Time));
+                    Arrow_1.enabled = true;
+                    Arrow_1.fillAmount = Elapsed_Time * Fill_Scale;
                 }
-                if (First_Arrow_Blink_On_1_Time < Time.time && Time.time <= First_Arrow_Blink_Off_Time) //Blink first arrow + pit text off
+                if (0.15f < Elapsed_Time && Elapsed_Time <= 0.3f) //Blink first arrow + pit text off
                 {
                     Pitlane_Indicator_Field_Name.enabled = false;
-                    Pitlane_Arrows[0].enabled = false;
-                    Pitlane_Arrows[0].fillAmount = ((Time.time - Pitlane_Indicator_Animation_Start_Time) * 1.034f / (First_Arrow_Blink_On_2_Time - Pitlane_Indicator_Animation_Start_Time));
+                    Arrow_1.enabled = false;
+                    Arrow_1.fillAmount = Elapsed_Time * Fill_Scale;
                 }
-                if (First_Arrow_Blink_Off_Time < Time.time && Time.time <= First_Arrow_Blink_On_2_Time) //Blink first arrow + pit text back on, first arrow should be finished filling after this completes
+                if (0.3f < Elapsed_Time && Elapsed_Time <= 0.45f) //Blink first arrow + pit text back on, first arrow should be finished filling after this completes
                 {
                     Pitlane_Indicator_Field_Name.enabled = true;
-                    Pitlane_Arrows[0].enabled = true;
-                    Pitlane_Arrows[0].fillAmount = ((Time.time - Pitlane_Indicator_Animation_Start_Time) * 1.034f / (First_Arrow_Blink_On_2_Time - Pitlane_Indicator_Animation_Start_Time));
+                    Arrow_1.enabled = true;
+                    Arrow_1.fillAmount = Elapsed_Time * Fill_Scale;
                 }
 
                 //SECOND ARROW
-                if (First_Arrow_Blink_On_2_Time < Time.time && Time.time <= Second_Arrow_Blink_On_1_Time) //Blink second arrow on
+                if (0.45f < Elapsed_Time && Elapsed_Time <= 0.6f) //Blink second arrow on
                 {
-                    Pitlane_Arrows[1].enabled = true;
-                    Pitlane_Arrows[1].fillAmount = ((Time.time - First_Arrow_Blink_On_2_Time) * 1.034f / (Second_Arrow_Blink_On_2_Time - First_Arrow_Blink_On_2_Time));
+                    Arrow_2.enabled = true;
+                    Arrow_2.fillAmount = (Elapsed_Time - 0.45f) * Fill_Scale;
                 }
-                if (Second_Arrow_Blink_On_1_Time < Time.time && Time.time <= Second_Arrow_Blink_Off_Time) //Blink second arrow off
+                if (0.6f < Elapsed_Time && Elapsed_Time <= 0.75f) //Blink second arrow off
                 {
-                    Pitlane_Arrows[1].enabled = false;
-                    Pitlane_Arrows[1].fillAmount = ((Time.time - First_Arrow_Blink_On_2_Time) * 1.034f / (Second_Arrow_Blink_On_2_Time - First_Arrow_Blink_On_2_Time));
+                    Arrow_2.enabled = false;
+                    Arrow_2.fillAmount = (Elapsed_Time - 0.45f) * Fill_Scale;
                 }
-                if (Second_Arrow_Blink_Off_Time < Time.time && Time.time <= Second_Arrow_Blink_On_2_Time) //Blink second arrow back on, second arrow should be finished filling after this completes
+                if (0.75f < Elapsed_Time && Elapsed_Time <= 0.9f) //Blink second arrow back on, second arrow should be finished filling after this completes
                 {
-                    Pitlane_Arrows[1].enabled = true;
-                    Pitlane_Arrows[1].fillAmount = ((Time.time - First_Arrow_Blink_On_2_Time) * 1.034f / (Second_Arrow_Blink_On_2_Time - First_Arrow_Blink_On_2_Time));
+                    Arrow_2.enabled = true;
+                    Arrow_2.fillAmount = (Elapsed_Time - 0.45f) * Fill_Scale;
                 }
 
                 //THIRD ARROW
-                if (Second_Arrow_Blink_On_2_Time < Time.time && Time.time <= Third_Arrow_Blink_On_1_Time) //Blink third arrow on
+                if (0.9f < Elapsed_Time && Elapsed_Time <= 1.05f) //Blink third arrow on
                 {
-                    Pitlane_Arrows[2].enabled = true;
-                    Pitlane_Arrows[2].fillAmount = ((Time.time - Second_Arrow_Blink_On_2_Time) * 1.034f / (Third_Arrow_Blink_On_2_Time - Second_Arrow_Blink_On_2_Time));
+                    Arrow_3.enabled = true;
+                    Arrow_3.fillAmount = (Elapsed_Time - 0.9f) * Fill_Scale;
                 }
-                if (Third_Arrow_Blink_On_1_Time < Time.time && Time.time <= Third_Arrow_Blink_Off_Time) //Blink third arrow off
+                if (1.05f < Elapsed_Time && Elapsed_Time <= 1.2f) //Blink third arrow off
                 {
-                    Pitlane_Arrows[2].enabled = false;
-                    Pitlane_Arrows[2].fillAmount = ((Time.time - Second_Arrow_Blink_On_2_Time) * 1.034f / (Third_Arrow_Blink_On_2_Time - Second_Arrow_Blink_On_2_Time));
+                    Arrow_3.enabled = false;
+                    Arrow_3.fillAmount = (Elapsed_Time - 0.9f) * Fill_Scale;
                 }
-                if (Third_Arrow_Blink_Off_Time < Time.time && Time.time <= Third_Arrow_Blink_On_2_Time) //Blink third arrow back on, third arrow should be finished filling after this completes
+                if (1.2f < Elapsed_Time && Elapsed_Time <= 1.35f) //Blink third arrow back on, third arrow should be finished filling after this completes
                 {
-                    Pitlane_Arrows[2].enabled = true;
-                    Pitlane_Arrows[2].fillAmount = ((Time.time - Second_Arrow_Blink_On_2_Time) * 1.034f / (Third_Arrow_Blink_On_2_Time - Second_Arrow_Blink_On_2_Time));
+                    Arrow_3.enabled = true;
+                    Arrow_3.fillAmount = (Elapsed_Time - 0.9f) * Fill_Scale;
                 }
 
                 //INTERMISSION
-                if (First_Arrow_Pre_Blink_Time < Time.time && Time.time <= First_Arrow_End_Animation_Time_1)
+                if (2.85f < Elapsed_Time && Elapsed_Time <= 3f)
                 {
-                    Pitlane_Arrows[0].enabled = false;
+                    Arrow_1.enabled = false;
                 }
 
                 //End of the animation, FIRST ARROW
-                if (First_Arrow_End_Animation_Time_1 < Time.time && Time.time <= First_Arrow_End_Animation_Time_2)
+                if (3f < Elapsed_Time && Elapsed_Time <= 3.15f)
                 {
                     Pitlane_Indicator_Field_Name.enabled = false;
-                    Pitlane_Arrows[0].enabled = true;
-                    Pitlane_Arrows[0].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_1_Start_Position, (Arrow_1_Start_Position + Arrow_Shift_Vector), ((Time.time - First_Arrow_End_Animation_Time_1) / (Second_Arrow_End_Animation_Time_1 - First_Arrow_End_Animation_Time_1)));
-                    Pitlane_Arrows[0].fillAmount = 1f - ((Time.time - First_Arrow_End_Animation_Time_1) / (Second_Arrow_End_Animation_Time_1 - First_Arrow_End_Animation_Time_1));
+                    Arrow_1.enabled = true;
+                    Arrow_1.rectTransform.anchoredPosition = Vector2.Lerp(Arrow_1_Start_Position, (Arrow_1_Start_Position + Arrow_Shift_Vector), ((Elapsed_Time - 3f) / 0.45f));
+                    Arrow_1.fillAmount = 1f - ((Elapsed_Time - 3f) / 0.45f);
                 }
-                if (First_Arrow_End_Animation_Time_2 < Time.time && Time.time <= First_Arrow_End_Animation_Time_3)
+                if (3.15f < Elapsed_Time && Elapsed_Time <= 3.3f)
                 {
                     Pitlane_Indicator_Field_Name.enabled = true;
-                    Pitlane_Arrows[0].enabled = false;
-                    Pitlane_Arrows[0].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_1_Start_Position, (Arrow_1_Start_Position + Arrow_Shift_Vector), ((Time.time - First_Arrow_End_Animation_Time_1) / (Second_Arrow_End_Animation_Time_1 - First_Arrow_End_Animation_Time_1)));
+                    Arrow_1.enabled = false;
+                    Arrow_1.rectTransform.anchoredPosition = Vector2.Lerp(Arrow_1_Start_Position, (Arrow_1_Start_Position + Arrow_Shift_Vector), ((Elapsed_Time - 3f) / 0.45f));
                 }
-                if (First_Arrow_End_Animation_Time_3 < Time.time && Time.time <= Second_Arrow_End_Animation_Time_1)
+                if (3.3f < Elapsed_Time && Elapsed_Time <= 3.45f)
                 {
                     Pitlane_Indicator_Field_Name.enabled = false;
-                    Pitlane_Arrows[0].enabled = true;
-                    Pitlane_Arrows[1].enabled = false;
-                    Pitlane_Arrows[0].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_1_Start_Position, (Arrow_1_Start_Position + Arrow_Shift_Vector), ((Time.time - First_Arrow_End_Animation_Time_1) / (Second_Arrow_End_Animation_Time_1 - First_Arrow_End_Animation_Time_1)));
-                    Pitlane_Arrows[0].fillAmount = 1f - ((Time.time - First_Arrow_End_Animation_Time_1) / (Second_Arrow_End_Animation_Time_1 - First_Arrow_End_Animation_Time_1));
+                    Arrow_1.enabled = true;
+                    Arrow_2.enabled = false;
+                    Arrow_1.rectTransform.anchoredPosition = Vector2.Lerp(Arrow_1_Start_Position, (Arrow_1_Start_Position + Arrow_Shift_Vector), ((Elapsed_Time - 3f) / 0.45f));
+                    Arrow_1.fillAmount = 1f - ((Elapsed_Time - 3f) / 0.45f);
                 }
                 //End of the animation, SECOND ARROW
-                if (Second_Arrow_End_Animation_Time_1 < Time.time && Time.time <= Second_Arrow_End_Animation_Time_2)
+                if (3.45f < Elapsed_Time && Elapsed_Time <= 3.6f)
                 {
-                    Pitlane_Arrows[0].fillAmount = 0f;
+                    Arrow_1.fillAmount = 0f;
                     Pitlane_Indicator_Field_Name.enabled = true;
-                    Pitlane_Arrows[1].enabled = true;
-                    Pitlane_Arrows[1].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_2_Start_Position, (Arrow_2_Start_Position + Arrow_Shift_Vector), ((Time.time - Second_Arrow_End_Animation_Time_1) / (Third_Arrow_End_Animation_Time_1 - Second_Arrow_End_Animation_Time_1)));
-                    Pitlane_Arrows[1].fillAmount = 1f - ((Time.time - Second_Arrow_End_Animation_Time_1) / (Third_Arrow_End_Animation_Time_1 - Second_Arrow_End_Animation_Time_1));
+                    Arrow_2.enabled = true;
+                    Arrow_2.rectTransform.anchoredPosition = Vector2.Lerp(Arrow_2_Start_Position, (Arrow_2_Start_Position + Arrow_Shift_Vector), ((Elapsed_Time - 3.45f) / 0.45f));
+                    Arrow_2.fillAmount = 1f - ((Elapsed_Time - 3.45f) / 0.45f);
                 }
-                if (Second_Arrow_End_Animation_Time_2 < Time.time && Time.time <= Second_Arrow_End_Animation_Time_3)
+                if (3.6f < Elapsed_Time && Elapsed_Time <= 3.75f)
                 {
                     Pitlane_Indicator_Field_Name.enabled = false;
-                    Pitlane_Arrows[1].enabled = false;
-                    Pitlane_Arrows[1].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_2_Start_Position, (Arrow_2_Start_Position + Arrow_Shift_Vector), ((Time.time - Second_Arrow_End_Animation_Time_1) / (Third_Arrow_End_Animation_Time_1 - Second_Arrow_End_Animation_Time_1)));
+                    Arrow_2.enabled = false;
+                    Arrow_2.rectTransform.anchoredPosition = Vector2.Lerp(Arrow_2_Start_Position, (Arrow_2_Start_Position + Arrow_Shift_Vector), ((Elapsed_Time - 3.45f) / 0.45f));
                 }
-                if (Second_Arrow_End_Animation_Time_3 < Time.time && Time.time <= Third_Arrow_End_Animation_Time_1)
+                if (3.75f < Elapsed_Time && Elapsed_Time <= 3.9f)
                 {
                     Pitlane_Indicator_Field_Name.enabled = true;
-                    Pitlane_Arrows[1].enabled = true;
-                    Pitlane_Arrows[2].enabled = false;
-                    Pitlane_Arrows[1].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_2_Start_Position, (Arrow_2_Start_Position + Arrow_Shift_Vector), ((Time.time - Second_Arrow_End_Animation_Time_1) / (Third_Arrow_End_Animation_Time_1 - Second_Arrow_End_Animation_Time_1)));
-                    Pitlane_Arrows[1].fillAmount = 1f - ((Time.time - Second_Arrow_End_Animation_Time_1) / (Third_Arrow_End_Animation_Time_1 - Second_Arrow_End_Animation_Time_1));
+                    Arrow_2.enabled = true;
+                    Arrow_3.enabled = false;
+                    Arrow_2.rectTransform.anchoredPosition = Vector2.Lerp(Arrow_2_Start_Position, (Arrow_2_Start_Position + Arrow_Shift_Vector), ((Elapsed_Time - 3.45f) / 0.45f));
+                    Arrow_2.fillAmount = 1f - ((Elapsed_Time - 3.45f) / 0.45f);
                 }
                 //End of the animation, THIRD ARROW
-                if (Third_Arrow_End_Animation_Time_1 < Time.time && Time.time <= Third_Arrow_End_Animation_Time_2)
+                if (3.9f < Elapsed_Time && Elapsed_Time <= 4.05f)
                 {
-                    Pitlane_Arrows[1].fillAmount = 0f;
+                    Arrow_2.fillAmount = 0f;
                     Pitlane_Indicator_Field_Name.enabled = false;
-                    Pitlane_Arrows[2].enabled = true;
-                    Pitlane_Arrows[2].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_3_Start_Position, (Arrow_3_Start_Position + Arrow_Shift_Vector), ((Time.time - Third_Arrow_End_Animation_Time_1) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_1)));
-                    Pitlane_Arrows[2].fillAmount = 1f - ((Time.time - Third_Arrow_End_Animation_Time_1) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_1));
+                    Arrow_3.enabled = true;
+                    Arrow_3.rectTransform.anchoredPosition = Vector2.Lerp(Arrow_3_Start_Position, (Arrow_3_Start_Position + Arrow_Shift_Vector), ((Elapsed_Time - 3.9f) / 0.45f));
+                    Arrow_3.fillAmount = 1f - ((Elapsed_Time - 3.9f) / 0.45f);
                 }
-                if (Third_Arrow_End_Animation_Time_2 < Time.time && Time.time <= Third_Arrow_End_Animation_Time_3)
+                if (4.05f < Elapsed_Time && Elapsed_Time <= 4.2f)
                 {
                     Pitlane_Indicator_Field_Name.enabled = true;
-                    Pitlane_Arrows[2].enabled = false;
-                    Pitlane_Arrows[2].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_3_Start_Position, (Arrow_3_Start_Position + Arrow_Shift_Vector), ((Time.time - Third_Arrow_End_Animation_Time_1) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_1)));
+                    Arrow_3.enabled = false;
+                    Arrow_3.rectTransform.anchoredPosition = Vector2.Lerp(Arrow_3_Start_Position, (Arrow_3_Start_Position + Arrow_Shift_Vector), ((Elapsed_Time - 3.9f) / 0.45f));
                 }
-                if (Third_Arrow_End_Animation_Time_3 < Time.time && Time.time <= Pitlane_Indicator_Animation_End_Time)
+                if (4.2f < Elapsed_Time && Elapsed_Time <= 4.35f)
                 {
                     Pitlane_Indicator_Field_Name.enabled = false;
-                    Pitlane_Arrows[2].enabled = true;
-                    Pitlane_Arrows[2].rectTransform.anchoredPosition = Vector2.Lerp(Arrow_3_Start_Position, (Arrow_3_Start_Position + Arrow_Shift_Vector), ((Time.time - Third_Arrow_End_Animation_Time_1) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_1)));
-                    Pitlane_Arrows[2].fillAmount = 1f - ((Time.time - Third_Arrow_End_Animation_Time_1) / (Pitlane_Indicator_Animation_End_Time - Third_Arrow_End_Animation_Time_1));
+                    Arrow_3.enabled = true;
+                    Arrow_3.rectTransform.anchoredPosition = Vector2.Lerp(Arrow_3_Start_Position, (Arrow_3_Start_Position + Arrow_Shift_Vector), ((Elapsed_Time - 3.9f) / 0.45f));
+                    Arrow_3.fillAmount = 1f - ((Elapsed_Time - 3.9f) / 0.45f);
                 }
 
                 yield return null;
+                Elapsed_Time = Time.time - Pitlane_Indicator_Animation_Start_Time;
             }
-            Pitlane_Arrows[0].enabled = false;
-            Pitlane_Arrows[1].enabled = false;
-            Pitlane_Arrows[2].enabled = false;
+            Arrow_1.enabled = false;
+            Arrow_2.enabled = false;
+            Arrow_3.enabled = false;
             Pitlane_Indicator_Field_Name.enabled = false;
 
-            Pitlane_Arrows[0].rectTransform.anchoredPosition = Arrow_1_Start_Position;
-            Pitlane_Arrows[1].rectTransform.anchoredPosition = Arrow_2_Start_Position;
-            Pitlane_Arrows[2].rectTransform.anchoredPosition = Arrow_3_Start_Position;
+            Arrow_1.rectTransform.anchoredPosition = Arrow_1_Start_Position;
+            Arrow_2.rectTransform.anchoredPosition = Arrow_2_Start_Position;
+            Arrow_3.rectTransform.anchoredPosition = Arrow_3_Start_Position;
         }
 
         public override void Start()
@@ -2115,59 +2194,45 @@ namespace ClassLibrary1HUD
 
             Left_Pitlane_Arrows = new Image[] { Left_Pitlane_Indicator_Arrow_1, Left_Pitlane_Indicator_Arrow_2, Left_Pitlane_Indicator_Arrow_3 };
             Right_Pitlane_Arrows = new Image[] { Right_Pitlane_Indicator_Arrow_1, Right_Pitlane_Indicator_Arrow_2, Right_Pitlane_Indicator_Arrow_3 };
-        }
-
-        public override void Update()
-        {
-            base.Update();
-
-            Pitlane_Current_Section = TargetShip.CurrentSection.index;
-
-            
-            
-            Pitlane_Previous_Section = Pitlane_Current_Section;
-
+            Left_Start_Positions = new Vector2[] { Left_Pitlane_Indicator_Arrow_1.rectTransform.anchoredPosition, Left_Pitlane_Indicator_Arrow_2.rectTransform.anchoredPosition, Left_Pitlane_Indicator_Arrow_3.rectTransform.anchoredPosition };
+            Right_Start_Positions = new Vector2[] { Right_Pitlane_Indicator_Arrow_1.rectTransform.anchoredPosition, Right_Pitlane_Indicator_Arrow_2.rectTransform.anchoredPosition, Right_Pitlane_Indicator_Arrow_3.rectTransform.anchoredPosition };
         }
 
         public void Pitlane_Indicator_Method(ShipController ship, int side)
         {
-            if (ship.IsPlayer)
+            if (ship != TargetShip)
             {
-                if (side == 1)
-                {
-                    if (NgSettings.Gameplay.MirrorEnabled)
-                    {
-                        Pitlane_Side = -1;
-                        Pitlane_Arrows = Left_Pitlane_Arrows;
-                    }
-                    else
-                    {
-                        Pitlane_Side = 1;
-                        Pitlane_Arrows = Right_Pitlane_Arrows;
-                    }                    
-                }
-
-                else if (side == -1)
-                {
-                    if (NgSettings.Gameplay.MirrorEnabled)
-                    {
-                        Pitlane_Side = 1;
-                        Pitlane_Arrows = Right_Pitlane_Arrows;
-                    }
-                    else
-                    {
-                        Pitlane_Side = -1;
-                        Pitlane_Arrows = Left_Pitlane_Arrows;
-                    }
-                }
-
-                StartCoroutine(Pitlane_Indicator_Animation());
+                return;
             }
+
+            if (NgSettings.Gameplay.MirrorEnabled)
+            {
+                Pitlane_Side = -side;
+            }
+            else
+            {
+                Pitlane_Side = side;
+            }
+
+            if (Pitlane_Side == 1)
+            {
+                Pitlane_Arrows = Right_Pitlane_Arrows;
+                Pitlane_Start_Positions = Right_Start_Positions;
+            }
+            else
+            {
+                Pitlane_Arrows = Left_Pitlane_Arrows;
+                Pitlane_Start_Positions = Left_Start_Positions;
+            }
+
+            StartCoroutine(Pitlane_Indicator_Animation());
         }
 
         public override void OnDestroy()
         {
             NgTrackData.Triggers.PitlaneIndicator.OnPitlaneIndicatorTriggered -= Pitlane_Indicator_Method;
+
+            base.OnDestroy();
         }
     }
 
@@ -2176,7 +2241,7 @@ namespace ClassLibrary1HUD
         public Text Relative_Time_Readout;
         public static readonly Vector4 Race_Leader_Green = new Vector4(181f / 255f, 1f, 29f / 255f, 1f);
         public static readonly Vector4 Contender_Red = new Vector4(1f, 28f / 255f, 36f / 255f, 1f);
-        public static readonly Vector4 Tremor_Safety_Blue = new Vector4(0f, (163f / 256f), (233f / 256f), 1f);
+        public static readonly Vector4 Tremor_Safety_Blue = new Vector4(0f, (163f / 255f), (233f / 255f), 1f);
         public int Player_Section_Index;
         public int Second_Place_Index;
         public int Track_Section_Max;
@@ -2186,10 +2251,12 @@ namespace ClassLibrary1HUD
         public string Relative_Time_Readout_Units;
         public int Player_Current_Section_Index;
         public int Player_Previous_Section_Index;
+        public int Second_Place_Current_Section_Index;
+        public ShipController Second_Place_Ship;        
 
         public override void Start()
         {
-            base.Start();
+            base.Start();            
 
             Relative_Time_Readout = CustomComponents.GetById<Text>("RelativeTimeReadout");
             Relative_Time_Readout.text = "–:––.––";
@@ -2200,69 +2267,86 @@ namespace ClassLibrary1HUD
         {
             base.Update();
 
+            if (TargetShip.CurrentSection == null)
+            {
+                return;
+            }
+
             Player_Current_Section_Index = TargetShip.CurrentSection.index;
 
-            if (TargetShip.CurrentSection.index >= 2)
+            if (Player_Current_Section_Index == Player_Previous_Section_Index)
             {
-                Player_Section_Index = TargetShip.CurrentSection.index; //Section the player ship is currently on
-            }
-            else
-            {
-                Player_Section_Index = TargetShip.CurrentSection.index + Track_Section_Max; //Sections 0 and 1 on most tracks are entered before or as the next lap is being set
+                return;
             }
 
-            if (Ships.FindShipInPlace(2).CurrentSection.index >= 2)
+            Second_Place_Ship = Ships.FindShipInPlace(2);
+            
+            if (Second_Place_Ship == null)
             {
-                Second_Place_Index = Ships.FindShipInPlace(2).CurrentSection.index; //Section the second place ship is currently on
+                return;
+            }
+
+            Second_Place_Current_Section_Index = Second_Place_Ship.CurrentSection.index;
+
+            if (Player_Current_Section_Index >= 2)
+            {
+                Player_Section_Index = Player_Current_Section_Index; //Section the player ship is currently on
             }
             else
             {
-                Second_Place_Index = Ships.FindShipInPlace(2).CurrentSection.index + Track_Section_Max; //Sections 0 and 1 on most tracks are entered before or as the next lap is being set
+                Player_Section_Index = Player_Current_Section_Index + Track_Section_Max; //Sections 0 and 1 on most tracks are entered before or as the next lap is being set
+            }
+
+            if (Second_Place_Current_Section_Index >= 2)
+            {
+                Second_Place_Index = Second_Place_Current_Section_Index; //Section the second place ship is currently on
+            }
+            else
+            {
+                Second_Place_Index = Second_Place_Current_Section_Index + Track_Section_Max; //Sections 0 and 1 on most tracks are entered before or as the next lap is being set
             }
 
             //Player_Section_Index = TargetShip.CurrentSection.index; //Section the player ship is currently on
             //Second_Place_Index = Ships.FindShipInPlace(2).CurrentSection.index; //Section the second place ship is currently on
 
             Player_Lap_Adjust = (TargetShip.CurrentLap - 1); //Multiply Track_Section_Max by this value
-            Second_Place_Lap_Adjust = (Ships.FindShipInPlace(2).CurrentLap - 1); //Multiply Track_Section_Max by this value
+            Second_Place_Lap_Adjust = (Second_Place_Ship.CurrentLap - 1); //Multiply Track_Section_Max by this value
 
             Player_Section_Index += Player_Lap_Adjust * Track_Section_Max;
             Second_Place_Index += Second_Place_Lap_Adjust * Track_Section_Max;
 
             Distance_In_Sections = Player_Section_Index - Second_Place_Index;
 
-            if (Player_Current_Section_Index > Player_Previous_Section_Index)
+            TargetShip.CalculateRelativeTime();
+            Relative_Time_Readout_Units = FloatToTime.Convert(Mathf.Abs(TargetShip.lastRelativeTime), "0:00.00"); //Time readout
+
+            if (TargetShip.lastRelativeTime < 0)
             {
-                TargetShip.CalculateRelativeTime();
-                Relative_Time_Readout_Units = FloatToTime.Convert(Mathf.Abs(TargetShip.lastRelativeTime), "0:00.00"); //Time readout
-
-                if (TargetShip.lastRelativeTime < 0)
-                {
-                    Relative_Time_Readout.color = Contender_Red;
-                    Relative_Time_Readout.text = "+" + Relative_Time_Readout_Units;
-                }
-                //else if (Ships.SectionOffsetBetweenSigned(TargetShip, Ships.FindShipInPlace(2)) > 120)//(TargetShip.CurrentSection.index - Ships.FindShipInPlace(2).CurrentSection.index > 120) //Ahead by 120 sections
-                else if (Distance_In_Sections > 120)
-                {
-                    Relative_Time_Readout.color = Tremor_Safety_Blue;
-                    Relative_Time_Readout.text = "-" + Relative_Time_Readout_Units;
-                }
-                //else if (TargetShip.lastRelativeTime > 0 && (Ships.SectionOffsetBetweenSigned(TargetShip, Ships.FindShipInPlace(2)) < 120))
-                else if (TargetShip.lastRelativeTime > 0 && Distance_In_Sections < 120)
-                {
-                    Relative_Time_Readout.color = Race_Leader_Green;
-                    Relative_Time_Readout.text = "-" + Relative_Time_Readout_Units;
-                }
-                else
-                {
-                    Relative_Time_Readout.text = "0:00.00";
-                }
-                //Relative_Time_Readout_Units = FloatToTime.Convert(Mathf.Abs(TargetShip.lastRelativeTime), "0:00.00");
-                //Relative_Time_Readout.text = FloatToTime.Convert(Mathf.Abs(TargetShip.lastRelativeTime), "0:00.00");
-                //Relative_Time_Readout.text = TargetShip.lastRelativeTime.ToString();
+                Relative_Time_Readout.color = Contender_Red;
+                Relative_Time_Readout.text = "+" + Relative_Time_Readout_Units;
             }
+            //else if (Ships.SectionOffsetBetweenSigned(TargetShip, Ships.FindShipInPlace(2)) > 120)//(TargetShip.CurrentSection.index - Ships.FindShipInPlace(2).CurrentSection.index > 120) //Ahead by 120 sections
+            else if (Distance_In_Sections > 120)
+            {
+                Relative_Time_Readout.color = Tremor_Safety_Blue;
+                Relative_Time_Readout.text = "-" + Relative_Time_Readout_Units;
+            }
+            //else if (TargetShip.lastRelativeTime > 0 && (Ships.SectionOffsetBetweenSigned(TargetShip, Ships.FindShipInPlace(2)) < 120))
+            else if (TargetShip.lastRelativeTime > 0 && Distance_In_Sections <= 120)
+            {
+                Relative_Time_Readout.color = Race_Leader_Green;
+                Relative_Time_Readout.text = "-" + Relative_Time_Readout_Units;
+            }
+            else
+            {
+                Relative_Time_Readout.color = Color.white;
+                Relative_Time_Readout.text = "0:00.00";
+            }
+            //Relative_Time_Readout_Units = FloatToTime.Convert(Mathf.Abs(TargetShip.lastRelativeTime), "0:00.00");
+            //Relative_Time_Readout.text = FloatToTime.Convert(Mathf.Abs(TargetShip.lastRelativeTime), "0:00.00");
+            //Relative_Time_Readout.text = TargetShip.lastRelativeTime.ToString();
 
-            Player_Previous_Section_Index = TargetShip.CurrentSection.index;
+            Player_Previous_Section_Index = Player_Current_Section_Index;
         }
     }
 
@@ -2275,85 +2359,44 @@ namespace ClassLibrary1HUD
         
         public Coroutine MusicFlasherCoroutine;
 
+        public float Start_Time;
+        public float Elapsed_Time;
+        public int Current_Step;
+        public int Previous_Step;
+
         IEnumerator Music_Flasher()
         {
-            float New_Song_Start_Time = Time.time;
-            float New_Song_End_Time = New_Song_Start_Time + 2.5f;
+            Start_Time = Time.time;
+            Elapsed_Time = 0f;
+            Previous_Step = -1;
 
-            float Start_Flash_On_1 = New_Song_Start_Time + 0.125f;
-            float Start_Flash_Off_1 = New_Song_Start_Time + 0.25f;
-            float Start_Flash_On_2 = New_Song_Start_Time + 0.375f;
-            float Start_Flash_Off_2 = New_Song_Start_Time + 0.5f;
-            float Start_Flash_On_3 = New_Song_Start_Time + 0.625f;
-            float Start_Flash_Off_3 = New_Song_Start_Time + 0.75f;
-
-            float End_Flash_On_0 = New_Song_Start_Time + 1.75f;
-            float End_Flash_On_1 = New_Song_Start_Time + 1.875f;
-            float End_Flash_Off_1 = New_Song_Start_Time + 2f;
-            float End_Flash_On_2 = New_Song_Start_Time + 2.125f;
-            float End_Flash_Off_2 = New_Song_Start_Time + 2.25f;
-            float End_Flash_On_3 = New_Song_Start_Time + 2.375f;
-            float End_Flash_Off_3 = New_Song_End_Time;
-
-            while (Time.time < New_Song_End_Time)
+            while (Elapsed_Time < 2.5f)
             {
-                //START
-                if (New_Song_Start_Time < Time.time && Time.time <= Start_Flash_On_1)
-                {
-                    Music_Display_Readout.enabled = true;
-                }
-                if (Start_Flash_On_1 < Time.time && Time.time <= Start_Flash_Off_1)
-                {
-                    Music_Display_Readout.enabled = false;
-                }
-                if (Start_Flash_Off_1 < Time.time && Time.time <= Start_Flash_On_2)
-                {
-                    Music_Display_Readout.enabled = true;
-                }
-                if (Start_Flash_On_2 < Time.time && Time.time <= Start_Flash_Off_2)
-                {
-                    Music_Display_Readout.enabled = false;
-                }
-                if (Start_Flash_Off_2 < Time.time && Time.time <= Start_Flash_On_3)
-                {
-                    Music_Display_Readout.enabled = true;
-                }
-                if (Start_Flash_On_3 < Time.time && Time.time <= Start_Flash_Off_3)
-                {
-                    Music_Display_Readout.enabled = false;
-                }
+                Current_Step = (int)(Elapsed_Time * 8f);                
 
-                if (Start_Flash_Off_3 < Time.time && Time.time <= End_Flash_On_0) //Stable for 1 second
+                if (Current_Step != Previous_Step)
                 {
-                    Music_Display_Readout.enabled = true;
-                }
+                    Previous_Step = Current_Step;
 
-                //END
-                if (End_Flash_On_0 < Time.time && Time.time <= End_Flash_On_1)
-                {
-                    Music_Display_Readout.enabled = false;
+                    //START
+                    if (Current_Step < 6)
+                    {
+                        Music_Display_Readout.enabled = (Current_Step % 2 == 0);
+                    }
+                    //Stable for 1 second
+                    else if (Current_Step < 14)
+                    {
+                        Music_Display_Readout.enabled = true;
+                    }
+                    //END
+                    else
+                    {
+                        Music_Display_Readout.enabled = (Current_Step % 2 == 1);
+                    }
                 }
-                if (End_Flash_On_1 < Time.time && Time.time <= End_Flash_Off_1)
-                {
-                    Music_Display_Readout.enabled = true;
-                }
-                if (End_Flash_Off_1 < Time.time && Time.time <= End_Flash_On_2)
-                {
-                    Music_Display_Readout.enabled = false;
-                }
-                if (End_Flash_On_2 < Time.time && Time.time <= End_Flash_Off_2)
-                {
-                    Music_Display_Readout.enabled = true;
-                }
-                if (End_Flash_Off_2 < Time.time && Time.time <= End_Flash_On_3)
-                {
-                    Music_Display_Readout.enabled = false;
-                }
-                if (End_Flash_On_3 < Time.time && Time.time <= End_Flash_Off_3)
-                {
-                    Music_Display_Readout.enabled = true;
-                }
+                
                 yield return null;
+                Elapsed_Time = Time.time - Start_Time;
             }
             Music_Display_Readout.enabled = false;
 
@@ -2387,6 +2430,8 @@ namespace ClassLibrary1HUD
         public override void OnDestroy()
         {
             NgUiEvents.OnNewSongPlaying -= Music_Display_Method;
+
+            base.OnDestroy();
         }
     }
 
@@ -2402,29 +2447,8 @@ namespace ClassLibrary1HUD
         public const float Autopilot_Flash_Duration = 0.5f;
         public float Autopilot_Flash_End_Time;
 
-        IEnumerator Damage_Flash_Autopilot_Duration()
-        {
-            float Duration_Time = 0.5f;
-            float Start_Time = Time.time;
-            float End_Time = Start_Time + Duration_Time;
-            while (Time.time < End_Time)
-            {
-                Damage_Flasher_Image.enabled = true;
-                yield return null;
-            }
-            Damage_Flasher_Image.enabled = false;
-            //yield return new WaitForEndOfFrame();
-        }
-
-        IEnumerator Damage_Flash_Duration()
-        {
-            while ((TargetShip.PysSim.enginePower < 1f) || (TargetShip.PysSim.engineAccel < 1f))
-            {
-                Damage_Flasher_Image.enabled = true;
-                yield return null;
-            }
-            Damage_Flasher_Image.enabled = false;
-        }
+        public float Current_Time;
+        public ShipSim Cached_PysSim;
 
         public override void Start()
         {
@@ -2436,19 +2460,22 @@ namespace ClassLibrary1HUD
             Damage_Flasher_Image.enabled = false;
             Damage_Flasher_Background.enabled = false;
             Damage_Flasher_Text.enabled = false;
+
+            Cached_PysSim = TargetShip.PysSim;
         }
 
         public override void Update()
         {
             base.Update();
 
-            Current_Shield_Integrity = TargetShip.ShieldIntegrity;
+            Current_Shield_Integrity = TargetShip.ShieldIntegrity;            
+            Current_Time = Time.time;
 
             if ((Current_Shield_Integrity < Previous_Shield_Integrity) && TargetShip.IsShieldActivated && TargetShip.LastAttacker != null)
             {
                 //Damage_Flasher_Image.enabled = true;
                 //StartCoroutine(Damage_Flash_Autopilot_Duration());
-                Autopilot_Flash_End_Time = Time.time + Autopilot_Flash_Duration;
+                Autopilot_Flash_End_Time = Current_Time + Autopilot_Flash_Duration;
             }
             //else if (((TargetShip.PysSim.enginePower < 1f) || (TargetShip.PysSim.engineAccel < 1f)) && TargetShip.CurrentLap != 0)
             //{
@@ -2460,7 +2487,7 @@ namespace ClassLibrary1HUD
                 //Damage_Flasher_Image.enabled = false;
             //}
 
-            if (Time.time < Autopilot_Flash_End_Time || (((TargetShip.PysSim.enginePower < 1f) || (TargetShip.PysSim.engineAccel < 1f)) && TargetShip.CurrentLap != 0))
+            if (Current_Time < Autopilot_Flash_End_Time || (((Cached_PysSim.enginePower < 1f) || (Cached_PysSim.engineAccel < 1f)) && TargetShip.CurrentLap != 0))
             {
                 //Damage_Flasher_Image.enabled = true;
                 //Damage_Flasher_Background.enabled = true;
@@ -2482,7 +2509,7 @@ namespace ClassLibrary1HUD
             //    Damage_Flasher_Image.enabled = true;
             //}
 
-            Previous_Shield_Integrity = TargetShip.ShieldIntegrity;
+            Previous_Shield_Integrity = Current_Shield_Integrity;
         }
     }
 
@@ -2504,6 +2531,12 @@ namespace ClassLibrary1HUD
         public Vector2 Hyperthrust_Bar_Whiteout_Default_Position;
         public Vector2 Hyperthrust_Bar_Image_Default_Position;
 
+        public Vector2 Shared_Offset;
+
+        public float Current_Hyperthrust_Amount;
+        public float Previous_Hyperthrust_Amount;
+
+        public ShipSim Cached_ShipSim;
 
         public override void Start()
         {
@@ -2522,63 +2555,67 @@ namespace ClassLibrary1HUD
             switch (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarPosition)
             {
                 case 1:
-                    Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
-                    Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
-                    Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
-                    Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Lowered_Adjust_Vector;
+                    Shared_Offset = Hyperthrust_Bar_Lowered_Adjust_Vector;
                     break;
                 case 2:
-                    Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
-                    Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
-                    Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
-                    Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Centered_Adjust_Vector;
+                    Shared_Offset = Hyperthrust_Bar_Centered_Adjust_Vector;
                     break;
                 case 3:
-                    Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
-                    Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
-                    Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
-                    Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
+                    Shared_Offset = Hyperthrust_Bar_Lowered_Wide_Adjust_Vector;
                     break;
                 case 4:
-                    Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
-                    Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
-                    Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
-                    Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
+                    Shared_Offset = Hyperthrust_Bar_Centered_Wide_Adjust_Vector;
                     break;
             }
 
-            if (VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarTextToggle == false)
-            {
-                Hyperthrust_Bar_Numeric_Readout.enabled = false;
-            }
+            Hyperthrust_Bar_Numeric_Readout.rectTransform.anchoredPosition = HyperThrust_Bar_Numeric_Readout_Default_Position + Shared_Offset;
+            Hyperthrust_Bar_Background.rectTransform.anchoredPosition = Hyperthrust_Bar_Background_Default_Position + Shared_Offset;
+            Hyperthrust_Bar_Whiteout.rectTransform.anchoredPosition = Hyperthrust_Bar_Whiteout_Default_Position + Shared_Offset;
+            Hyperthrust_Bar_Image.rectTransform.anchoredPosition = Hyperthrust_Bar_Image_Default_Position + Shared_Offset;
 
+            Hyperthrust_Bar_Image.fillAmount = 0f;
+
+            Cached_ShipSim = TargetShip.PysSim;
         }
 
         public override void Update()
         {
             base.Update();
 
-            Hyperthrust_Bar_Image.fillAmount = TargetShip.PysSim.engineHyper / 1.85f;
-            Hyperthrust_Units_String = string.Format("{0:N2}", TargetShip.PysSim.engineHyper);
-            Hyperthrust_Bar_Numeric_Readout.text = Hyperthrust_Units_String;
-            if (TargetShip.PysSim.engineHyper < 0.01f && VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarVisibility == 1)
-            {                
+            Current_Hyperthrust_Amount = Cached_ShipSim.engineHyper;
+
+            if (Current_Hyperthrust_Amount != Previous_Hyperthrust_Amount)
+            {
+                Hyperthrust_Bar_Image.fillAmount = Current_Hyperthrust_Amount / 1.85f;
+
+                if (Current_Hyperthrust_Amount < 0.01f)
+                {
+                    Hyperthrust_Units_String = "";
+                }
+                else
+                {
+                    Hyperthrust_Units_String = Current_Hyperthrust_Amount.ToString("0.00");
+                }                
+            }
+
+            if (Current_Hyperthrust_Amount < 0.01f && VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarVisibility == 1)
+            {
                 Hyperthrust_Bar_Numeric_Readout.enabled = false; //Formerly, Hyperthrust_Bar_Numeric_Readout.text = "";
                 Hyperthrust_Bar_Background.enabled = false;
                 Hyperthrust_Bar_Whiteout.enabled = false;
-                Hyperthrust_Bar_Image.enabled = false;                
+                Hyperthrust_Bar_Image.enabled = false;
             }
             else
             {
-                if (TargetShip.PysSim.engineHyper < 0.01f)
-                {
-                    Hyperthrust_Bar_Numeric_Readout.text = "";
-                }
-                Hyperthrust_Bar_Numeric_Readout.enabled = true;
                 Hyperthrust_Bar_Background.enabled = true;
                 Hyperthrust_Bar_Whiteout.enabled = true;
                 Hyperthrust_Bar_Image.enabled = true;
+                Hyperthrust_Bar_Numeric_Readout.enabled = VanillaPlusHUDOptions.ModMenuOptions.HyperThrustBarTextToggle;
+
+                Hyperthrust_Bar_Numeric_Readout.text = Hyperthrust_Units_String;
             }
+
+            Previous_Hyperthrust_Amount = Current_Hyperthrust_Amount;
         }
     }
 
@@ -2588,10 +2625,15 @@ namespace ClassLibrary1HUD
         public Image Speedpad_Counter_Background;
         public Image Speedpad_Counter_Whiteout;
         public Image Speedpad_Counter_Image;
-        
+                
         public float Speedpad_Counter_Current_Speedpad_Time_2280;
         public float Speedpad_Counter_Previous_Speedpad_Time_2280;
+        public float Speedpad_Counter_Current_Boost_Acceleration;
+        public float Speedpad_Counter_Previous_Boost_Acceleration;
         public float Speedpad_Counter_2280;
+        public string Speedpad_Counter_Units_String;
+        public bool Zero_Out_Speedpad_Counter;
+        public bool Is_2280_Physics;
 
         public static readonly Vector2 Speedpad_Counter_Lowered_Adjust_Vector = new Vector2(287, -502);
         public static readonly Vector2 Speedpad_Counter_Centered_Adjust_Vector = new Vector2(287, -371);
@@ -2602,6 +2644,10 @@ namespace ClassLibrary1HUD
         public Vector2 Speedpad_Counter_Background_Default_Position;
         public Vector2 Speedpad_Counter_Whiteout_Default_Position;
         public Vector2 Speedpad_Counter_Image_Default_Position;
+
+        public Vector2 Shared_Offset;
+
+        public ShipSim Cached_ShipSim;
 
         public override void Start()
         {
@@ -2617,106 +2663,103 @@ namespace ClassLibrary1HUD
             Speedpad_Counter_Whiteout_Default_Position = Speedpad_Counter_Whiteout.rectTransform.anchoredPosition;
             Speedpad_Counter_Image_Default_Position = Speedpad_Counter_Image.rectTransform.anchoredPosition;
 
+            if (Cheats.IntFromPhysicsMod() == 1) //Formerly if (Cheats.ModernPhysics)
+            {
+                Is_2280_Physics = true;
+            }
+
             switch (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition)
             {
                 case 1:
-                    Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
-                    Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
-                    Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
-                    Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Lowered_Adjust_Vector;
+                    Shared_Offset = Speedpad_Counter_Lowered_Adjust_Vector;
                     break;
                 case 2:
-                    Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
-                    Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
-                    Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
-                    Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Centered_Adjust_Vector;
+                    Shared_Offset = Speedpad_Counter_Centered_Adjust_Vector;                    
                     break;
                 case 3:
-                    Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
-                    Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
-                    Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
-                    Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Lowered_Wide_Adjust_Vector;
+                    Shared_Offset = Speedpad_Counter_Lowered_Wide_Adjust_Vector;
                     break;
                 case 4:
-                    Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
-                    Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
-                    Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
-                    Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Speedpad_Counter_Centered_Wide_Adjust_Vector;
+                    Shared_Offset = Speedpad_Counter_Centered_Wide_Adjust_Vector;                    
                     break;
             }
 
-            if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterTextToggle == false)
-            {
-                Speedpad_Count_Numeric_Readout.enabled = false;
-            }
+            Speedpad_Count_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Count_Numeric_Readout_Default_Position + Shared_Offset;
+            Speedpad_Counter_Background.rectTransform.anchoredPosition = Speedpad_Counter_Background_Default_Position + Shared_Offset;
+            Speedpad_Counter_Whiteout.rectTransform.anchoredPosition = Speedpad_Counter_Whiteout_Default_Position + Shared_Offset;
+            Speedpad_Counter_Image.rectTransform.anchoredPosition = Speedpad_Counter_Image_Default_Position + Shared_Offset;
 
+            Speedpad_Counter_Image.fillAmount = 0f;
+
+            Cached_ShipSim = TargetShip.PysSim;
         }
 
         public override void Update()
         {
             base.Update();
 
-            if (Cheats.IntFromPhysicsMod() == 1) //Formerly if (Cheats.ModernPhysics)
+            if (Is_2280_Physics == true) //Formerly if (Cheats.ModernPhysics)
             {
-                Speedpad_Counter_Current_Speedpad_Time_2280 = TargetShip.PysSim.modernPadPushTimer;
+                Speedpad_Counter_Current_Speedpad_Time_2280 = Cached_ShipSim.modernPadPushTimer;
 
-                if ((Speedpad_Counter_Current_Speedpad_Time_2280 > Speedpad_Counter_Previous_Speedpad_Time_2280)) // && (Speedpad_Counter_2280 < 3))
+                if (Speedpad_Counter_Current_Speedpad_Time_2280 > Speedpad_Counter_Previous_Speedpad_Time_2280) // && (Speedpad_Counter_2280 < 3))
                 {
+                    Zero_Out_Speedpad_Counter = false;
                     Speedpad_Counter_2280 += 1f;
+                    Speedpad_Counter_Units_String = Speedpad_Counter_2280.ToString("+0");
+                    Speedpad_Counter_Image.fillAmount = Speedpad_Counter_2280 / 3f;
                 }
+
                 if (Speedpad_Counter_Current_Speedpad_Time_2280 <= 0f)
                 {
-                    Speedpad_Counter_2280 = 0f;
-                }
+                    Zero_Out_Speedpad_Counter = true;
+                    Speedpad_Counter_2280 = 0f;                                        
+                    Speedpad_Counter_Units_String = "";
+                    Speedpad_Counter_Image.fillAmount = 0f;
+                }                
 
-                Speedpad_Counter_Image.fillAmount = Speedpad_Counter_2280 / 3f;
-                Speedpad_Count_Numeric_Readout.text = "+" + Speedpad_Counter_2280.ToString();
-
-                if (Speedpad_Counter_2280 == 0f && VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterVisibility == 1)
-                {                    
-                    Speedpad_Count_Numeric_Readout.enabled = false; //Formerly, Speedpad_Count_Numeric_Readout.text = "";
-                    Speedpad_Counter_Background.enabled = false;
-                    Speedpad_Counter_Whiteout.enabled = false;
-                    Speedpad_Counter_Image.enabled = false;
-                }
-                else
-                {
-                    if (Speedpad_Counter_2280 == 0f)
-                    {
-                        Speedpad_Count_Numeric_Readout.text = "";
-                    }
-                    Speedpad_Count_Numeric_Readout.enabled = true;
-                    Speedpad_Counter_Background.enabled = true;
-                    Speedpad_Counter_Whiteout.enabled = true;
-                    Speedpad_Counter_Image.enabled = true;
-                }
-
-                Speedpad_Counter_Previous_Speedpad_Time_2280 = TargetShip.PysSim.modernPadPushTimer;
+                Speedpad_Counter_Previous_Speedpad_Time_2280 = Speedpad_Counter_Current_Speedpad_Time_2280;
             }
             else
             {
-                Speedpad_Counter_Image.fillAmount = TargetShip.BoostAcceleration / 12f;
-                Speedpad_Count_Numeric_Readout.text = "+" + TargetShip.BoostAcceleration.ToString();
+                Speedpad_Counter_Current_Boost_Acceleration = TargetShip.BoostAcceleration;
 
-                if (TargetShip.BoostAcceleration == 0f && VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterVisibility == 1)
-                {                    
-                    Speedpad_Count_Numeric_Readout.enabled = false; //Formerly, Speedpad_Count_Numeric_Readout.text = "";
-                    Speedpad_Counter_Background.enabled = false;
-                    Speedpad_Counter_Whiteout.enabled = false;
-                    Speedpad_Counter_Image.enabled = false;
-                }
-                else
+                if (Speedpad_Counter_Current_Boost_Acceleration > Speedpad_Counter_Previous_Boost_Acceleration)
                 {
-                    if (TargetShip.BoostAcceleration == 0f)
-                    {
-                        Speedpad_Count_Numeric_Readout.text = "";
-                    }
-                    Speedpad_Count_Numeric_Readout.enabled = true;
-                    Speedpad_Counter_Background.enabled = true;
-                    Speedpad_Counter_Whiteout.enabled = true;
-                    Speedpad_Counter_Image.enabled = true;
+                    Zero_Out_Speedpad_Counter = false;
+                    Speedpad_Counter_Units_String = Speedpad_Counter_Current_Boost_Acceleration.ToString("+0");
                 }
+
+                if (Speedpad_Counter_Current_Boost_Acceleration == 0f)
+                {
+                    Zero_Out_Speedpad_Counter = true;
+                    Speedpad_Counter_Units_String = "";
+                }
+
+                if (Speedpad_Counter_Current_Boost_Acceleration != Speedpad_Counter_Previous_Boost_Acceleration)
+                {
+                    Speedpad_Counter_Image.fillAmount = Speedpad_Counter_Current_Boost_Acceleration / 12f;
+                }
+
+                Speedpad_Counter_Previous_Boost_Acceleration = Speedpad_Counter_Current_Boost_Acceleration;
             }
+
+            if (Zero_Out_Speedpad_Counter == true && VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterVisibility == 1)
+            {
+                Speedpad_Count_Numeric_Readout.enabled = false; //Formerly, Speedpad_Count_Numeric_Readout.text = "";
+                Speedpad_Counter_Background.enabled = false;
+                Speedpad_Counter_Whiteout.enabled = false;
+                Speedpad_Counter_Image.enabled = false;
+            }
+            else
+            {
+                Speedpad_Counter_Background.enabled = true;
+                Speedpad_Counter_Whiteout.enabled = true;
+                Speedpad_Counter_Image.enabled = true;
+                Speedpad_Count_Numeric_Readout.enabled = VanillaPlusHUDOptions.ModMenuOptions.SpeedPadCounterTextToggle;
+            }
+
+            Speedpad_Count_Numeric_Readout.text = Speedpad_Counter_Units_String;
 
         }
 
@@ -2730,6 +2773,12 @@ namespace ClassLibrary1HUD
         public Image Speedpad_Timer_Image;
         public string Speedpad_Timer_Units_String;
 
+        public float Speedpad_Timer_Current_Speedpad_Time;
+        public float Speedpad_Timer_Previous_Speedpad_Time;
+        public float Speedpad_Timer_Max;
+        public bool Zero_Out_Speedpad_Timer;
+        public bool Is_2280_Physics;
+
         public Vector2 Speedpad_Timer_Numeric_Readout_Default_Position;
         public Vector2 Speedpad_Timer_Background_Default_Position;
         public Vector2 Speedpad_Timer_Whiteout_Default_Position;
@@ -2739,6 +2788,10 @@ namespace ClassLibrary1HUD
         public static readonly Vector2 Speedpad_Timer_Centered_Adjust_Vector = new Vector2(287, -371);
         public static readonly Vector2 Speedpad_Timer_Lowered_Wide_Adjust_Vector = new Vector2(0, -502);
         public static readonly Vector2 Speedpad_Timer_Centered_Wide_Adjust_Vector = new Vector2(0, -371);
+
+        public Vector2 Shared_Offset;
+
+        public ShipSim Cached_ShipSim;
 
         public override void Start()
         {
@@ -2754,95 +2807,93 @@ namespace ClassLibrary1HUD
             Speedpad_Timer_Whiteout_Default_Position = Speedpad_Timer_Whiteout.rectTransform.anchoredPosition;
             Speedpad_Timer_Image_Default_Position = Speedpad_Timer_Image.rectTransform.anchoredPosition;
 
+            if (Cheats.IntFromPhysicsMod() == 1) //Formerly if (Cheats.ModernPhysics)
+            {
+                Is_2280_Physics = true;
+                Speedpad_Timer_Max = 0.24f;
+            }
+            else
+            {
+                Is_2280_Physics = false;
+                Speedpad_Timer_Max = 4.5f; //First 3 speedpads hit grant 1.5 seconds each, 4th and beyond grant 0.5 seconds each. Formerly this value was 5f
+            }
+
             switch (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadElementsPosition)
             {
                 case 1:
-                    Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
-                    Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
-                    Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
-                    Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Lowered_Adjust_Vector;
+                    Shared_Offset = Speedpad_Timer_Lowered_Adjust_Vector;
                     break;
                 case 2:
-                    Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
-                    Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
-                    Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
-                    Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Centered_Adjust_Vector;
+                    Shared_Offset = Speedpad_Timer_Centered_Adjust_Vector;
                     break;
                 case 3:
-                    Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
-                    Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
-                    Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
-                    Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Lowered_Wide_Adjust_Vector;
+                    Shared_Offset = Speedpad_Timer_Lowered_Wide_Adjust_Vector;                    
                     break;
                 case 4:
-                    Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
-                    Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
-                    Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
-                    Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Speedpad_Timer_Centered_Wide_Adjust_Vector;
+                    Shared_Offset = Speedpad_Timer_Centered_Wide_Adjust_Vector;                    
                     break;
             }
 
-            if (VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerTextToggle == false)
-            {
-                Speedpad_Timer_Numeric_Readout.enabled = false;
-            }
+            Speedpad_Timer_Numeric_Readout.rectTransform.anchoredPosition = Speedpad_Timer_Numeric_Readout_Default_Position + Shared_Offset;
+            Speedpad_Timer_Background.rectTransform.anchoredPosition = Speedpad_Timer_Background_Default_Position + Shared_Offset;
+            Speedpad_Timer_Whiteout.rectTransform.anchoredPosition = Speedpad_Timer_Whiteout_Default_Position + Shared_Offset;
+            Speedpad_Timer_Image.rectTransform.anchoredPosition = Speedpad_Timer_Image_Default_Position + Shared_Offset;
 
+            Speedpad_Timer_Image.fillAmount = 0f;
+
+            Cached_ShipSim = TargetShip.PysSim;
         }
 
         public override void Update()
         {
             base.Update();
-            if (Cheats.IntFromPhysicsMod() == 1) //Formerly if (Cheats.ModernPhysics)
-            {
-                Speedpad_Timer_Image.fillAmount = TargetShip.PysSim.modernPadPushTimer / 0.24f;
-                Speedpad_Timer_Units_String = string.Format("{0:N2}", TargetShip.PysSim.modernPadPushTimer);
 
-                Speedpad_Timer_Numeric_Readout.text = Speedpad_Timer_Units_String;
-                if (TargetShip.PysSim.modernPadPushTimer < 0.01f && VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerVisibility == 1)
-                {                    
-                    Speedpad_Timer_Numeric_Readout.enabled = false; //Formerly, Speedpad_Timer_Units_String = "";
-                    Speedpad_Timer_Background.enabled = false;
-                    Speedpad_Timer_Whiteout.enabled = false;
-                    Speedpad_Timer_Image.enabled = false;
-                }
-                else
-                {
-                    if (TargetShip.PysSim.modernPadPushTimer < 0.01f)
-                    {
-                        Speedpad_Timer_Units_String = "";
-                    }
-                    Speedpad_Timer_Numeric_Readout.enabled = true;
-                    Speedpad_Timer_Background.enabled = true;
-                    Speedpad_Timer_Whiteout.enabled = true;
-                    Speedpad_Timer_Image.enabled = true;
-                }
-                Speedpad_Timer_Numeric_Readout.text = Speedpad_Timer_Units_String;
+            if (Is_2280_Physics)
+            {
+                Speedpad_Timer_Current_Speedpad_Time = Cached_ShipSim.modernPadPushTimer;
             }
             else
             {
-                Speedpad_Timer_Image.fillAmount = TargetShip.BoostTimer / 4.5f; //First 3 speedpads hit grant 1.5 seconds each, 4th and beyond grant 0.5 seconds each. Formerly this value was 5f
-                Speedpad_Timer_Units_String = string.Format("{0:N2}", TargetShip.BoostTimer);
+                Speedpad_Timer_Current_Speedpad_Time = TargetShip.BoostTimer;
+            }
 
-                if (TargetShip.BoostTimer < 0.01f && VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerVisibility == 1)
+            if (Speedpad_Timer_Current_Speedpad_Time != Speedpad_Timer_Previous_Speedpad_Time)
+            {
+                Speedpad_Timer_Image.fillAmount = Speedpad_Timer_Current_Speedpad_Time / Speedpad_Timer_Max;
+            }
+
+            if (Speedpad_Timer_Current_Speedpad_Time < 0.01f)
+            {
+                Zero_Out_Speedpad_Timer = true;
+                Speedpad_Timer_Units_String = "";
+            }
+            else
+            {
+                Zero_Out_Speedpad_Timer = false;
+                if (Speedpad_Timer_Current_Speedpad_Time != Speedpad_Timer_Previous_Speedpad_Time)
                 {                    
-                    Speedpad_Timer_Numeric_Readout.enabled = false; //Formerly, Speedpad_Timer_Units_String = "";
-                    Speedpad_Timer_Background.enabled = false;
-                    Speedpad_Timer_Whiteout.enabled = false;
-                    Speedpad_Timer_Image.enabled = false;
+                    Speedpad_Timer_Units_String = Speedpad_Timer_Current_Speedpad_Time.ToString("0.00");
                 }
-                else
-                {
-                    if (TargetShip.BoostTimer < 0.01f)
-                    {
-                        Speedpad_Timer_Units_String = "";
-                    }
-                    Speedpad_Timer_Numeric_Readout.enabled = true;
-                    Speedpad_Timer_Background.enabled = true;
-                    Speedpad_Timer_Whiteout.enabled = true;
-                    Speedpad_Timer_Image.enabled = true;
-                }
+            }
+
+            if (Zero_Out_Speedpad_Timer == true && VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerVisibility == 1)
+            {
+                Speedpad_Timer_Numeric_Readout.enabled = false; //Formerly, Speedpad_Timer_Units_String = "";
+                Speedpad_Timer_Background.enabled = false;
+                Speedpad_Timer_Whiteout.enabled = false;
+                Speedpad_Timer_Image.enabled = false;
+            }
+            else
+            {
+                Speedpad_Timer_Background.enabled = true;
+                Speedpad_Timer_Whiteout.enabled = true;
+                Speedpad_Timer_Image.enabled = true;
+                Speedpad_Timer_Numeric_Readout.enabled = VanillaPlusHUDOptions.ModMenuOptions.SpeedPadTimerTextToggle;
+
                 Speedpad_Timer_Numeric_Readout.text = Speedpad_Timer_Units_String;
-            }            
+            }
+
+            Speedpad_Timer_Previous_Speedpad_Time = Speedpad_Timer_Current_Speedpad_Time;
         }
     }
 
@@ -2852,9 +2903,7 @@ namespace ClassLibrary1HUD
         public Text Current_Lap;
         public Text Max_Lap;
         public Image Lap_Counter_Background;
-        public Image Lap_Counter_Image;
-        public string Current_Lap_String;
-        public string Max_Lap_String;
+        public Image Lap_Counter_Image;        
 
         public override void Start()
         {
@@ -2865,26 +2914,25 @@ namespace ClassLibrary1HUD
             Max_Lap = CustomComponents.GetById<Text>("Max Lap");
             Lap_Counter_Image = CustomComponents.GetById<Image>("LapCounterField");
             Lap_Counter_Background = CustomComponents.GetById<Image>("LapCounterFieldBackground");
+
+            Current_Lap.text = TargetShip.CurrentLap.ToString("00");
+            Max_Lap.text = Race.MaxLaps.ToString("00");
+
+            NgRaceEvents.OnShipLapUpdate += SetLap;
         }
 
-        public override void Update()
+        public void SetLap(ShipController ship)
         {
-            base.Update();
-
-            Current_Lap_String = TargetShip.CurrentLap.ToString();
-            Max_Lap_String = Race.MaxLaps.ToString();
-
-            if (TargetShip.CurrentLap < 10)
+            if (ship == TargetShip)
             {
-                Current_Lap_String = "0" + Current_Lap_String;
+                Current_Lap.text = TargetShip.CurrentLap.ToString("00");
             }
-            if (Race.MaxLaps < 10)
-            {
-                Max_Lap_String = "0" + Max_Lap_String;
-            }
+        }
 
-            Current_Lap.text = Current_Lap_String;
-            Max_Lap.text = Max_Lap_String;
+        public override void OnDestroy()
+        {
+            NgRaceEvents.OnShipLapUpdate -= SetLap;            
+            base.OnDestroy();
         }
 
     }
@@ -2895,9 +2943,14 @@ namespace ClassLibrary1HUD
         public Text Current_Position;
         public Text Max_Position;
         public Image Position_Counter_Field_Image;
-        public Image Position_Counter_Field_Background;
-        public string Current_Position_String;
-        public string Max_Position_String;
+        public Image Position_Counter_Field_Background;        
+
+        public int Current_Place;
+        public int Previous_Place = -1;
+        public int Current_Active_Count;
+        public int Previous_Active_Count = -1;
+        public int Current_Lap;
+        public int Previous_Lap = -1;
 
         public static readonly Vector4 Platinum_Color = new Vector4((63f/255f), 1f, 1f, 1f);
         public static readonly Vector4 Gold_Color = new Vector4(1f, (205f/255f), (102f/255f), 1f);
@@ -2919,43 +2972,46 @@ namespace ClassLibrary1HUD
         {
             base.Update();
 
-            Current_Position_String = TargetShip.CurrentPlace.ToString();
-            Max_Position_String = Ships.Active.Count.ToString();
-            if (TargetShip.CurrentPlace < 10)
-            {
-                Current_Position_String = "0" + Current_Position_String;
-            }
-            if (Ships.Active.Count < 10)
-            {
-                Max_Position_String = "0" + Max_Position_String;
-            }
-            Current_Position.text = Current_Position_String;
-            Max_Position.text = Max_Position_String;
+            Current_Place = TargetShip.CurrentPlace;
+            Current_Active_Count = Ships.Active.Count;
+            Current_Lap = TargetShip.CurrentLap;
 
-            if (TargetShip.CurrentPlace == Ships.Active.Count && Ships.Active.Count != 1)
+            if (Current_Place == Previous_Place && Current_Active_Count == Previous_Active_Count && Current_Lap == Previous_Lap)
+            {
+                return;
+            }
+
+            Previous_Place = Current_Place;
+            Previous_Active_Count = Current_Active_Count;
+            Previous_Lap = Current_Lap;
+
+            Current_Position.text = Current_Place.ToString("00");
+            Max_Position.text = Current_Active_Count.ToString("00");
+
+            if (Current_Place == Current_Active_Count && Current_Active_Count != 1)
             {
                 Current_Position.color = Color.red;
             }
-            else if (TargetShip.CurrentPlace == 1 && (TargetShip.CurrentLap == Race.MaxLaps))
+            else if (Current_Place == 1 && Current_Lap == Race.MaxLaps)
             {
                 Current_Position.color = Platinum_Color;
             }
-            else if (TargetShip.CurrentPlace == 1 && (TargetShip.CurrentLap != Race.MaxLaps))
+            else if (Current_Place == 1)
             {
                 Current_Position.color = Gold_Color;
             }
-            else if (TargetShip.CurrentPlace == 2)
+            else if (Current_Place == 2)
             {
                 Current_Position.color = Silver_Color;
             }
-            else if (TargetShip.CurrentPlace == 3)
+            else if (Current_Place == 3)
             {
                 Current_Position.color = Bronze_Color;
             }
             else
             {
                 Current_Position.color = Color.white;
-            }
+            }            
         }
     }
 
@@ -2967,6 +3023,7 @@ namespace ClassLibrary1HUD
         public Text Best_Time_Readout;
         public string Best_Time_Units;
         public float Time_Milliseconds;
+        public float Previous_Time_Milliseconds = -1f;
 
         public override void Start()
         {
@@ -2975,7 +3032,7 @@ namespace ClassLibrary1HUD
             Best_Time_Field_Background = CustomComponents.GetById<Image>("BestTimeFieldBackground");
             Best_Time_Field_Image = CustomComponents.GetById<Image>("BestTimeField");
             Best_Time_Field_Name = CustomComponents.GetById<Text>("Best Time Field Name");
-            Best_Time_Readout = CustomComponents.GetById<Text>("Best Time");
+            Best_Time_Readout = CustomComponents.GetById<Text>("Best Time");            
         }
 
         public override void Update()
@@ -2985,11 +3042,21 @@ namespace ClassLibrary1HUD
             if (TargetShip.TargetTime != 0f)
             {
                 Time_Milliseconds = TargetShip.TargetTime;
-                Best_Time_Units = FloatToTime.Convert(Time_Milliseconds, "0:00.00");
             }
-            else if (TargetShip.TargetTime == 0f && TargetShip.BestLapTime != 0f)
+            else
             {
                 Time_Milliseconds = TargetShip.BestLapTime;
+            }
+
+            if (Time_Milliseconds == Previous_Time_Milliseconds)
+            {
+                return;
+            }
+
+            Previous_Time_Milliseconds = Time_Milliseconds;
+
+            if (Time_Milliseconds != 0f)
+            {
                 Best_Time_Units = FloatToTime.Convert(Time_Milliseconds, "0:00.00");
             }
             else
@@ -3020,6 +3087,18 @@ namespace ClassLibrary1HUD
         public Image[] Lap_Images;
         public static readonly Vector4 Lap_Diamond_Green = new Vector4(181f/255f, 1f, 29f/255f, 1f);
         public static readonly Vector4 Lap_Diamond_Red = new Vector4(1f, 28f/255f, 36f/255f, 1f);
+
+        public int Current_Lap;
+        public int Previous_Lap = -1;
+        public bool Current_Lap_Is_Perfect;
+        public bool Previous_Lap_Is_Perfect;        
+        public int Current_Lap_Centiseconds;
+        public int Previous_Lap_Centiseconds = -1;
+        public float Total_Time_Value;
+        public int Current_Total_Centiseconds;
+        public int Previous_Total_Centiseconds = -1;
+        public int Lap_Indexer;
+        public bool New_Lap;
 
         public override void Start()
         {
@@ -3055,67 +3134,77 @@ namespace ClassLibrary1HUD
                 Lap_Images[i].enabled = true;
                 Lap_Texts[i].enabled = true;
             }
-
-        }
+            
+        }                
 
         public override void Update()
         {
             base.Update();
 
-            if (TargetShip.CurrentLap > 5 && (TargetShip.CurrentLap % 5) == 1)
+            Current_Lap = TargetShip.CurrentLap;
+
+            New_Lap = Current_Lap != Previous_Lap;
+
+            if (New_Lap)
             {
-                Lap_Images[1].color = Color.white;
-                Lap_Images[2].color = Color.white;
-                Lap_Images[3].color = Color.white;
-                Lap_Images[4].color = Color.white;
-                Lap_Texts[1].text = "–:––.––";
-                Lap_Texts[2].text = "–:––.––";
-                Lap_Texts[3].text = "–:––.––";
-                Lap_Texts[4].text = "–:––.––";
+                Previous_Lap = Current_Lap;
+                Previous_Lap_Centiseconds = -1;
+
+                if (Current_Lap > 5 && Current_Lap % 5 == 1)
+                {
+                    for (int i = 1; i <= 4; i++)
+                    {
+                        Lap_Images[i].color = Color.white;
+                        Lap_Texts[i].text = "–:––.––";
+                    }
+                }
+
+                if ((Current_Lap % 5 == 1 || Current_Lap == 0) && (Race.MaxLaps - Current_Lap) <= 4)
+                {
+                    for (int i = (Current_Lap % 5) + (Race.MaxLaps - Current_Lap); i <= 4; i++)
+                    {
+                        Lap_Images[i].enabled = false;
+                        Lap_Texts[i].enabled = false;
+                    }
+                }
             }
 
-            if (((TargetShip.CurrentLap % 5 == 1) || (TargetShip.CurrentLap == 0)) && ((Race.MaxLaps - TargetShip.CurrentLap) <= 4))
+            if (Current_Lap == 0)
             {
-                for (int i = ((TargetShip.CurrentLap % 5) + (Race.MaxLaps - TargetShip.CurrentLap)); i <= 4; i++)
+                return;
+            }
+
+            Lap_Indexer = (Current_Lap - 1) % 5;
+
+            Current_Lap_Centiseconds = (int)(TargetShip.CurrentLapTime * 100f);
+            if (Current_Lap_Centiseconds != Previous_Lap_Centiseconds)
+            {
+                Previous_Lap_Centiseconds = Current_Lap_Centiseconds;
+                Lap_Texts[Lap_Indexer].text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00");
+            }
+
+            Current_Lap_Is_Perfect = TargetShip.IsPerfectLap;
+            if (New_Lap || Current_Lap_Is_Perfect != Previous_Lap_Is_Perfect)
+            {
+                Previous_Lap_Is_Perfect = Current_Lap_Is_Perfect;
+
+                if (Current_Lap_Is_Perfect)
                 {
-                    Lap_Images[i].enabled = false;
-                    Lap_Texts[i].enabled = false;
+                    Lap_Images[Lap_Indexer].color = Lap_Diamond_Green;
+                }
+                else
+                {
+                    Lap_Images[Lap_Indexer].color = Lap_Diamond_Red;
                 }
             }
 
-            if (TargetShip.CurrentLap % 5 == 0 && TargetShip.CurrentLap != 0)
-            {
-                Lap_Texts[4].text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00");
-            }
-            else if (TargetShip.CurrentLap % 5 > 0)
-            {
-                Lap_Texts[((TargetShip.CurrentLap % 5) - 1)].text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00");
-            }
+            Total_Time_Value = TargetShip.TotalRaceTime;
+            Current_Total_Centiseconds = (int)(Total_Time_Value * 100f);
 
-            Total_Time.text = FloatToTime.Convert(TargetShip.TotalRaceTime, "0:00.00");
-
-            if (TargetShip.IsPerfectLap)
+            if (Current_Total_Centiseconds != Previous_Total_Centiseconds)
             {
-                if (TargetShip.CurrentLap % 5 == 0)
-                {
-                    Lap_Images[4].color = Lap_Diamond_Green;
-                }
-                else if (TargetShip.CurrentLap % 5 > 0)
-                {
-                    Lap_Images[((TargetShip.CurrentLap % 5) - 1)].color = Lap_Diamond_Green;
-                }
-                
-            }
-            else
-            {
-                if (TargetShip.CurrentLap % 5 == 0 && TargetShip.CurrentLap != 0)
-                {
-                    Lap_Images[4].color = Lap_Diamond_Red;
-                }
-                else if (TargetShip.CurrentLap % 5 > 0)
-                {
-                    Lap_Images[((TargetShip.CurrentLap % 5) - 1)].color = Lap_Diamond_Red;
-                }
+                Previous_Total_Centiseconds = Current_Total_Centiseconds;
+                Total_Time.text = FloatToTime.Convert(Total_Time_Value, "0:00.00");
             }
         }
     }
@@ -3124,10 +3213,15 @@ namespace ClassLibrary1HUD
     {
         public Image Thrust_Bar_Image;
         public Image Thrust_Bar_Background_Image;
-        public Text Engine_Force_Text;
-        public float Engine_Force_Units;
-        public string Engine_Force_Units_String;
-
+        public Text Engine_Force_Text;        
+        public float Hud_Speed;
+        public int Speedometer_Display_Style;
+        public float Speedometer_Value;
+        public float Speedometer_Scale;
+        public int Current_Readout_Key;
+        public int Previous_Readout_Key = int.MinValue;
+        public int Previous_Readout_Style = -1;
+        public ShipSim Cached_ShipSim;
 
         public override void Start()
         {
@@ -3136,29 +3230,55 @@ namespace ClassLibrary1HUD
             Thrust_Bar_Image = CustomComponents.GetById<Image>("ThrustBar");
             Thrust_Bar_Background_Image = CustomComponents.GetById<Image>("ThrustBarBackground");
             Engine_Force_Text = CustomComponents.GetById<Text>("Engine Force Numeric Readout");
+
+            Cached_ShipSim = TargetShip.PysSim;
         }
 
         public override void Update()
         {
             base.Update();
-            Thrust_Bar_Image.fillAmount = TargetShip.HudSpeed * (1f / 1400f);
-            //Engine_Force_Text.text = TargetShip.HudSpeed.ToString();
-            Engine_Force_Units = TargetShip.PysSim.engineThrust;
-            switch (VanillaPlusHUDOptions.ModMenuOptions.SpeedometerReadoutStyle)
+
+            Hud_Speed = TargetShip.HudSpeed;
+            Speedometer_Display_Style = VanillaPlusHUDOptions.ModMenuOptions.SpeedometerReadoutStyle;
+
+            Thrust_Bar_Image.fillAmount = Hud_Speed * (1f / 1400f);
+            //Engine_Force_Text.text = TargetShip.HudSpeed.ToString();            
+            switch (Speedometer_Display_Style)
             {
                 case 0:
-                    Engine_Force_Units_String = string.Format("{0:N1}", Engine_Force_Units);
+                    Speedometer_Value = Cached_ShipSim.engineThrust;
+                    Speedometer_Scale = 10f;
                     break;
                 case 1:
-                    Engine_Force_Units_String = string.Format("{0:N0}", TargetShip.HudSpeed);
+                    Speedometer_Value = Hud_Speed;
+                    Speedometer_Scale = 1f;
                     break;
                 case 2:
-                    Engine_Force_Units_String = string.Format("{0:N1}", TargetShip.RBody.velocity.magnitude);
+                    Speedometer_Value = TargetShip.RBody.velocity.magnitude;
+                    Speedometer_Scale = 10f;
                     break;
             }
 
-            //Engine_Force_Text.text = TargetShip.NetworkedVelocity.magnitude.ToString();
-            Engine_Force_Text.text = Engine_Force_Units_String;
+            Current_Readout_Key = Mathf.RoundToInt(Speedometer_Value * Speedometer_Scale);
+
+            if (Current_Readout_Key == Previous_Readout_Key && Speedometer_Display_Style == Previous_Readout_Style)
+            {
+                return;
+            }
+
+            Previous_Readout_Key = Current_Readout_Key;
+            Previous_Readout_Style = Speedometer_Display_Style;
+
+            if (Speedometer_Display_Style == 1)
+            {
+                Engine_Force_Text.text = Speedometer_Value.ToString("0");
+            }
+            else
+            {
+                Engine_Force_Text.text = Speedometer_Value.ToString("0.0");
+            }
+
+            //Engine_Force_Text.text = TargetShip.NetworkedVelocity.magnitude.ToString();            
         }
     }
 
@@ -3172,101 +3292,94 @@ namespace ClassLibrary1HUD
 
         public static readonly Vector2 Weapon_Display_Adjust_Vector = new Vector2(0, -178);
 
-        public const float Weapon_Effectiveness_Compensation_Value = (14f / 375f);
-        public int Weapon_Effectiveness_Compensation_Multiplier;
+        public const float Weapon_Effectiveness_Compensation_Value = 0.032f; //Formerly, (14f / 375f)        
         public int Default_Cannon_Firerate;
         public float Default_Weapon_Effectiveness;
         public float Weapon_Effectiveness_Override;
+
+        public bool Cannon_Is_Blacklisted;
+        public int Current_Cannon_Firerate_Override;
+        public int Previous_Cannon_Firerate_Override = -1;
+        public int Cannon_Type_Index;
+
+        public bool Ships_Can_Absorb_Pickups;
+        public float Current_Absorb_Amount;
+        public float Previous_Absorb_Amount;
+
+        public PickupBase Current_Pickup;        
+
+        public void Apply_Cannon_Override(int option)
+        {            
+            if (option == 3)
+            {
+                Cannon_Type_Index = Default_Cannon_Firerate;
+            }
+            else
+            {
+                Cannon_Type_Index = option;
+            }
+
+            if (option == 3 || option == Default_Cannon_Firerate)
+            {
+                TargetShip.Settings.DAMAGE_PWR = Default_Weapon_Effectiveness;
+                TargetShip.Settings.CANNON_TYPE = (BallisticUnityTools.Ships.ECannonStat)Cannon_Type_Index;
+            }
+            else if (Default_Weapon_Effectiveness >= 0f)
+            {
+                if (Cannon_Is_Blacklisted)
+                {
+                    Weapon_Effectiveness_Override = Default_Weapon_Effectiveness;
+                }
+                else
+                {
+                    Weapon_Effectiveness_Override = Default_Weapon_Effectiveness - (Weapon_Effectiveness_Compensation_Value * (Default_Cannon_Firerate - option));
+                }
+
+                TargetShip.Settings.DAMAGE_PWR = Weapon_Effectiveness_Override;
+                TargetShip.Settings.CANNON_TYPE = (BallisticUnityTools.Ships.ECannonStat)Cannon_Type_Index;
+            }
+        }
 
         public override void Update()
         {
             base.Update();
 
-            Weapon_Text.text = TargetShip.PickupDisplayText;
+            Weapon_Text.text = TargetShip.PickupDisplayText;            
 
-            Weapon_Effectiveness_Compensation_Multiplier = (Default_Cannon_Firerate - VanillaPlusHUDOptions.ModMenuOptions.CannonFirerateOverride);
-
-            if (NgData.Race.WeaponBlackList.GetValue(RaceManager.Instance.RaceContext).WeaponNames.Contains("cannon"))
+            Current_Cannon_Firerate_Override = VanillaPlusHUDOptions.ModMenuOptions.CannonFirerateOverride;
+            if (Current_Cannon_Firerate_Override != Previous_Cannon_Firerate_Override)
             {
-                Weapon_Effectiveness_Override = Default_Weapon_Effectiveness;
-            }
-            else
-            {
-                Weapon_Effectiveness_Override = Default_Weapon_Effectiveness - (Weapon_Effectiveness_Compensation_Value * Weapon_Effectiveness_Compensation_Multiplier);
-            }
+                Previous_Cannon_Firerate_Override = Current_Cannon_Firerate_Override;
+                Apply_Cannon_Override(Current_Cannon_Firerate_Override);
+            }            
 
-            switch (VanillaPlusHUDOptions.ModMenuOptions.CannonFirerateOverride)
-            {
-                case 0:
-                    if (Default_Cannon_Firerate == 0)
-                    {
-                        TargetShip.Settings.DAMAGE_PWR = Default_Weapon_Effectiveness;
-                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Light;
-                        break;
-                    }
-                    else
-                    {
-                        if (Default_Weapon_Effectiveness < 0f)
-                        {
-                            break;
-                        }
-                        TargetShip.Settings.DAMAGE_PWR = Weapon_Effectiveness_Override;
-                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Light;
-                        break;
-                    }
-                case 1:
-                    if (Default_Cannon_Firerate == 1)
-                    {
-                        TargetShip.Settings.DAMAGE_PWR = Default_Weapon_Effectiveness;
-                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Medium;
-                        break;
-                    }
-                    else
-                    {
-                        if (Default_Weapon_Effectiveness < 0f)
-                        {
-                            break;
-                        }
-                        TargetShip.Settings.DAMAGE_PWR = Weapon_Effectiveness_Override;
-                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Medium;
-                        break;
-                    }
-                case 2:
-                    if (Default_Cannon_Firerate == 2)
-                    {
-                        TargetShip.Settings.DAMAGE_PWR = Default_Weapon_Effectiveness;
-                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Heavy;
-                        break;
-                    }
-                    else
-                    {
-                        if (Default_Weapon_Effectiveness < 0f)
-                        {
-                            break;
-                        }
-                        TargetShip.Settings.DAMAGE_PWR = Weapon_Effectiveness_Override;
-                        TargetShip.Settings.CANNON_TYPE = BallisticUnityTools.Ships.ECannonStat.Heavy;
-                        break;
-                    }
-                case 3:
-                    TargetShip.Settings.DAMAGE_PWR = Default_Weapon_Effectiveness;
-                    TargetShip.Settings.CANNON_TYPE = (BallisticUnityTools.Ships.ECannonStat)Default_Cannon_Firerate;
-                    break;
-            }
-
-            if (TargetShip.CurrentPickup == null)
+            Current_Pickup = TargetShip.CurrentPickup;
+            if (Current_Pickup == null)
             {
                 return;
             }
 
-            if (RaceManager.CurrentGamemode.Configuration.ShipsCanAbsorbPickups == true && TargetShip.CurrentPickup.GetCurrentAbsorbAmount() != 0)
+            Current_Absorb_Amount = 0f;
+            if (Ships_Can_Absorb_Pickups)
             {
-                Absorb_Text.text = "+" + TargetShip.CurrentPickup.GetCurrentAbsorbAmount().ToString("0.##");
+                Current_Absorb_Amount = Current_Pickup.GetCurrentAbsorbAmount();
+            }
+
+            if (Current_Absorb_Amount == Previous_Absorb_Amount)
+            {
+                return;
+            }
+
+            Previous_Absorb_Amount = Current_Absorb_Amount;
+
+            if (Current_Absorb_Amount != 0f)
+            {
+                Absorb_Text.text = Current_Absorb_Amount.ToString("+0.##");
             }
             else
             {
                 Absorb_Text.text = "";
-            }                
+            }
         }
 
         public override void Start()
@@ -3307,12 +3420,14 @@ namespace ClassLibrary1HUD
                 Absorb_Text.rectTransform.anchoredPosition = Absorb_Text.rectTransform.anchoredPosition + Weapon_Display_Adjust_Vector;
             }
 
+            Cannon_Is_Blacklisted = NgData.Race.WeaponBlackList.GetValue(RaceManager.Instance.RaceContext).WeaponNames.Contains("cannon");
+            Ships_Can_Absorb_Pickups = RaceManager.CurrentGamemode.Configuration.ShipsCanAbsorbPickups;
         }
 
         public void SetPickup(PickupBase pickup, ShipController ship)
 
         {
-            if (ship.IsPlayer)
+            if (ship == TargetShip)
             {
                 Weapon_Icon.enabled = true;
                 Weapon_Background.enabled = true;
@@ -3323,10 +3438,11 @@ namespace ClassLibrary1HUD
 
         public void DropPickup(PickupBase pickup, ShipController ship)
         {
-            if (ship.IsPlayer)
+            if (ship == TargetShip)
             {
                 Weapon_Icon.enabled = false;
                 Weapon_Background.enabled = false;
+                Previous_Absorb_Amount = 0f;
                 Absorb_Text.text = "";
             }
         }
@@ -3338,21 +3454,27 @@ namespace ClassLibrary1HUD
         }
 
     }
+
     public class Energy_Bar : ScriptableHud
     {
+        public float Current_Shield_Integrity;
+        public float Previous_Shield_Integrity = -1f;
         public float Shield_Display_Value;
-        public float Shield_Stat;
+        public float Previous_Shield_Display_Value;
+        public int Current_Readout_Precision;
+        public int Previous_Readout_Precision = -1;
+        public float Shield_Effectiveness;
+        public float Shield_Stat;        
 
         public Text Shield_Integrity_Numeric_Readout;
         public Image Energy_Bar_Image;
         public Image Energy_Bar_Background_Image;
 
         public bool Energy_Low_Coroutine_Running;
-        public bool Energy_Critical_Coroutine_Running;
-
-        public List<float> Enemy_Weapon_Effectiveness_Values = new List<float>();
-        public float Lowest_Enemy_Weapon_Effectiveness = 1f;
-        public float Highest_Enemy_Weapon_Effectiveness = 1f;
+        public bool Energy_Critical_Coroutine_Running;        
+        
+        public float Lowest_Enemy_Weapon_Effectiveness = float.MaxValue;
+        public float Highest_Enemy_Weapon_Effectiveness = 0f;
 
         public float Plasma_WCDR = 71.15920f;
         public float Plasma_BCDR = 60.27840f;
@@ -3360,67 +3482,67 @@ namespace ClassLibrary1HUD
         public float Missile_WCDR = 15.42840f;
         public float Tremor_WCDR = 8.13248f;
 
+        public static readonly string[] Readout_Formats = { null, "0.####", "0.###", "0.##", "0.#", "0" };
+
         //public Vector4 Color_Breakpoint_0 = new Vector4(255, 28, 36, 255); //Red
         //public Vector4 Color_Breakpoint_1 = new Vector4(255, 127, 39, 255); //Orange
         //public Vector4 Color_Breakpoint_2 = new Vector4(255, 242, 0, 255); //Yellow
         //public Vector4 Color_Breakpoint_3 = new Vector4(87, 255, 23, 255); //Green
         //public Vector4 Color_Breakpoint_4 = new Vector4(0, 162, 232, 255); //Blue
         //public Vector4 Color_Breakpoint_5 = new Vector4(255, 255, 255, 255); //White
-        public static readonly Vector4 Color_Breakpoint_0 = new Vector4(1f, (29f / 256f), (37f / 256f), 1f); //Red
-        public static readonly Vector4 Color_Breakpoint_1 = new Vector4(1f, (128f / 256f), (40f / 256f), 1f); //Orange
-        public static readonly Vector4 Color_Breakpoint_2 = new Vector4(1f, (243f / 256f), 0f, 1f); //Yellow
-        public static readonly Vector4 Color_Breakpoint_3 = new Vector4((88f / 256f), 1f, (24f / 256f), 1f); //Green
-        public static readonly Vector4 Color_Breakpoint_4 = new Vector4(0f, (163f / 256f), (233f / 256f), 1f); //Blue
+        public static readonly Vector4 Color_Breakpoint_0 = new Vector4(1f, (28f / 255f), (36f / 255f), 1f); //Red
+        public static readonly Vector4 Color_Breakpoint_1 = new Vector4(1f, (127f / 255f), (39f / 255f), 1f); //Orange
+        public static readonly Vector4 Color_Breakpoint_2 = new Vector4(1f, (242f / 255f), 0f, 1f); //Yellow
+        public static readonly Vector4 Color_Breakpoint_3 = new Vector4((87f / 255f), 1f, (23f / 255f), 1f); //Green
+        public static readonly Vector4 Color_Breakpoint_4 = new Vector4(0f, (162f / 255f), (232f / 255f), 1f); //Blue
         public static readonly Vector4 Color_Breakpoint_5 = new Vector4(1f, 1f, 1f, 1f); //White
         public Vector4 Energy_Bar_Background_Original_Color;
 
         public static readonly Vector4 Clear_Red = new Vector4(1f, 0f, 0f, 0f); //Don't have sprites you want to change the color of via script pre-colored and pre-alpha'd outside of Unity because modifying them in script modifies the color channels relative to the colors in the file provided as a sprite rather than absolute colors
         //public static readonly Vector4 Dark_Red = new Vector4(1f, 0f, 0f, 0.8f);
 
-        IEnumerator EnergyLowColorPulse() //Might have to set the color to the lerp target after Time.time == LerpInTime and after Time.time == EndTime
+        IEnumerator Energy_Color_Pulse(float duration, bool critical)
         {
-            Energy_Low_Coroutine_Running = true;
-            float Energy_Low_Color_Pulse_Start_Time = Time.time;
-            float Energy_Low_Color_Pulse_End_Time = Energy_Low_Color_Pulse_Start_Time + 0.4f;
-
-            float Energy_Low_Color_Pulse_Lerp_In_Time = Energy_Low_Color_Pulse_Start_Time + 0.2f;
-
-            while (Time.time < Energy_Low_Color_Pulse_End_Time)
-            {
-                if (Energy_Low_Color_Pulse_Start_Time < Time.time && Time.time <= Energy_Low_Color_Pulse_Lerp_In_Time)
-                {
-                    Energy_Bar_Background_Image.color = Color.Lerp(Clear_Red, Color.red, (Time.time - Energy_Low_Color_Pulse_Start_Time) / (Energy_Low_Color_Pulse_Lerp_In_Time - Energy_Low_Color_Pulse_Start_Time));
-                }
-                if (Energy_Low_Color_Pulse_Lerp_In_Time < Time.time && Time.time <= Energy_Low_Color_Pulse_End_Time)
-                {
-                    Energy_Bar_Background_Image.color = Color.Lerp(Color.red, Clear_Red, (Time.time - Energy_Low_Color_Pulse_Start_Time) / (Energy_Low_Color_Pulse_End_Time - Energy_Low_Color_Pulse_Start_Time));
-                }
-                yield return null;
+            if (critical) 
+            { 
+                Energy_Critical_Coroutine_Running = true; 
             }
-            Energy_Low_Coroutine_Running = false;
-        }
-
-        IEnumerator EnergyCriticalColorPulse() //Might have to set the color to the lerp target after Time.time == LerpInTime and after Time.time == EndTime
-        {
-            Energy_Critical_Coroutine_Running = true;
-            float Energy_Critical_Color_Pulse_Start_Time = Time.time;
-            float Energy_Critical_Color_Pulse_End_Time = Energy_Critical_Color_Pulse_Start_Time + 0.2f;
-
-            float Energy_Critical_Color_Pulse_Lerp_In_Time = Energy_Critical_Color_Pulse_Start_Time + 0.1f;
-
-            while (Time.time < Energy_Critical_Color_Pulse_End_Time)
-            {
-                if (Energy_Critical_Color_Pulse_Start_Time < Time.time && Time.time <= Energy_Critical_Color_Pulse_Lerp_In_Time)
-                {
-                    Energy_Bar_Background_Image.color = Color.Lerp(Clear_Red, Color.red, (Time.time - Energy_Critical_Color_Pulse_Start_Time) / (Energy_Critical_Color_Pulse_Lerp_In_Time - Energy_Critical_Color_Pulse_Start_Time));
-                }
-                if (Energy_Critical_Color_Pulse_Lerp_In_Time < Time.time && Time.time <= Energy_Critical_Color_Pulse_End_Time)
-                {
-                    Energy_Bar_Background_Image.color = Color.Lerp(Color.red, Clear_Red, (Time.time - Energy_Critical_Color_Pulse_Start_Time) / (Energy_Critical_Color_Pulse_End_Time - Energy_Critical_Color_Pulse_Start_Time));
-                }
-                yield return null;
+            else 
+            { 
+                Energy_Low_Coroutine_Running = true; 
             }
-            Energy_Critical_Coroutine_Running = false;
+
+            float half = duration * 0.5f;
+            float elapsed = 0f;
+
+            while (true)
+            {
+                yield return null;
+                elapsed += Time.deltaTime;
+
+                if (elapsed >= duration)
+                {
+                    break;
+                }
+
+                if (elapsed <= half)
+                {
+                    Energy_Bar_Background_Image.color = Color.Lerp(Clear_Red, Color.red, elapsed / half);
+                }
+                else
+                {
+                    Energy_Bar_Background_Image.color = Color.Lerp(Color.red, Clear_Red, elapsed / duration);
+                }
+            }
+
+            if (critical) 
+            { 
+                Energy_Critical_Coroutine_Running = false; 
+            }
+            else 
+            { 
+                Energy_Low_Coroutine_Running = false; 
+            }
         }
 
         public void CalculateDamageBreakpoints()
@@ -3429,17 +3551,14 @@ namespace ClassLibrary1HUD
             {
                 if (shipcon != TargetShip && shipcon.Settings.DAMAGE_PWR > 0f)
                 {
-                    Enemy_Weapon_Effectiveness_Values.Add(shipcon.Settings.DAMAGE_PWR);
+                    float power = shipcon.Settings.DAMAGE_PWR;
+
+                    if (power < Lowest_Enemy_Weapon_Effectiveness) { Lowest_Enemy_Weapon_Effectiveness = power; }
+                    if (power > Highest_Enemy_Weapon_Effectiveness) { Highest_Enemy_Weapon_Effectiveness = power; }
                 }
             }
 
-            if (Enemy_Weapon_Effectiveness_Values.Count > 0)
-            {
-                Lowest_Enemy_Weapon_Effectiveness = Enemy_Weapon_Effectiveness_Values.Min();
-                Highest_Enemy_Weapon_Effectiveness = Enemy_Weapon_Effectiveness_Values.Max();
-            }
-
-            if (Enemy_Weapon_Effectiveness_Values.Count > 1 && Lowest_Enemy_Weapon_Effectiveness != Highest_Enemy_Weapon_Effectiveness)
+            if (Highest_Enemy_Weapon_Effectiveness >= Lowest_Enemy_Weapon_Effectiveness)
             {
                 Plasma_WCDR = Highest_Enemy_Weapon_Effectiveness * TargetShip.Settings.DAMAGE_MULT * 70f;
                 Plasma_BCDR = Lowest_Enemy_Weapon_Effectiveness * TargetShip.Settings.DAMAGE_MULT * 70f;
@@ -3447,6 +3566,8 @@ namespace ClassLibrary1HUD
                 Missile_WCDR = Highest_Enemy_Weapon_Effectiveness * TargetShip.Settings.DAMAGE_MULT * 15f;
                 Tremor_WCDR = Highest_Enemy_Weapon_Effectiveness * TargetShip.Settings.DAMAGE_MULT * 8f;
             }
+
+            Previous_Shield_Integrity = -1f;
         }
 
         public override void OnDestroy()
@@ -3460,7 +3581,8 @@ namespace ClassLibrary1HUD
         {
             base.Start();
 
-            Shield_Stat = TargetShip.Settings.DAMAGE_MULT + 0.07f;
+            Shield_Effectiveness = TargetShip.Settings.DAMAGE_MULT;
+            Shield_Stat = Shield_Effectiveness + 0.07f;            
 
             if (Shield_Stat > 1.0f)
             {
@@ -3484,67 +3606,57 @@ namespace ClassLibrary1HUD
         {
             base.Update();
 
+            Current_Shield_Integrity = TargetShip.ShieldIntegrity;            
+
+            if (Current_Shield_Integrity != Previous_Shield_Integrity)
+            {
+                Previous_Shield_Integrity = Current_Shield_Integrity;
+                Energy_Bar_Image.fillAmount = Current_Shield_Integrity * 0.01f;
+
+                if (Current_Shield_Integrity > Plasma_WCDR)
+                    Energy_Bar_Image.color = Color_Breakpoint_5;
+                else if (Current_Shield_Integrity > Plasma_BCDR)
+                    Energy_Bar_Image.color = Color_Breakpoint_4;
+                else if (Current_Shield_Integrity > Rockets_WCDR)
+                    Energy_Bar_Image.color = Color_Breakpoint_3;
+                else if (Current_Shield_Integrity > Missile_WCDR)
+                    Energy_Bar_Image.color = Color_Breakpoint_2;
+                else if (Current_Shield_Integrity > Tremor_WCDR)
+                    Energy_Bar_Image.color = Color_Breakpoint_1;
+                else if (Current_Shield_Integrity >= 0.00001f)
+                    Energy_Bar_Image.color = Color_Breakpoint_0;
+            }
+
             if (Hud.ShieldDisplayMode == EShieldDisplayMode.Percentage)
             {
-                Shield_Display_Value = TargetShip.ShieldIntegrity;
+                Shield_Display_Value = Current_Shield_Integrity;
+            }
+            else if (VanillaPlusHUDOptions.ModMenuOptions.AbsoluteShieldValueStyle == 1)
+            {
+                Shield_Display_Value = Current_Shield_Integrity / Shield_Effectiveness;
             }
             else
             {
-                if (VanillaPlusHUDOptions.ModMenuOptions.AbsoluteShieldValueStyle == 1)
-                {
-                    Shield_Display_Value = TargetShip.ShieldIntegrity / TargetShip.Settings.DAMAGE_MULT; //Modded Absolute Shield Value Math
-                }
-                else
-                {
-                    Shield_Display_Value = TargetShip.ShieldIntegrity * (1f / Shield_Stat); //Internal Absolute Shield Value Math
-                }
+                Shield_Display_Value = Current_Shield_Integrity * (1f / Shield_Stat);
             }
 
-            Energy_Bar_Image.fillAmount = TargetShip.ShieldIntegrity * 0.01f;
-            switch (VanillaPlusHUDOptions.ModMenuOptions.EnergyBarReadoutDecimalPrecision)
+            Current_Readout_Precision = VanillaPlusHUDOptions.ModMenuOptions.EnergyBarReadoutDecimalPrecision;
+            if (Shield_Display_Value != Previous_Shield_Display_Value || Current_Readout_Precision != Previous_Readout_Precision)
             {
-                case 0:
-                    Shield_Integrity_Numeric_Readout.text = Shield_Display_Value.ToString(); //5 decimal places
-                    break;
-                case 1:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N4}", Shield_Display_Value); //4 decimal places
-                    break;
-                case 2:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N3}", Shield_Display_Value); //3 decimal places
-                    break;
-                case 3:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N2}", Shield_Display_Value); //2 decimal places
-                    break;
-                case 4:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N1}", Shield_Display_Value); //1 decimal places
-                    break;
-                case 5:
-                    Shield_Integrity_Numeric_Readout.text = string.Format("{0:N0}", Mathf.Ceil(Shield_Display_Value)); //No decimal places
-                    break;
+                Previous_Shield_Display_Value = Shield_Display_Value;
+                Previous_Readout_Precision = Current_Readout_Precision;
+                Shield_Integrity_Numeric_Readout.text = Shield_Display_Value.ToString(Readout_Formats[Current_Readout_Precision]);
             }
 
-            if (TargetShip.ShieldIntegrity > Plasma_WCDR)
-                Energy_Bar_Image.color = Color_Breakpoint_5; //White
-            else if (TargetShip.ShieldIntegrity > Plasma_BCDR)
-                Energy_Bar_Image.color = Color_Breakpoint_4; //Blue
-            else if (TargetShip.ShieldIntegrity > Rockets_WCDR)
-                Energy_Bar_Image.color = Color_Breakpoint_3; //Green
-            else if (TargetShip.ShieldIntegrity > Missile_WCDR)
-                Energy_Bar_Image.color = Color_Breakpoint_2; //Yellow
-            else if (TargetShip.ShieldIntegrity > Tremor_WCDR)
-                Energy_Bar_Image.color = Color_Breakpoint_1; //Orange
-            else if (TargetShip.ShieldIntegrity >= 0.00001f)
-                Energy_Bar_Image.color = Color_Breakpoint_0; //Red
-
-            if (10f < TargetShip.ShieldIntegrity && TargetShip.ShieldIntegrity <= 25f && !Energy_Low_Coroutine_Running)
+            if (Current_Shield_Integrity > 10f && Current_Shield_Integrity <= 25f && !Energy_Low_Coroutine_Running)
             {
-                StartCoroutine(EnergyLowColorPulse());
+                StartCoroutine(Energy_Color_Pulse(0.4f, false));
             }
-            else if (TargetShip.ShieldIntegrity <= 10f && !Energy_Critical_Coroutine_Running)
+            else if (Current_Shield_Integrity <= 10f && !Energy_Critical_Coroutine_Running)
             {
-                StartCoroutine(EnergyCriticalColorPulse());
+                StartCoroutine(Energy_Color_Pulse(0.2f, true));
             }
-            else if (TargetShip.ShieldIntegrity > 25f)
+            else if (Current_Shield_Integrity > 25f)
             {
                 Energy_Bar_Background_Image.color = Energy_Bar_Background_Original_Color;
             }
@@ -3559,21 +3671,25 @@ namespace ClassLibrary1HUD
         public static readonly Vector4 Dark_Blue = new Vector4(0f, (96f / 255f), 1f, 1f);
         public static readonly Vector4 Light_Blue = new Vector4((154f / 255f), (217f / 255f), 1f, 1f);
         public static readonly WaitForEndOfFrame Cached_WaitForEndOfFrame = new WaitForEndOfFrame();
+        
+        public const float Speed_Pad_Pulse_Duration = 0.5f;
+        public ShipSim Cached_ShipSim;
 
         IEnumerator SpeedPadColorPulse_Coroutine()
-        {            
-            float Speed_Pad_Color_Pulse_Start_Time = Time.time;
-            float Speed_Pad_Color_Pulse_End_Time = Speed_Pad_Color_Pulse_Start_Time + 0.5f;
+        {
+            float elapsed = 0f;            
 
-            //float Speed_Pad_Color_Pulse_Lerp_In_Time = Speed_Pad_Color_Pulse_Start_Time + 0.25f;
-
-            while (Time.time < Speed_Pad_Color_Pulse_End_Time)
+            while (true)
             {
-                if (Speed_Pad_Color_Pulse_Start_Time < Time.time && Time.time <= Speed_Pad_Color_Pulse_End_Time)
-                {
-                    Throttle_Bar_Image.color = Color.Lerp(Dark_Blue, Light_Blue, (Time.time - Speed_Pad_Color_Pulse_Start_Time) / (Speed_Pad_Color_Pulse_End_Time - Speed_Pad_Color_Pulse_Start_Time));
-                }
                 yield return Cached_WaitForEndOfFrame;
+                elapsed += Time.deltaTime;
+
+                if (elapsed >= Speed_Pad_Pulse_Duration)
+                {
+                    break;
+                }
+
+                Throttle_Bar_Image.color = Color.Lerp(Dark_Blue, Light_Blue, elapsed / Speed_Pad_Pulse_Duration);
             }
 
             Throttle_Bar_Image.color = Throttle_Bar_Image_Original_Color;
@@ -3589,19 +3705,21 @@ namespace ClassLibrary1HUD
             Throttle_Bar_Background_Image = CustomComponents.GetById<Image>("ThrottleBarBackground");
             Throttle_Bar_Image = CustomComponents.GetById<Image>("ThrottleBar");
 
-            Throttle_Bar_Image_Original_Color = Throttle_Bar_Image.color;            
+            Throttle_Bar_Image_Original_Color = Throttle_Bar_Image.color;
+
+            Cached_ShipSim = TargetShip.PysSim;
         }
 
         public override void Update()
         {
-            base.Update();
+            base.Update();            
 
-            Throttle_Bar_Image.fillAmount = Mathf.Min(TargetShip.PysSim.enginePower, TargetShip.PysSim.engineAccel);
+            Throttle_Bar_Image.fillAmount = Mathf.Min(Cached_ShipSim.enginePower, Cached_ShipSim.engineAccel);
         }
 
         public void SpeedPadColorPulse(ShipController ship, BallisticUnityTools.TrackTools.TrackPad pad) //Works with 3D ("Modern") pads
         {
-            if (ship.IsPlayer)
+            if (ship == TargetShip)
             {
                 StartCoroutine(SpeedPadColorPulse_Coroutine());
             }
@@ -3609,7 +3727,7 @@ namespace ClassLibrary1HUD
 
         public void SpeedPadColorPulse_Tile(ShipController ship, NgTrackData.Tile tile) //Works with "Classic" speedpads
         {
-            if (ship.IsPlayer)
+            if (ship == TargetShip)
             {
                 StartCoroutine(SpeedPadColorPulse_Coroutine());
             }
@@ -3632,116 +3750,129 @@ namespace ClassLibrary1HUD
         public RenderTexture Rear_View_Mirror_Feed;
         public static readonly Vector3 Point_Camera_Backwards_Transform_Scale = new Vector3(-1f, 1f);
         public static readonly Vector3 Point_Camera_Forwards_Transform_Scale = new Vector3(1f, 1f);
-
-        
+        public static readonly Vector2 Rear_View_Mirror_Adjust_Vector = new Vector2(0, 223);
 
         public float lastWidth, lastHeight;
+        public int Current_Mirror_State;
+        public int Previous_Mirror_State = -1;
+        public int Hull_Layer_Mask;
+        public int Current_Culling_Mask;
+        public int Previous_Culling_Mask;
 
-
-
-        public static readonly Vector2 Rear_View_Mirror_Adjust_Vector = new Vector2(0, 223);
+        public ShipCamera Cached_ShipCamera;
 
         public override void Start()
         {
             base.Start();
 
-            lastWidth = 640;
-            lastHeight = 480;
-
             RearViewMirror = CustomComponents.GetById<RawImage>("RearViewMirrorTexture");
             RearViewMirror.color = Color.clear;
+            Empty_Game_Object = CustomComponents.GetById("EmptyGameObject"); //initialize the RectTransform through the Empty Game Object component in the Unity prefab
+            Rear_View_Mirror_Camera = Empty_Game_Object.gameObject.AddComponent<Camera>(); //Adding a camera dynamically by attaching it to the Empty Game Object
+            Apply_Screen_Size(); //Sizes the mirror and creates the RenderTexture for the current resolution            
 
-            StartCoroutine(WaitAFrame());
-            //Other logic can go in between these two
-            StartCoroutine(RenderFrame());
+            Rear_View_Mirror_Camera.transform.SetParent(TargetShip.transform);
+            Rear_View_Mirror_Camera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 2;
+
+            Hull_Layer_Mask = ~(1 << TargetShip.Settings.REF_MESH.gameObject.layer);
+            Previous_Culling_Mask = TargetShip.ShipCamera.cullingMask;
+            Rear_View_Mirror_Camera.cullingMask = Previous_Culling_Mask & Hull_Layer_Mask;
+
+            RearViewMirror.gameObject.SetActive(true);
 
             if (VanillaPlusHUDOptions.ModMenuOptions.WeaponMirrorPositionSwap)
             {
                 RearViewMirror.rectTransform.anchoredPosition = RearViewMirror.rectTransform.anchoredPosition + Rear_View_Mirror_Adjust_Vector;
             }
 
-        }
+            Cached_ShipCamera = TargetShip.CamSim;
+        }        
 
-        IEnumerator WaitAFrame()
+        public void Apply_Screen_Size()
         {
-            //for (int i = 0; i < 60; i++)
-            //{
-            //    yield return new WaitForEndOfFrame();
-            //}
-            Empty_Game_Object = CustomComponents.GetById("EmptyGameObject"); //initialize the RectTransform through the Empty Game Object component in the Unity prefab
-            Rear_View_Mirror_Camera = Empty_Game_Object.gameObject.AddComponent<Camera>(); //Adding a camera dynamically by attaching it to the Empty Game Object
-            //Rear_View_Mirror_Camera.enabled = false; //Disabled so it's not rendering until instructed to do so
+            lastWidth = Screen.width;
+            lastHeight = Screen.height;
+
+            RearViewMirror.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 640f * ((lastWidth / lastHeight) / (16f / 9f)));
             CreateRenderTexture(640f, 160f); //Size of the RenderTexture on user screen
-            yield return null;            
-        }
-
-        IEnumerator RenderFrame()
-        {
-            while (!TargetShip.FinishedEvent)
-            {
-                Rear_View_Mirror_Camera.Render();
-                //yield return new WaitForSeconds(1f / 60); //60 here represents the refresh rate of the rear view mirror, WaitForEndOfFrame() is for unlimited FPS and looks best
-                yield return new WaitForEndOfFrame();
-            }
         }
 
         public void CreateRenderTexture(float rWidth, float rHeight)
         {
+            if (Rear_View_Mirror_Feed != null)
+            {
+                Rear_View_Mirror_Camera.targetTexture = null;
+                Rear_View_Mirror_Feed.Release();
+                Destroy(Rear_View_Mirror_Feed);                
+            }
+
             Rear_View_Mirror_Feed = new RenderTexture((int)(lastWidth / (1920f / rWidth)), (int)(lastHeight / (1080f / rHeight)), 32); //32 is the color format
             Rear_View_Mirror_Camera.targetTexture = Rear_View_Mirror_Feed;
+            RearViewMirror.texture = Rear_View_Mirror_Feed;
         }
 
         public override void Update()
         {
             base.Update();
-            //Rear_View_Mirror_Camera.enabled = true;
 
-            if (!TargetShip.CamSim.LookingBehind)
+            if (Cached_ShipCamera.LookingBehind)
             {
-                RearViewMirror.transform.localScale = Point_Camera_Backwards_Transform_Scale;
-                Rear_View_Mirror_Camera.cullingMask = TargetShip.ShipCamera.cullingMask;
-                Rear_View_Mirror_Camera.transform.SetParent(TargetShip.transform);
-                Rear_View_Mirror_Camera.transform.localPosition = -Vector3.forward * TargetShip.ShipToShipCollider.size.z / 2;
-                Rear_View_Mirror_Camera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 2;
-                Rear_View_Mirror_Camera.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-                //if (!Cheats.ModernPhysics) //if (!Cheats.ModernPhysics || Cheats.ModernPhysics)
-                //{
-                    //RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
-                //}
-                RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque                
+                Current_Mirror_State = 1;
             }
             else
             {
-                RearViewMirror.transform.localScale = Point_Camera_Forwards_Transform_Scale;
-                Rear_View_Mirror_Camera.cullingMask = TargetShip.ShipCamera.cullingMask;
-                Rear_View_Mirror_Camera.transform.SetParent(TargetShip.transform);
-                Rear_View_Mirror_Camera.transform.localPosition = Vector3.forward * TargetShip.ShipToShipCollider.size.z / 2;
-                Rear_View_Mirror_Camera.transform.localPosition = Vector3.up * TargetShip.ShipToShipCollider.size.y / 2;
-                Rear_View_Mirror_Camera.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
-                //if (!Cheats.ModernPhysics)
-                //{
-                    //RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
-                //}
+                Current_Mirror_State = 0;
+            }            
+
+            if (Current_Mirror_State != Previous_Mirror_State)
+            {
+                Previous_Mirror_State = Current_Mirror_State;
+
+                if (Current_Mirror_State == 0)
+                {
+                    RearViewMirror.transform.localScale = Point_Camera_Backwards_Transform_Scale;
+                    Rear_View_Mirror_Camera.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                }
+                else
+                {
+                    RearViewMirror.transform.localScale = Point_Camera_Forwards_Transform_Scale;
+                    Rear_View_Mirror_Camera.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+                }
+
                 RearViewMirror.color = Color.white; //Set alpha back to full so the rear view mirror is visible and opaque
             }
 
-            if (Rear_View_Mirror_Camera != null && Rear_View_Mirror_Feed != null)
+            Current_Culling_Mask = TargetShip.ShipCamera.cullingMask;
+            if (Current_Culling_Mask != Previous_Culling_Mask)
             {
-                float width = (float)Screen.width;
-                float height = (float)Screen.height;
-
-                if (lastWidth != width || lastHeight != height)
-                {
-                    lastWidth = width;
-                    lastHeight = height;
-
-                    RearViewMirror.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 640f * ((width / height) / (16f / 9f)));
-                    CreateRenderTexture(640f, 160f);
-                }
-
-                RearViewMirror.gameObject.SetActive(true);
-                RearViewMirror.texture = Rear_View_Mirror_Feed;
+                Previous_Culling_Mask = Current_Culling_Mask;
+                Rear_View_Mirror_Camera.cullingMask = Current_Culling_Mask & Hull_Layer_Mask;
             }
+
+            if (Screen.width != lastWidth || Screen.height != lastHeight)
+            {
+                Apply_Screen_Size();
+            }
+
+            if (TargetShip.FinishedEvent && Rear_View_Mirror_Camera.enabled)
+            {
+                Rear_View_Mirror_Camera.enabled = false;
+            }
+        }
+
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (Rear_View_Mirror_Camera != null) 
+            { 
+                Rear_View_Mirror_Camera.targetTexture = null;
+                Destroy(Rear_View_Mirror_Camera.gameObject);
+            }
+            if (Rear_View_Mirror_Feed != null) 
+            { 
+                Rear_View_Mirror_Feed.Release(); 
+                Destroy(Rear_View_Mirror_Feed); 
+            }            
         }
     }
 
@@ -3759,24 +3890,24 @@ namespace ClassLibrary1HUD
 
         public Vector3 Internal_Camera_Rotation;
 
-        public Quaternion Pseudohugger_Rotation_Quaternion;
+        public Quaternion Pseudohugger_Rotation_Quaternion = Quaternion.identity;
         //public Quaternion Intermediate_Rotation_Quaternion;
         //public Quaternion Rigidbody_Rotation_Quaternion;
 
-        public Quaternion Previous_Pseudohugger_Rotation_Quaternion;
+        public Quaternion Previous_Pseudohugger_Rotation_Quaternion = Quaternion.identity;
         //public Quaternion Previous_Intermediate_Rotation_Quaternion;
         //public Quaternion Previous_Rigidbody_Rotation_Quaternion;        
 
-        public Quaternion Stored_Pseudohugger_Rotation_Quaternion;
+        public Quaternion Stored_Pseudohugger_Rotation_Quaternion = Quaternion.identity;
         //public Quaternion Stored_Intermediate_Rotation_Quaternion;
         //public Quaternion Stored_Rigidbody_Rotation_Quaternion;
 
-        public Quaternion Target_Pseudohugger_Rotation_Quaternion;
+        public Quaternion Target_Pseudohugger_Rotation_Quaternion = Quaternion.identity;
 
 
 
-        public Quaternion Tilt_Lock_Rotation_Quaternion; //used for Tiltlock2280 Camera Mode
-        public Quaternion Target_Tilt_Lock_Rotation_Quaternion; //used for Tiltlock2280 Camera Mode
+        public Quaternion Tilt_Lock_Rotation_Quaternion = Quaternion.identity; //used for Tiltlock2280 Camera Mode
+        public Quaternion Target_Tilt_Lock_Rotation_Quaternion = Quaternion.identity; //used for Tiltlock2280 Camera Mode
 
 
         public float Rotation_Time;
@@ -3877,6 +4008,8 @@ namespace ClassLibrary1HUD
         public static readonly int[] Arrivon_XI_Reverse = { 343 };
         public static readonly int[] Utah_Project = { 288, 306 };
         public static readonly int[] Utah_Project_Reverse = { 287, 305 };
+        public static readonly int[] Marina_Rush = { 299, 300, 338, 339 };
+        public static readonly int[] Marina_Rush_Reverse = { 302, 303, 341, 342};
         public static readonly int[] Atlantica = { 187, 189, 349, 350, 351, 352, 353, 354, 355, 356, 357, 432 };
         public static readonly int[] Atlantica_Reverse = { 47, 48, 49, 50, 51, 52, 53, 54, 79, 80, 81, 96, 408 };
         public static readonly int[] Tokyo_Bowl = { 194, 237 };
@@ -3914,7 +4047,7 @@ namespace ClassLibrary1HUD
         public static readonly int[] Pines_Complex_Course_2_Reverse = { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 451, 452, 555, 556, 635, 637 };
         public static readonly int[] Pines_Complex_Course_3 = { 35, 36, 37, 623, 624, 625, 686, 687, 725 };
         public static readonly int[] Pines_Complex_Course_3_Reverse = { 54, 55, 56, 255, 256, 257, 567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580, 581, 582, 583, 584, 585, 586, 587, 588, 589, 590, 591, 592, 642, 643, 644, 722, 724 };
-        public static readonly int[] Basis_Divide = { 387, 387, 430 };
+        public static readonly int[] Basis_Divide = { 386, 387, 430 };
         public static readonly int[] Basis_Divide_Reverse = { 384, 427 };
         public static readonly int[] Gullfoss_Run = { 304, 334 };
         public static readonly int[] Gullfoss_Run_Reverse = { 66, 67, 79, 80, 331 };
@@ -3971,7 +4104,7 @@ namespace ClassLibrary1HUD
         public static readonly int[] GT_Special_Stage_Route_5 = { 496, 497, 498, 508, 509, 510, 684, 687 };
         public static readonly int[] GT_Special_Stage_Route_5_reverse = { 17, 194, 195, 196, 206, 207, 208 }; //lowercase r in reverse intentional
         public static readonly int[] Harvest_Bastion = { 319, 327, 338, 353, 371, 381, 400, 404, 405, 417, 418, 442, 449, 450, 468, 469, 520, 521, 610, 644 };
-        public static readonly int[] Trinity_Coast_Reverse = { 480 };
+        public static readonly int[] Trinity_Coast_Reverse = { 215, 216, 217, 218, 480 };
         public static readonly int[] Ceres_Waypoint = { 335, 486, 487, 488, 489, 490, 491, 492, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, };
         public static readonly int[] Ceres_Waypoint_Reverse = { 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, /*544, 545,*/ 4, 5, 6, 7, 8, 9, 10, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160 };
         public static readonly int[] Gemini_Glacier = { 60, 154, 290, 291, 420, 421, 422, 423, 424, 460, 461, 462, 463 };
@@ -3989,11 +4122,12 @@ namespace ClassLibrary1HUD
         public static readonly int[] BNGL_Utah_Project_6 = { 20, 21, 491 };
         public static readonly int[] bngl_xl_prototype_2 = { 0, 192, 193, 302, 303, 403 };
         public static readonly int[] bngl_xl_prototype_2_zone_edition = { 0, 192, 193, 302, 303, 403 };
-        public static readonly int[] bngl_0x002_2 = { 0, 244, 245, 266, 267, 287, 288, 391 };
-        public static readonly int[] bngl_0x001_2 = { 226, 227, 335 };
+        public static readonly int[] bngl_0x002_2 = { 0, 244, 245, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 391 };
+        public static readonly int[] bngl_0x001_1 = { 146, 147, 148, 149, 150 };
+        public static readonly int[] bngl_0x001_2 = { 150, 151, 152, 153, 158, 159, 160, 226, 227, 335 };
         public static readonly int[] bngl_0x001_5 = { 457, 482 };
         public static readonly int[] bngl_0x002_5 = { 378, 379, 411, 412 };
-        public static readonly int[] BNGL_0x002_6 = { 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 168, 170, 171, 172, 244, 245, 257, 258, 288, 289, 303, 304, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 355, 356, 362, 363 };
+        public static readonly int[] BNGL_0x002_6 = { 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 244, 245, 257, 258, 288, 289, 303, 304, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 355, 356, 362, 363 };
         public static readonly int[] bngl_0x003_2 = { 0, 1, 21, 22, 37, 38, 54, 55, 72, 73, 121, 122, -150, -149, -506, -507, 130, 131, 146, 147, 157, 158, 190, 191, 264, 265, 266, 267 };
         public static readonly int[] BNGL_0x003_6 = { 209, 210, 218, 219, 228, 229, 369 };
         public static readonly int[] bngl_aciknovae_1 = { 40, 41, 42, 43, 44, 45, 132, 133, 134, 135, 156, 157, 158, 159, 183, 184, 185, 186, 187, 209, 210, 211, 212, 215, 216, 217, 218, 231 };
@@ -4008,7 +4142,7 @@ namespace ClassLibrary1HUD
         public static readonly int[] bngl_atlanticaOG = { 34, 35, 144, 145, 167, 168, 169 };
         public static readonly int[] bngl_cassandra_5 = { 162, 181 };
         public static readonly int[] BNGL_Dover_beta = { 425, 426, 489 };
-        public static readonly int[] bngl_dtt_open = { 15, 16, 17, -17, 26, 27, 28, 46, 47, 48, 192, 193, -201, 230, 239, 240, 241, 343, 344, 345, 348, 368, 369, 372, 373, 374 - 403, -760, -1055 };
+        public static readonly int[] bngl_dtt_open = { 15, 16, 17, -17, 26, 27, 28, 46, 47, 48, 192, 193, -201, 230, 239, 240, 241, 343, 344, 345, 348, 368, 369, 372, 373, 374, -403, -760, -1055 };
         public static readonly int[] bngl_dtt_advanced = { 15, 16, 17, 192, 193, 348, 372, 373, 374 };
         public static readonly int[] bngl_dtt_oval = { 141 };
         public static readonly int[] bngl_dtt_expert = { 15, 16, 17, 46, 47, 48, 343, 344, 345, 368, 369 };
@@ -4020,13 +4154,13 @@ namespace ClassLibrary1HUD
         public static readonly int[] bngl_harpstone_9 = { 202, 203 };
         public static readonly int[] bngl_harpstone_open_5 = { 93, 94, 165, 166, 185, 206, -208, -307, -308, -409, -410, -411, -412 };
         public static readonly int[] bngl_ishtar_citadel_1 = { 15, 16, 301 };
-        public static readonly int[] bngl_ishtar_citadel_2 = { 0, 15, 16, 32, 33, 49, 50, 398 };
+        public static readonly int[] bngl_ishtar_citadel_2 = { 0, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 398 };
         public static readonly int[] bngl_ishtar_citadel_4 = { 29, 30, 31, 160, 161 };
         public static readonly int[] BNGL_Ishtar_Citadel_5 = { 363, 364, 454, 455 };
         public static readonly int[] bngl_ishtar_citadel_7 = { 316, 331 };
         public static readonly int[] bngl_ishtar_citadel_9 = { 316, 331 };
         public static readonly int[] bngl_kahawai_bay_1 = { 31, 32, 77, 112, 151, 152, 255, 256 };
-        public static readonly int[] bngl_kahawai_bay_3 = { 46, 47, 114, 115, 116, 117, 150, 151, 170, 171 };
+        public static readonly int[] bngl_kahawai_bay_3 = { 46, 47, 114, 115, 116, 117, 118, 149, 150, 151, 152, 169, 170, 171, 172 };
         public static readonly int[] bngl_korodera_remake_2 = { 72, 73, 74, 103, 104, 105, 112, 122, 123, 124, 352, 353, 515, 516, 517, 518 };
         public static readonly int[] bngl_lujiazui_park_9 = { 2, 3 };
         public static readonly int[] bngl_luna_1 = { 0, 78, 79, 124, 125 };
@@ -4048,7 +4182,7 @@ namespace ClassLibrary1HUD
         public static readonly int[] bngl_pr0x003_94 = { 323, 324, 445, 446 };
         public static readonly int[] bngl_pr0x004_94 = { 275, 276, 277, 278, 279, 280, 328, 329, 366, 367 };
         public static readonly int[] bngl_speed_stadium_7 = { 99, 100 };
-        public static readonly int[] bngl_spilskinanke_remake_2 = { 82, 136, 137, 148, 149, 159, 160, 204, 205, 206, 207, 214, 215, 216, 217, 224, 225, 226, 227, 306, 307, 334, 335 };
+        public static readonly int[] bngl_spilskinanke_remake_2 = { 82, 136, 137, 148, 149, 159, 160, 203, 204, 205, 206, 207, 208, 214, 215, 216, 217, 218, 219, 224, 225, 226, 227, 228, 306, 307, 334, 335 };
         public static readonly int[] bngl_stanza_inter_remake_2 = { 76, 99, 100, 101, 102, 103, 113, 114, 115, 116, 117, 118, 128, 129, 130, 131, 132, 156 };
         public static readonly int[] bngl_track09_6 = { 263, 264, 377, 378, 445, 446, 525, 552 };
         public static readonly int[] bngl_utah_project_1_1 = { 85, 86, 87, 149, 150 };
@@ -4088,19 +4222,57 @@ namespace ClassLibrary1HUD
         public static readonly int[] Hel_II = { 49, 50, 109, 110, 111, 227, 243, 379, 380 };
         public static readonly int[] Kena_Divide = { 140, 141, 211, 212, 213, 319, 358 };
         public static readonly int[] Shalbatana = { 226, 227, 238, 239, 246, 247, 253, 254, 270, 297 };
-        public static readonly int[] Track1 = { 18, 19, 20, 342, 364 };
+        public static readonly int[] Track1 = { 18, 19, 20, 342, 364 }; //This track was originally going to be called "Hyades Cluster"
+        public static readonly int[] ES_0x022_Sangreal = { 18, 19, 31, 32, 142, 143, 198, 199 };
+        public static readonly int[] ES_0x029_Veira_Kaan = { 268, 269, 314, 315 };
+        public static readonly int[] ES_0x043_Cerridan_III = { 67, 68, 313 };
+        public static readonly int[] ES_0x048_Hengsha_Financial = { 14, 15, 180, 181 };
+        public static readonly int[] ES_0x086_Arcadion = { 16, 17, 25, 26, 248, 249, 273, 274, 424 };
+        public static readonly int[] map15 = { 100, 176, 187, 188, 189, 203, 244, 255, 283, 299, 350 };
+        public static readonly int[] Regn_Alta = { 0, 62, 63, 64, 222, 223, 475 };
+        public static readonly int[] Stenza_Line = { 70, 71, 72, 165, 166, 167, 239, 240, 241, 251, 252, 253, 267, 268, 269 };
+        public static readonly int[] Track07 = { 33, 34, 35, 101, 102, 103, 166, -225, 213, 214, 215, 216, 344, 345, 359, 360, 392 };
+        public static readonly int[] Distant_Shore = { 8, 9, 10, 11, 391, 392, 393, 394, 395, 396, 572, 595, /*82, 83, 84,*/ 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167 };
+        public static readonly int[] Azure_Heights_1F = { 449, 2, 3 }; //DUMMY DATA
+        public static readonly int[] Azure_Heights_1R = { 441, 5, 7 }; //DUMMY DATA
+        public static readonly int[] Azure_Heights_2F = { 662, 11, 13 }; //DUMMY DATA
+        public static readonly int[] Azure_Heights_2R = { 661, 17, 19 }; //DUMMY DATA
+        public static readonly int[] Azure_Heights_3F = { 872, 23, 29 }; //DUMMY DATA
+        public static readonly int[] Azure_Heights_3R = { 871, 31, 37 }; //DUMMY DATA
+        public static readonly int[] Accelerator_Ring = { 261, 41, 43 }; //DUMMY DATA
+        public static readonly int[] Druidia = { 502, 47, 53 }; //DUMMY DATA
+        public static readonly int[] Cassini_Dome = { 386, 59, 61 }; //DUMMY DATA
+        public static readonly int[] Pretoria_Stadium = { 458, 67, 71 }; //DUMMY DATA
+        public static readonly int[] Pretoria_Stadium_Reverse = { 455, 73, 79 }; //DUMMY DATA
+        public static readonly int[] Vostrukha_I = { 452, 83, 89 }; //DUMMY DATA
+        public static readonly int[] ES_0x077_Nightmareland = { 724, 97, 101 }; //DUMMY DATA
+        public static readonly int[] Helixx = { 456, 103, 107 }; //DUMMY DATA
+        public static readonly int[] Highway35 = { 608, 109, 113 }; //DUMMY DATA
+        public static readonly int[] Interlagos_Futuristic = { 1122, 127, 131 }; //DUMMY DATA
+        public static readonly int[] Project_2 = { 218, 137, 139 }; //DUMMY DATA
+        public static readonly int[] Rally = { 113, 114, 115, 116, 117, 191, 192, 193, 194, 195, 196, 197, 217, 218, 219, 220, 221, 222, 223, 224, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 281, 282, 283, 284, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323 };
 
         public bool Needs_Jump_Flags_Set_To_Normal_Boolean;
         public bool Use_Track_Creator_Defined_Jump_Flags;
         public bool ZeroGravityTrack; //Currently specific to Ceres Waypoint + Reverse, Kuiper Overturn doesn't seem to need manual definition.
-        public static int[] ZeroGravitySectionDefinitions;
+        public bool FloorhuggerTrack;
+        public HashSet<int> Cached_Jump_Flag_Definitions;
+        public static int[] Cached_Section_Definitions = Array.Empty<int>();
+
+        public int Physics_Mode;
+        public bool Is_2159;
+        public bool Forcing_NoTiltLock;
+        public int Camera_Behavior_Mode_2280 = VanillaPlusHUDOptions.ModMenuOptions.CameraBehavior2280;
+        public Transform Camera_Transform;
+        public NgTrackData.Section Current_Section;
+        public ShipSim Cached_ShipSim;
 
         public bool Jump_Flag_Set_For_This_Section;
 
-        public bool In_Override_Normal;
+        //public bool In_Override_Normal;
         public bool In_Override_Jump;
 
-        public bool In_Creator_Defined_Normal;
+        //public bool In_Creator_Defined_Normal;
         public bool In_Creator_Defined_Jump;
 
         public int[] Manually_Set_Section_Jump_Flags(string TrackName)
@@ -4389,6 +4561,12 @@ namespace ClassLibrary1HUD
 
                 case "Utah Project Reverse":                    
                     return Utah_Project_Reverse;
+
+                case "Marina Rush":
+                    return Marina_Rush;
+
+                case "Marina Rush Reverse":
+                    return Marina_Rush_Reverse;
 
                 case "Atlantica":
                     Use_Track_Creator_Defined_Jump_Flags = true;
@@ -4743,6 +4921,9 @@ namespace ClassLibrary1HUD
                 case "bngl-0x002 2":
                     return bngl_0x002_2;
 
+                case "bngl-0x001 1":
+                    return bngl_0x001_1;
+
                 case "bngl-0x001 2":
                     return bngl_0x001_2;
 
@@ -5042,33 +5223,180 @@ namespace ClassLibrary1HUD
                     return Shalbatana;
 
                 case "Track1":
-                    return Track1;
+                    return Track1; //This track was originally going to be called "Hyades Cluster"
+
+                case "ES-0x022 Sangreal":
+                    return ES_0x022_Sangreal;
+
+                case "ES-0x029 Veira Kaan":
+                    return ES_0x029_Veira_Kaan;
+
+                case "ES-0x043 Cerridan III":
+                    return ES_0x043_Cerridan_III;
+
+                case "ES-0x048 Hengsha Financial":
+                    return ES_0x048_Hengsha_Financial;
+
+                case "ES-0x086 Arcadion":
+                    return ES_0x086_Arcadion;
+
+                case "map15":
+                    return map15;
+
+                case "Regn Alta":
+                    return Regn_Alta;
+
+                case "Stenza Line":
+                    return Stenza_Line;
+
+                case "Track07":
+                    return Track07;
+
+                case "Distant Shore":
+                    return Distant_Shore;
+
+                case "Azure Heights 1F":
+                    return Azure_Heights_1F;
+
+                case "Azure Heights 1R":
+                    return Azure_Heights_1R;
+
+                case "Azure Heights 2F":
+                    return Azure_Heights_2F;
+
+                case "Azure Heights 2R":
+                    return Azure_Heights_2R;
+
+                case "Azure Heights 3F":
+                    return Azure_Heights_3F;
+
+                case "Azure Heights 3R":
+                    return Azure_Heights_3R;
+
+                case "Accelerator Ring":
+                    return Accelerator_Ring;
+
+                case "Druidia":
+                    return Druidia;
+
+                case "Cassini Dome":
+                    return Cassini_Dome;
+
+                case "Pretoria Stadium":
+                    return Pretoria_Stadium;
+
+                case "Pretoria Stadium Reverse":
+                    return Pretoria_Stadium_Reverse;
+
+                case "Vostrukha I":
+                    return Vostrukha_I;
+
+                case "ES-0x077 Nightmareland":
+                    return ES_0x077_Nightmareland;
+
+                case "Helixx":
+                    return Helixx;                
+
+                case "Highway35":
+                    return Highway35;
+
+                case "Interlagos Futuristic":
+                    return Interlagos_Futuristic;
+
+                case "Project 2":
+                    return Project_2;
+
+                case "Rally":
+                    return Rally;
             }
         }
 
         public override void Start()
         {
-            base.Start();
+            base.Start();            
 
             //Has_Left_Jump_And_Is_Grounded_Boolean = true;
+            Physics_Mode = Cheats.IntFromPhysicsMod(); //0 = 2159, 1 = 2280, 2 = Floorhugger            
 
-            Track_Display_Name = ContentManager.GetCurrentTrack().DisplayName;
-            //DebugConsole.Log("|" + Track_Display_Name + "|");
+            Is_2159 = (Physics_Mode == 0);
+            Forcing_NoTiltLock = VanillaPlusHUDOptions.ModMenuOptions.ForceNoTiltLock2159;
 
-            if (Track_Display_Name == "Ceres Waypoint" || Track_Display_Name == "Ceres Waypoint Reverse")
+            Track_Display_Name = ContentManager.GetCurrentTrack().DisplayName;            
+
+            Cached_Section_Definitions = Manually_Set_Section_Jump_Flags(Track_Display_Name);
+
+            if (
+                Cached_Section_Definitions == Europa ||
+                Cached_Section_Definitions == Europa_Reverse ||
+                Cached_Section_Definitions == Pines_Complex_Course_1 ||
+                Cached_Section_Definitions == Pines_Complex_Course_1_Reverse ||
+                Cached_Section_Definitions == Pines_Complex_Course_2 ||
+                Cached_Section_Definitions == Pines_Complex_Course_2_Reverse ||
+                Cached_Section_Definitions == Pines_Complex_Course_3 ||
+                Cached_Section_Definitions == Pines_Complex_Course_3_Reverse ||
+                Cached_Section_Definitions == Port_Ares ||
+                Cached_Section_Definitions == Port_Ares_Reverse ||
+                Cached_Section_Definitions == Helios_Descent ||
+                Cached_Section_Definitions == Helios_Ascent ||
+                Cached_Section_Definitions == map15 ||
+                Cached_Section_Definitions == Azure_Heights_1F ||
+                Cached_Section_Definitions == Azure_Heights_1R ||
+                Cached_Section_Definitions == Azure_Heights_2F ||
+                Cached_Section_Definitions == Azure_Heights_2R ||
+                Cached_Section_Definitions == Azure_Heights_3F ||
+                Cached_Section_Definitions == Azure_Heights_3R ||
+                Cached_Section_Definitions == Accelerator_Ring ||
+                Cached_Section_Definitions == Druidia ||
+                Cached_Section_Definitions == Cassini_Dome ||
+                Cached_Section_Definitions == Pretoria_Stadium ||
+                Cached_Section_Definitions == Pretoria_Stadium_Reverse ||
+                Cached_Section_Definitions == Vostrukha_I ||
+                Cached_Section_Definitions == ES_0x077_Nightmareland ||
+                Cached_Section_Definitions == Helixx ||
+                Cached_Section_Definitions == Highway35 ||
+                Cached_Section_Definitions == Interlagos_Futuristic ||
+                Cached_Section_Definitions == Project_2
+                )
             {
-                ZeroGravityTrack = true;
-                ZeroGravitySectionDefinitions = Manually_Set_Section_Jump_Flags(Track_Display_Name);
+                FloorhuggerTrack = true;
+            }
+            else
+            {
+                FloorhuggerTrack = false;
+            }
+
+            //DebugConsole.Log("|" + Track_Display_Name + "|");
+            //DebugConsole.Log($"{NgTrackData.TrackManager.Instance.data.MaxIndex}");
+
+            if (Cached_Section_Definitions == Hel_II)
+            {
+                MeshRenderer[] renderers = FindObjectsOfType<MeshRenderer>();
+
+                foreach (MeshRenderer renderer in renderers)
+                {
+                    string rendererName = renderer.name;
+                    if (rendererName == "AnimatedRotator" || rendererName == "BillboardAnimatedRotator")
+                    {
+                        renderer.enabled = false;
+                    }
+                }
+            }
+
+            Cached_Jump_Flag_Definitions = new HashSet<int>(Cached_Section_Definitions);
+
+            if (Cached_Section_Definitions == Ceres_Waypoint|| Cached_Section_Definitions == Ceres_Waypoint_Reverse)
+            {
+                ZeroGravityTrack = true;                
             }
 
             foreach (NgTrackData.Section section in NgTrackData.TrackManager.Instance.data.sections)
             {
-                if (Manually_Set_Section_Jump_Flags(Track_Display_Name).Contains(section.index) && (Needs_Jump_Flags_Set_To_Normal_Boolean == true) && (((section.index == 179) && (Manually_Set_Section_Jump_Flags(Track_Display_Name) == Escalation_Project)) || (Manually_Set_Section_Jump_Flags(Track_Display_Name) == Antelao)))
+                if (Cached_Jump_Flag_Definitions.Contains(section.index) && (Needs_Jump_Flags_Set_To_Normal_Boolean == true) && (((section.index == 179) && (Cached_Section_Definitions == Escalation_Project)) || (Cached_Section_Definitions == Antelao)))
                 {
                     section.type = NgTrackData.E_SECTIONTYPE.NORMAL;
                 }
 
-                if ((Cheats.IntFromPhysicsMod() == 0) && (VanillaPlusHUDOptions.ModMenuOptions.ForceNoTiltLock2159 == true))
+                if (Is_2159 && Forcing_NoTiltLock)
                 {
                     section.NoTiltLock = true;
                 }
@@ -5082,20 +5410,60 @@ namespace ClassLibrary1HUD
             Pseudohugger_Grounded_Interpolation_Ratio = 1f;
 
             Rotation_Time = 2f;
+
+            Cached_ShipSim = TargetShip.PysSim;
         }
 
         public override void Update()
         {
-            base.Update();
+            base.Update();            
 
-            Internal_Camera_Rotation = TargetShip.ShipCamera.transform.rotation.eulerAngles;
+            if (TargetShip.FinishedEvent || Physics_Mode != 1)
+            {
+                return;
+            }
+
+            if (FloorhuggerTrack)
+            {
+                return;
+            }
             
-            Tilt_Lock_Rotation_Quaternion = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, 0f);
+            Camera_Behavior_Mode_2280 = VanillaPlusHUDOptions.ModMenuOptions.CameraBehavior2280;
 
-            Jump_Flag_Set_For_This_Section = (Array.IndexOf(Manually_Set_Section_Jump_Flags(Track_Display_Name), TargetShip.CurrentSection.index) != -1);
+            if (Camera_Behavior_Mode_2280 == 1)
+            {
+                TiltLock2280(); //2280 TILT LOCK BEHAVIOR
+            }
+            else if (Camera_Behavior_Mode_2280 == 2)
+            {
+                Pseudohugger2280(); //2280 PSEUDOHUGGER BEHAVIOR
+            }
 
-            In_Override_Jump = Jump_Flag_Set_For_This_Section;
-            In_Override_Normal = !Jump_Flag_Set_For_This_Section;
+            //if (Physics_Mode == 1)
+            //{
+            //    if (Camera_Behavior_Mode_2280 == 1)
+            //    {
+            //        TiltLock2280(); //2280 TILT LOCK BEHAVIOR
+            //    }
+            //    else if (Camera_Behavior_Mode_2280 == 2)
+            //    {
+            //        Pseudohugger2280(); //2280 PSEUDOHUGGER BEHAVIOR
+            //    }
+            //}
+            //else if (Physics_Mode == 0 && VanillaPlusHUDOptions.ModMenuOptions.ForcePseudohugger2159)
+            //{
+            //    Pseudohugger2159(); //2159 PSEUDOHUGGER BEHAVIOR
+            //}
+
+            //Camera_Transform = TargetShip.ShipCameraTransform;
+            //Current_Section = TargetShip.CurrentSection;
+            //Internal_Camera_Rotation = Camera_Transform.rotation.eulerAngles;            
+            //Tilt_Lock_Rotation_Quaternion = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, 0f);
+
+            //Jump_Flag_Set_For_This_Section = Cached_Jump_Flag_Definitions.Contains(Current_Section.index); //Formerly, Jump_Flag_Set_For_This_Section = (Array.IndexOf(Manually_Set_Section_Jump_Flags(Track_Display_Name), TargetShip.CurrentSection.index) != -1);
+            //In_Override_Jump = Jump_Flag_Set_For_This_Section;
+
+            //In_Override_Normal = !Jump_Flag_Set_For_This_Section;
 
             //if (Manually_Set_Section_Jump_Flags(Track_Display_Name).Contains(TargetShip.CurrentSection.index))
             //{
@@ -5115,95 +5483,129 @@ namespace ClassLibrary1HUD
             //    In_Override_Normal = false;
             //}
 
-            if ((Use_Track_Creator_Defined_Jump_Flags == true) && (TargetShip.CurrentSection.type == NgTrackData.E_SECTIONTYPE.JUMP))
-            {
-                In_Creator_Defined_Jump = true;
-            }
-            else 
-            {
-                In_Creator_Defined_Jump = false;
-            }            
+            //if ((Use_Track_Creator_Defined_Jump_Flags == true) && (Current_Section.type == NgTrackData.E_SECTIONTYPE.JUMP))
+            //{
+            //    In_Creator_Defined_Jump = true;
+            //}
+            //else 
+            //{
+            //    In_Creator_Defined_Jump = false;
+            //}            
 
-            if ((Use_Track_Creator_Defined_Jump_Flags == true) && (TargetShip.CurrentSection.type == NgTrackData.E_SECTIONTYPE.NORMAL))
-            {
-                In_Creator_Defined_Normal = true;
-            }
-            else
-            {
-                In_Creator_Defined_Normal = false;
-            }
-
-
-
-            if (ZeroGravityTrack == true && !ZeroGravitySectionDefinitions.Contains(TargetShip.CurrentSection.index))
-            {
-                TargetShip.PysSim.isShipGrounded = true;
-            }
+            //if ((Use_Track_Creator_Defined_Jump_Flags == true) && (Current_Section.type == NgTrackData.E_SECTIONTYPE.NORMAL))
+            //{
+            //    In_Creator_Defined_Normal = true;
+            //}
+            //else
+            //{
+            //    In_Creator_Defined_Normal = false;
+            //}
 
 
 
-            if ((Cheats.IntFromPhysicsMod() == 1) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.CameraBehavior2280 == 1))
+            /*if (ZeroGravityTrack == true && !Cached_Jump_Flag_Definitions.Contains(TargetShip.CurrentSection.index))
             {
-                TiltLock2280(); //2280 TILT LOCK BEHAVIOR
-            }
-            else if (((Cheats.IntFromPhysicsMod() == 1) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.CameraBehavior2280 == 2))/* || ((Cheats.IntFromPhysicsMod() == 0) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.ForcePseudohugger2159 == true))*/)
-            {
-                Pseudohugger(); //2280 PSEUDOHUGGER BEHAVIOR
-            }
-            //else if (((Cheats.IntFromPhysicsMod() == 0) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.ForcePseudohugger2159 == true)))
+                Has_Entered_Jump_Boolean = false; //Formerly, TargetShip.PysSim.isShipGrounded = true;
+            }*/
+
+
+
+            //if ((Physics_Mode == 1) && !TargetShip.FinishedEvent && (Camera_Behavior_Mode_2280 == 1))
+            //{
+            //    TiltLock2280(); //2280 TILT LOCK BEHAVIOR
+            //}
+            //else if (((Physics_Mode == 1) && !TargetShip.FinishedEvent && (Camera_Behavior_Mode_2280 == 2))/* || ((Cheats.IntFromPhysicsMod() == 0) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.ForcePseudohugger2159 == true))*/)
+            //{
+            //    Pseudohugger2280(); //2280 PSEUDOHUGGER BEHAVIOR
+            //}
+            //else if (((Physics_Mode == 0) && !TargetShip.FinishedEvent && (VanillaPlusHUDOptions.ModMenuOptions.ForcePseudohugger2159 == true)))
             //{
             //    Pseudohugger2159(); //2159 PSEUDOHUGGER BEHAVIOR
             //}
-                        
+
             Previous_Pseudohugger_Rotation_Quaternion = Pseudohugger_Rotation_Quaternion;
             //Previous_Intermediate_Rotation_Quaternion = Intermediate_Rotation_Quaternion;
             //Previous_Rigidbody_Rotation_Quaternion = Rigidbody_Rotation_Quaternion;
         }
 
         public void TiltLock2280()
-        {
+        {            
+            Camera_Transform = TargetShip.ShipCameraTransform;
+
+            if (TargetShip.CurrentSection == null)
+            {
+                return;
+            }
+
+            Current_Section = TargetShip.CurrentSection;            
+            Internal_Camera_Rotation = Camera_Transform.rotation.eulerAngles;
+            Tilt_Lock_Rotation_Quaternion = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, 0f);
+
             //if (Cheats.ModernPhysics && (!TargetShip.OnMaglock || !TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent)
-            if (!TargetShip.OnMaglock && !TargetShip.CurrentSection.NoTiltLock) //2280 TILT LOCK BEHAVIOR
+            if (!TargetShip.OnMaglock && !Current_Section.NoTiltLock) //2280 TILT LOCK BEHAVIOR
             {
                 Tiltlock_Maglocked_Interpolation_Ratio = 0f;
 
                 Tiltlock_Non_Maglocked_Interpolation_Ratio += Time.deltaTime;
 
-                Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(TargetShip.ShipCamera.transform.rotation, Tilt_Lock_Rotation_Quaternion, Tiltlock_Non_Maglocked_Interpolation_Ratio);
+                Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(Camera_Transform.rotation, Tilt_Lock_Rotation_Quaternion, Tiltlock_Non_Maglocked_Interpolation_Ratio);
 
-                TargetShip.ShipCamera.transform.rotation = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Target_Tilt_Lock_Rotation_Quaternion.eulerAngles.z);
+                Camera_Transform.rotation = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Target_Tilt_Lock_Rotation_Quaternion.eulerAngles.z);
             }
 
             //else if (Cheats.ModernPhysics && (TargetShip.OnMaglock || TargetShip.CurrentSection.NoTiltLock) && !TargetShip.FinishedEvent) //2280 TILT LOCK BEHAVIOR ON SECTIONS WITH NOTILTLOCK OR ON MAGLOCK SECTIONS/TRACKS THAT FORCE FLOORHUGGER
-            else if (TargetShip.OnMaglock || TargetShip.CurrentSection.NoTiltLock) //2280 TILT LOCK BEHAVIOR ON SECTIONS WITH NOTILTLOCK OR ON MAGLOCK SECTIONS/TRACKS THAT FORCE FLOORHUGGER
+            else //2280 TILT LOCK BEHAVIOR ON SECTIONS WITH NOTILTLOCK OR ON MAGLOCK SECTIONS/TRACKS THAT FORCE FLOORHUGGER
             {
                 Tiltlock_Non_Maglocked_Interpolation_Ratio = 0f;
 
                 Tiltlock_Maglocked_Interpolation_Ratio += Time.deltaTime * Rotation_Time;
 
-                Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(Tilt_Lock_Rotation_Quaternion, TargetShip.ShipCamera.transform.rotation, Tiltlock_Maglocked_Interpolation_Ratio); //Formerly, Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(Tilt_Lock_Rotation_Quaternion, Quaternion.Euler(transform.InverseTransformDirection(TargetShip.ShipCamera.transform.rotation.eulerAngles)), Tiltlock_Maglocked_Interpolation_Ratio);
+                Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(Tilt_Lock_Rotation_Quaternion, Camera_Transform.rotation, Tiltlock_Maglocked_Interpolation_Ratio); //Formerly, Target_Tilt_Lock_Rotation_Quaternion = Quaternion.Slerp(Tilt_Lock_Rotation_Quaternion, Quaternion.Euler(transform.InverseTransformDirection(TargetShip.ShipCamera.transform.rotation.eulerAngles)), Tiltlock_Maglocked_Interpolation_Ratio);
 
-                TargetShip.ShipCamera.transform.rotation = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Target_Tilt_Lock_Rotation_Quaternion.eulerAngles.z);
-            }            
+                Camera_Transform.rotation = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Target_Tilt_Lock_Rotation_Quaternion.eulerAngles.z);
+            }
+
+            Pseudohugger_Grounded_Interpolation_Ratio = 1f;
+            Pseudohugger_Rotation_Quaternion = Camera_Transform.rotation;
         }
 
-        public void Pseudohugger()
+        public void Pseudohugger2280()
         {
+            Camera_Transform = TargetShip.ShipCameraTransform;
+
+            if (TargetShip.CurrentSection == null)
+            {
+                return;
+            }
+
+            Current_Section = TargetShip.CurrentSection;            
+            Internal_Camera_Rotation = Camera_Transform.rotation.eulerAngles;
+
+            Jump_Flag_Set_For_This_Section = Cached_Jump_Flag_Definitions.Contains(Current_Section.index); //Formerly, Jump_Flag_Set_For_This_Section = (Array.IndexOf(Manually_Set_Section_Jump_Flags(Track_Display_Name), TargetShip.CurrentSection.index) != -1);
+            In_Override_Jump = Jump_Flag_Set_For_This_Section;
+
+            if ((Use_Track_Creator_Defined_Jump_Flags == true) && (Current_Section.type == NgTrackData.E_SECTIONTYPE.JUMP))
+            {
+                In_Creator_Defined_Jump = true;
+            }
+            else
+            {
+                In_Creator_Defined_Jump = false;
+            }
+
             if (In_Override_Jump || In_Creator_Defined_Jump)
             {
                 Has_Entered_Jump_Boolean = true;
                 Stored_Pseudohugger_Rotation_Quaternion = Previous_Pseudohugger_Rotation_Quaternion;
             }
-            else if ((In_Override_Normal || In_Creator_Defined_Normal) && (TargetShip.PysSim.isShipGrounded == true))
+            else if ((Cached_ShipSim.isShipGrounded == true || ZeroGravityTrack == true) /*&& (In_Override_Normal || In_Creator_Defined_Normal)*/)
             {
                 Has_Entered_Jump_Boolean = false;
             }
 
             if (Has_Entered_Jump_Boolean == false) //2280 PSEUDOHUGGER BEHAVIOR
-            {
-                Pseudohugger_Grounded_Interpolation_Ratio += Time.deltaTime;
-
-                if (TargetShip.PysSim.outOfBounds == true /*&& Pseudohugger_Grounded_Interpolation_Ratio >= 1f*/)
+            {                
+                if (Cached_ShipSim.outOfBounds == true /*&& Pseudohugger_Grounded_Interpolation_Ratio >= 1f*/)
                 {
                     Stored_Pseudohugger_Rotation_Quaternion = Previous_Pseudohugger_Rotation_Quaternion;
                     Pseudohugger_Grounded_Interpolation_Ratio = 0f;
@@ -5211,7 +5613,8 @@ namespace ClassLibrary1HUD
                 }
                 else
                 {
-                    Pseudohugger_Rotation_Quaternion = Quaternion.Slerp(Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Pseudohugger_Rotation_Quaternion.eulerAngles.z), Quaternion.LookRotation(TargetShip.ShipCamera.transform.forward, TargetShip.InterpolatedSection.Up), Pseudohugger_Grounded_Interpolation_Ratio);
+                    Pseudohugger_Rotation_Quaternion = Quaternion.Slerp(Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Pseudohugger_Rotation_Quaternion.eulerAngles.z), Quaternion.LookRotation(Camera_Transform.forward, TargetShip.InterpolatedSection.Up), Pseudohugger_Grounded_Interpolation_Ratio);
+                    Pseudohugger_Grounded_Interpolation_Ratio += Time.deltaTime;
                 }
                 Target_Pseudohugger_Rotation_Quaternion = Pseudohugger_Rotation_Quaternion;
             }
@@ -5222,17 +5625,43 @@ namespace ClassLibrary1HUD
                 Target_Pseudohugger_Rotation_Quaternion = Pseudohugger_Rotation_Quaternion;
             }
 
-            TargetShip.ShipCamera.transform.rotation = Target_Pseudohugger_Rotation_Quaternion;
+            Camera_Transform.rotation = Target_Pseudohugger_Rotation_Quaternion;
+
+            Tiltlock_Non_Maglocked_Interpolation_Ratio = 1f;
+            Tiltlock_Maglocked_Interpolation_Ratio = 1f;
         }
 
         //public void Pseudohugger2159()
-        //{
-        //    if ((In_Override_Jump || In_Creator_Defined_Jump) || (TargetShip.PysSim.isShipGrounded == false))
+        //{        
+        //    Camera_Transform = TargetShip.ShipCameraTransform;
+
+        //    if (TargetShip.CurrentSection == null)
+        //    {
+        //        return;
+        //    }
+
+        //    Current_Section = TargetShip.CurrentSection;        
+        //    Internal_Camera_Rotation = Camera_Transform.rotation.eulerAngles;
+        //    Tilt_Lock_Rotation_Quaternion = Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, 0f);
+
+        //    Jump_Flag_Set_For_This_Section = Cached_Jump_Flag_Definitions.Contains(Current_Section.index); //Formerly, Jump_Flag_Set_For_This_Section = (Array.IndexOf(Manually_Set_Section_Jump_Flags(Track_Display_Name), TargetShip.CurrentSection.index) != -1);
+        //    In_Override_Jump = Jump_Flag_Set_For_This_Section;
+
+        //    if ((Use_Track_Creator_Defined_Jump_Flags == true) && (Current_Section.type == NgTrackData.E_SECTIONTYPE.JUMP))
+        //    {
+        //        In_Creator_Defined_Jump = true;
+        //    }
+        //    else
+        //    {
+        //        In_Creator_Defined_Jump = false;
+        //    }
+
+        //    if ((In_Override_Jump || In_Creator_Defined_Jump) || (Cached_ShipSim.isShipGrounded == false))
         //    {
         //        Has_Entered_Jump_Boolean = true;
         //        Stored_Pseudohugger_Rotation_Quaternion = Previous_Pseudohugger_Rotation_Quaternion;
         //    }
-        //    else if ((In_Override_Normal || In_Creator_Defined_Normal) && (TargetShip.PysSim.isShipGrounded == true))
+        //    else /*if ((In_Override_Normal || In_Creator_Defined_Normal) && (Cached_ShipSim.isShipGrounded == true))*/
         //    {
         //        Has_Entered_Jump_Boolean = false;
         //    }
@@ -5240,7 +5669,7 @@ namespace ClassLibrary1HUD
         //    if (Has_Entered_Jump_Boolean == false)
         //    {
         //        Stored_Pseudohugger_Rotation_Quaternion = Previous_Pseudohugger_Rotation_Quaternion;
-        //        Pseudohugger_Rotation_Quaternion = Quaternion.Slerp(Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Stored_Pseudohugger_Rotation_Quaternion.eulerAngles.z), Quaternion.LookRotation(TargetShip.ShipCamera.transform.forward, TargetShip.InterpolatedSection.Up), TargetShip.PysSim.GroundedTime/* * Rotation_Time*/);
+        //        Pseudohugger_Rotation_Quaternion = Quaternion.Slerp(Quaternion.Euler(Internal_Camera_Rotation.x, Internal_Camera_Rotation.y, Stored_Pseudohugger_Rotation_Quaternion.eulerAngles.z), Quaternion.LookRotation(Camera_Transform.forward, TargetShip.InterpolatedSection.Up), TargetShip.PysSim.GroundedTime/* * Rotation_Time*/);
         //        Target_Pseudohugger_Rotation_Quaternion = Pseudohugger_Rotation_Quaternion;
         //    }
         //    else
@@ -5249,21 +5678,41 @@ namespace ClassLibrary1HUD
         //        Target_Pseudohugger_Rotation_Quaternion = Pseudohugger_Rotation_Quaternion;
         //    }
 
-        //    TargetShip.ShipCamera.transform.rotation = Target_Pseudohugger_Rotation_Quaternion;
+        //    Camera_Transform.rotation = Target_Pseudohugger_Rotation_Quaternion;
         //}
     }
 
     public class Camera_Height_Adjustments : ScriptableHud
     {
         public static readonly Vector3 Internal_Camera_Offset_2159 = new Vector3(0f, 0.2f, 0f);
-        public static readonly Vector3 Camera_Correction_Offset_2280 = new Vector3(0f, -0.1f, 0.3f);
-        public static readonly Vector3 Cockpit_Camera_Offset_2280 = new Vector3(0f, 0.1f, 0f);
+        public static readonly Vector3 Camera_Correction_Offset_2280 = new Vector3(0f, 0f, 0.3f); //Formerly public static readonly Vector3 Camera_Correction_Offset_2280 = new Vector3(0f, -0.1f, 0.3f);        
+        public static readonly Vector3 Cockpit_Camera_Offset_2280 = new Vector3(0f, 0.2f, 0f); // public static readonly Vector3 Cockpit_Camera_Offset_2280 = new Vector3(0f, 0.1f, 0f);
         //public static readonly Vector3 Cockpit_Camera_Offset_2159 = new Vector3(0f, 0.1f, -0.1f);
         public MeshRenderer MainHullMesh;
         public MeshRenderer ShieldMesh;
         public MeshRenderer CockpitMesh;
         public MeshRenderer VR_CockpitMesh;
         public MeshRenderer VR_CockpitMesh_NC;
+
+        public Transform Hull_Transform;
+        public Transform Shield_Transform;
+        public Transform Cockpit_Transform;
+        public Transform VR_Cockpit_Transform;
+        public Transform VR_Cockpit_NC_Transform;
+        public bool Is_2280_Physics;
+
+        public ShipCamera Cached_ShipCamera;
+        public int Camera_Mode;
+        public bool Event_Finished;
+        public bool Permanently_Eliminated;
+        public bool Is_Networked_Race_Event;
+        public bool Is_Valid_Gamemode;
+        public bool Race_Gamemode_Is_Applicable;
+        public bool Continue_Applying_Camera_Adjustments;
+        public Gamemode Current_Gamemode;        
+
+        public bool Bonnet_Mesh;
+        public bool Nosecam_Mesh;
 
         public Vector3 MainHullMesh_Initial_Local_Position;
         //public Vector3 ShieldMesh_Initial_Local_Position;
@@ -5293,11 +5742,39 @@ namespace ClassLibrary1HUD
 
             MainHullMesh = TargetShip.Settings.REF_MESH.GetComponent<MeshRenderer>();
             ShieldMesh = TargetShip.Settings.REF_SHIELD.GetComponent<MeshRenderer>();
-            CockpitMesh = TargetShip.Settings.REF_COCKPITMESH.GetComponent<MeshRenderer>();
-            VR_CockpitMesh = TargetShip.Settings.REF_VRCOCKPITMESH.GetComponent<MeshRenderer>();
-            VR_CockpitMesh_NC = TargetShip.Settings.REF_VRCOCKPITMESHNOCANOPY.GetComponent<MeshRenderer>();
 
-            MainHullMesh_Initial_Local_Position = MainHullMesh.transform.localPosition;
+            if (TargetShip.Settings.REF_COCKPITMESH != null)
+            {
+                CockpitMesh = TargetShip.Settings.REF_COCKPITMESH.GetComponent<MeshRenderer>();
+            }
+            if (TargetShip.Settings.REF_VRCOCKPITMESH != null)
+            {
+                VR_CockpitMesh = TargetShip.Settings.REF_VRCOCKPITMESH.GetComponent<MeshRenderer>();
+            }
+            if (TargetShip.Settings.REF_VRCOCKPITMESHNOCANOPY != null)
+            {
+                VR_CockpitMesh_NC = TargetShip.Settings.REF_VRCOCKPITMESHNOCANOPY.GetComponent<MeshRenderer>();
+            }
+
+            Is_2280_Physics = Cheats.IntFromPhysicsMod() == 1;
+
+            Hull_Transform = MainHullMesh.transform;
+            Shield_Transform = ShieldMesh.transform;
+
+            if (CockpitMesh != null)
+            {
+                Cockpit_Transform = CockpitMesh.transform;
+            }
+            if (VR_CockpitMesh != null)
+            {
+                VR_Cockpit_Transform = VR_CockpitMesh.transform;
+            }
+            if (VR_CockpitMesh_NC != null)
+            {
+                VR_Cockpit_NC_Transform = VR_CockpitMesh_NC.transform;
+            }
+
+            MainHullMesh_Initial_Local_Position = Hull_Transform.localPosition;
             //ShieldMesh_Initial_Local_Position = ShieldMesh.transform.localPosition;
             //CockpitMesh_Initial_Local_Position = CockpitMesh.transform.localPosition;
             //VR_CockpitMesh_Initial_Local_Position = VR_CockpitMesh.transform.localPosition;
@@ -5314,12 +5791,49 @@ namespace ClassLibrary1HUD
 
             //MainHullMesh_Negative_Local_Position = MainHullMesh_Initial_Local_Position - Internal_Camera_Offset_2159;
             //ShieldMesh_Negative_Local_Position = ShieldMesh_Initial_Local_Position - Internal_Camera_Offset_2159;
+
+            Cached_ShipCamera = TargetShip.CamSim;
+            Current_Gamemode = RaceManager.CurrentGamemode;
+            Is_Networked_Race_Event = (RaceManager.Instance.RaceContext == ERaceContext.Multiplayer);
+            Race_Gamemode_Is_Applicable = (Is_Networked_Race_Event == true && Current_Gamemode is GmRace);
+            Is_Valid_Gamemode = (!(Current_Gamemode is GmRace) && !(Current_Gamemode is GmTimeTrial) && !(Current_Gamemode is GmSpeedLap) && !(Current_Gamemode is GmSurvival) && !(Current_Gamemode is GmStunt));
+        }
+
+        public void Set_Cockpit_Meshes_Enabled(bool state)
+        {
+            if (CockpitMesh != null)
+            {
+                CockpitMesh.enabled = state;
+            }
+            if (VR_CockpitMesh != null)
+            {
+                VR_CockpitMesh.enabled = state;
+            }
+            if (VR_CockpitMesh_NC != null)
+            {
+                VR_CockpitMesh_NC.enabled = state;
+            }
+        }
+
+        public void Set_Cockpit_Mesh_Positions(Vector3 position)
+        {
+            if (Cockpit_Transform != null)
+            {
+                Cockpit_Transform.localPosition = position;
+            }
+            if (VR_Cockpit_Transform != null)
+            {
+                VR_Cockpit_Transform.localPosition = position;
+            }
+            if (VR_Cockpit_NC_Transform != null)
+            {
+                VR_Cockpit_NC_Transform.localPosition = position;
+            }
         }
 
         public override void Update()
         {
-            base.Update();
-
+            base.Update();            
 
             if (VanillaPlusHUDOptions.ModMenuOptions.AdjustmentAlignmentFixToggle == true)
             {
@@ -5332,68 +5846,55 @@ namespace ClassLibrary1HUD
                 //var DummyVariableForReadingInto4 = VR_CockpitMesh.transform.localPosition; //VR COCKPIT
                 //var DummyVariableForReadingInto5 = VR_CockpitMesh_NC.transform.localPosition; //VR COCKPIT, NO CANOPY
             }
+            
+            Camera_Mode = Cached_ShipCamera.CameraMode;
+            Event_Finished = TargetShip.FinishedEvent;
+            Permanently_Eliminated = TargetShip.IsEliminatedPermanently;
+            Continue_Applying_Camera_Adjustments = (Race_Gamemode_Is_Applicable == true || Is_Valid_Gamemode == true);
 
-            if (TargetShip.CamSim.CameraMode == 2 && !TargetShip.FinishedEvent)
+            if (Permanently_Eliminated == false && ((Camera_Mode == 2 && !Event_Finished) || (Camera_Mode == 2 && Event_Finished && Continue_Applying_Camera_Adjustments == true)))
             {
-                if (Cheats.IntFromPhysicsMod() == 1)
+                Bonnet_Mesh = VanillaPlusHUDOptions.ModMenuOptions.CanopyMeshAdjustment == 0 && !Cached_ShipCamera.LookingBehind;                
+
+                if (Is_2280_Physics)
                 {
+                    //RAISED CANOPY CAMERA
                     if (VanillaPlusHUDOptions.ModMenuOptions.CanopyCameraAdjustment2280 == 0)
                     {
                         TargetShip.ShipCameraTransform.localPosition = Cockpit_Camera_Offset_2280;
-
-                        //BONNETCAM MESH
-                        if (VanillaPlusHUDOptions.ModMenuOptions.CanopyMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
-                        {
-                            MainHullMesh.enabled = true;
-                            MainHullMesh.transform.localPosition = Vector3.zero;
-                            ShieldMesh.transform.localPosition = Vector3.zero;
-                        }
-
-                        //HIDDEN MESH
-                        else
-                        {
-                            MainHullMesh.enabled = false;
-                            MainHullMesh.transform.localPosition = Vector3.zero;
-                            ShieldMesh.transform.localPosition = Vector3.zero;
-                            //Reset to default position                            
-                        }
+                        MainHullMesh.enabled = Bonnet_Mesh; //BONNETCAM MESH AND HIDDEN MESH
+                        Hull_Transform.localPosition = Vector3.zero;
+                        Shield_Transform.localPosition = Vector3.zero;
                     }
+                    //INTERNAL CANOPY CAMERA
                     else
                     {
-                        //BONNETCAM MESH
-                        if (VanillaPlusHUDOptions.ModMenuOptions.CanopyMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
-                        {
-                            MainHullMesh.enabled = true;
-                            MainHullMesh.transform.localPosition = Camera_Correction_Offset_2280;
-                            ShieldMesh.transform.localPosition = Camera_Correction_Offset_2280; //In both cases the shield mesh is positioned wrong so we need to correct it                            
-                        }
+                        MainHullMesh.enabled = Bonnet_Mesh;
 
+                        //BONNETCAM MESH
+                        if (Bonnet_Mesh)
+                        {
+                            Hull_Transform.localPosition = Camera_Correction_Offset_2280;
+                        }
                         //HIDDEN MESH
                         else
                         {
-                            MainHullMesh.enabled = false;
-                            MainHullMesh.transform.localPosition = Vector3.zero; //Reset to default position /*This line doesn't actually need to be here*/
-                            ShieldMesh.transform.localPosition = Camera_Correction_Offset_2280; //In both cases the shield mesh is positioned wrong so we need to correct it                            
+                            Hull_Transform.localPosition = Vector3.zero;
                         }
+
+                        Shield_Transform.localPosition = Camera_Correction_Offset_2280;
                     }
                 }
-                else if (Cheats.IntFromPhysicsMod() != 1) //This could just be an else
+                else
                 {
-                    if (VanillaPlusHUDOptions.ModMenuOptions.CanopyMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
-                    {
-                        MainHullMesh.enabled = true;
-                    }
-                    else
-                    {
-                        MainHullMesh.enabled = false;
-                    }
+                    MainHullMesh.enabled = Bonnet_Mesh; //BONNETCAM MESH AND HIDDEN MESH
                 }
             }
-
-            else if (TargetShip.CamSim.CameraMode == 3 && !TargetShip.FinishedEvent)
+            else if (Permanently_Eliminated == false && ((Camera_Mode == 3 && !Event_Finished) || (Camera_Mode == 3 && Event_Finished && Continue_Applying_Camera_Adjustments == true)))
             {
+                Nosecam_Mesh = VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0 && !Cached_ShipCamera.LookingBehind;                
 
-                if (Cheats.IntFromPhysicsMod() == 1)
+                if (Is_2280_Physics)
                 {
                     //RAISED COCKPIT CAMERA
                     if (VanillaPlusHUDOptions.ModMenuOptions.CockpitCameraAdjustment2280 == 0)
@@ -5401,65 +5902,46 @@ namespace ClassLibrary1HUD
                         TargetShip.ShipCameraTransform.localPosition = Cockpit_Camera_Offset_2280;
 
                         //NOSECAM MESH
-                        if (VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
+                        if (Nosecam_Mesh)
                         {
-                            CockpitMesh.transform.localPosition = Vector3.zero;
-                            VR_CockpitMesh.transform.localPosition = Vector3.zero;
-                            VR_CockpitMesh_NC.transform.localPosition = Vector3.zero;
-                            ShieldMesh.transform.localPosition = Vector3.zero;
-                            CockpitMesh.enabled = false;
-                            VR_CockpitMesh.enabled = false;
-                            VR_CockpitMesh_NC.enabled = false;
+                            Set_Cockpit_Mesh_Positions(Vector3.zero);
+                            Shield_Transform.localPosition = Vector3.zero;
+                            Set_Cockpit_Meshes_Enabled(false);
                             MainHullMesh.enabled = true;
-                            MainHullMesh.transform.localPosition = Vector3.zero;
+                            Hull_Transform.localPosition = Vector3.zero;
                         }
-
                         //INTERIOR COCKPIT MESH
                         else
                         {
-                            CockpitMesh.transform.localPosition = Cockpit_Camera_Offset_2280;
-                            VR_CockpitMesh.transform.localPosition = Cockpit_Camera_Offset_2280;
-                            VR_CockpitMesh_NC.transform.localPosition = Cockpit_Camera_Offset_2280;
-                            ShieldMesh.transform.localPosition = Cockpit_Camera_Offset_2280;
-                            CockpitMesh.enabled = true;
-                            VR_CockpitMesh.enabled = true;
-                            VR_CockpitMesh_NC.enabled = true;
+                            Set_Cockpit_Mesh_Positions(Cockpit_Camera_Offset_2280);
+                            Shield_Transform.localPosition = Cockpit_Camera_Offset_2280;
+                            Set_Cockpit_Meshes_Enabled(true);
                             MainHullMesh.enabled = false;
                         }
                     }
-
                     //INTERNAL COCKPIT CAMERA
                     else
                     {
                         //NOSECAM MESH
-                        if (VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
+                        if (Nosecam_Mesh)
                         {
-                            CockpitMesh.enabled = false;
-                            VR_CockpitMesh.enabled = false;
-                            VR_CockpitMesh_NC.enabled = false;
+                            Set_Cockpit_Meshes_Enabled(false);
                             MainHullMesh.enabled = true;
-                            MainHullMesh.transform.localPosition = -Cockpit_Camera_Offset_2280;
-                            ShieldMesh.transform.localPosition = -Cockpit_Camera_Offset_2280;
+                            Hull_Transform.localPosition = -Cockpit_Camera_Offset_2280;
+                            Shield_Transform.localPosition = -Cockpit_Camera_Offset_2280;
                         }
-
                         //INTERIOR COCKPIT MESH
                         else
                         {
-                            CockpitMesh.enabled = true;
-                            VR_CockpitMesh.enabled = true;
-                            VR_CockpitMesh_NC.enabled = true;
-                            CockpitMesh.transform.localPosition = Vector3.zero;
-                            VR_CockpitMesh.transform.localPosition = Vector3.zero;
-                            VR_CockpitMesh_NC.transform.localPosition = Vector3.zero;
+                            Set_Cockpit_Meshes_Enabled(true);
+                            Set_Cockpit_Mesh_Positions(Vector3.zero);
                             MainHullMesh.enabled = false;
-                            MainHullMesh.transform.localPosition = Vector3.zero;
-                            ShieldMesh.transform.localPosition = Vector3.zero;
-                            //Reset to default position
+                            Hull_Transform.localPosition = Vector3.zero;
+                            Shield_Transform.localPosition = Vector3.zero;
                         }
                     }
                 }
-
-                else if (Cheats.IntFromPhysicsMod() != 1) //This could just be an else
+                else
                 {
                     //RAISED COCKPIT CAMERA
                     if (VanillaPlusHUDOptions.ModMenuOptions.CockpitCameraAdjustment2159 == 0)
@@ -5467,71 +5949,54 @@ namespace ClassLibrary1HUD
                         TargetShip.ShipCameraTransform.localPosition = Internal_Camera_Offset_2159;
 
                         //NOSECAM MESH
-                        if (VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
+                        if (Nosecam_Mesh)
                         {
-                            CockpitMesh.enabled = false;
-                            VR_CockpitMesh.enabled = false;
-                            VR_CockpitMesh_NC.enabled = false;
+                            Set_Cockpit_Meshes_Enabled(false);
                             MainHullMesh.enabled = true;
-                            MainHullMesh.transform.localPosition = MainHullMesh_Initial_Local_Position;
-                            ShieldMesh.transform.localPosition = Vector3.zero;
-                            CockpitMesh.transform.localPosition = Vector3.zero;
-                            VR_CockpitMesh.transform.localPosition = Vector3.zero;
-                            VR_CockpitMesh_NC.transform.localPosition = Vector3.zero;
+                            Hull_Transform.localPosition = MainHullMesh_Initial_Local_Position;
+                            Shield_Transform.localPosition = Vector3.zero;
+                            Set_Cockpit_Mesh_Positions(Vector3.zero);
                         }
-
                         //INTERIOR COCKPIT MESH
                         else
                         {
-                            CockpitMesh.enabled = true;
-                            VR_CockpitMesh.enabled = true;
-                            VR_CockpitMesh_NC.enabled = true;
+                            Set_Cockpit_Meshes_Enabled(true);
                             MainHullMesh.enabled = false;
-                            ShieldMesh.transform.localPosition = Internal_Camera_Offset_2159;
-                            CockpitMesh.transform.localPosition = Internal_Camera_Offset_2159;
-                            VR_CockpitMesh.transform.localPosition = Internal_Camera_Offset_2159;
-                            VR_CockpitMesh_NC.transform.localPosition = Internal_Camera_Offset_2159;
+                            Shield_Transform.localPosition = Internal_Camera_Offset_2159;
+                            Set_Cockpit_Mesh_Positions(Internal_Camera_Offset_2159);
                         }
                     }
-
                     //INTERNAL COCKPIT CAMERA
                     else
                     {
                         //NOSECAM MESH
-                        if (VanillaPlusHUDOptions.ModMenuOptions.CockpitMeshAdjustment == 0 && !TargetShip.CamSim.LookingBehind)
+                        if (Nosecam_Mesh)
                         {
-                            CockpitMesh.enabled = false;
-                            VR_CockpitMesh.enabled = false;
-                            VR_CockpitMesh_NC.enabled = false;
+                            Set_Cockpit_Meshes_Enabled(false);
                             MainHullMesh.enabled = true;
-                            MainHullMesh.transform.localPosition = -Internal_Camera_Offset_2159;
-                            ShieldMesh.transform.localPosition = -Internal_Camera_Offset_2159;
+                            Hull_Transform.localPosition = -Internal_Camera_Offset_2159;
+                            Shield_Transform.localPosition = -Internal_Camera_Offset_2159;
                         }
-
                         //INTERIOR COCKPIT MESH
                         else
                         {
-                            CockpitMesh.enabled = true;
-                            VR_CockpitMesh.enabled = true;
-                            VR_CockpitMesh_NC.enabled = true;
+                            Set_Cockpit_Meshes_Enabled(true);
                             MainHullMesh.enabled = false;
-                            MainHullMesh.transform.localPosition = Vector3.zero;
-                            ShieldMesh.transform.localPosition = Vector3.zero;
-                            CockpitMesh.transform.localPosition = Vector3.zero;
-                            VR_CockpitMesh.transform.localPosition = Vector3.zero;
-                            VR_CockpitMesh_NC.transform.localPosition = Vector3.zero;
-                            //Reset to default position
+                            Hull_Transform.localPosition = Vector3.zero;
+                            Shield_Transform.localPosition = Vector3.zero;
+                            Set_Cockpit_Mesh_Positions(Vector3.zero);
                         }
                     }
                 }
             }
+            //Reset to default position
             else
-            {
-                ShieldMesh.transform.localPosition = Vector3.zero;
-                MainHullMesh.transform.localPosition = MainHullMesh_Initial_Local_Position;
-                CockpitMesh.transform.localPosition = Vector3.zero;
-                VR_CockpitMesh.transform.localPosition = Vector3.zero;
-                VR_CockpitMesh_NC.transform.localPosition = Vector3.zero;
+            {                
+                MainHullMesh.enabled = true;
+                Set_Cockpit_Meshes_Enabled(false);
+                Shield_Transform.localPosition = Vector3.zero;
+                Hull_Transform.localPosition = MainHullMesh_Initial_Local_Position;
+                Set_Cockpit_Mesh_Positions(Vector3.zero);
             }
         }
     }
@@ -5544,6 +6009,12 @@ namespace ClassLibrary1HUD
         public Text Shield_Timer_Text;
 
         public float Hunter_Projectile_Distance_From_Target;
+        public int Current_Hunter_Distance_Key;
+        public int Previous_Hunter_Distance_Key = -1;
+        public int Current_Shield_Timer_Key;
+        public int Previous_Shield_Timer_Key = -1;
+
+        public float Shield_Timer;
 
         public float Self_Destruct_Timer = 0f;
 
@@ -5552,6 +6023,13 @@ namespace ClassLibrary1HUD
         public bool Visibility_Toggle_State = true;
 
         public int Smartshift_Direction;
+
+        public NgPickups.Physical.Projectiles.HunterProjectile Hunter_Projectile;
+        public Rigidbody Hunter_Body;
+        public ShipController Hunter_Target;
+        public bool Hunter_Warning_Visible;
+
+        public ShipSim Cached_ShipSim;
 
         public override void Start()
         {
@@ -5571,11 +6049,15 @@ namespace ClassLibrary1HUD
             Shield_Timer_Text.enabled = false;
 
             NgUiEvents.OnTriggerMessage += FinalLapWarning;
+
+            Cached_ShipSim = TargetShip.PysSim;
         }
 
         public override void OnDestroy()
         {
             NgUiEvents.OnTriggerMessage -= FinalLapWarning;
+
+            base.OnDestroy();
         }
 
         public void FinalLapWarning(string message, ShipController ship, Color color)
@@ -5588,6 +6070,8 @@ namespace ClassLibrary1HUD
 
         public override void Update()
         {
+            base.Update();
+
             if (TargetShip.AutopilotActivated)
             {
                 Smartshift_Direction = 0;
@@ -5611,28 +6095,42 @@ namespace ClassLibrary1HUD
                 Tremor_Warning_Text.enabled = false;
             }
 
-            if (NgPickups.Physical.Projectiles.HunterProjectile.CurrentProjectile != null && VanillaPlusHUDOptions.ModMenuOptions.HunterWarningToggle)
-            {
-                Hunter_Projectile_Distance_From_Target = NgPickups.Physical.Projectiles.HunterProjectile.CurrentProjectile.TargetShip.InverseTransformPoint(NgPickups.Physical.Projectiles.HunterProjectile.CurrentProjectile.Body.position).magnitude;
+            Hunter_Warning_Visible = false;
+            Hunter_Projectile = NgPickups.Physical.Projectiles.HunterProjectile.CurrentProjectile;
 
-                if (Hunter_Projectile_Distance_From_Target <= 30f) //Same as audible range of Hunter
+            if (Hunter_Projectile != null && VanillaPlusHUDOptions.ModMenuOptions.HunterWarningToggle)
+            {
+                Hunter_Body = Hunter_Projectile.Body;
+                Hunter_Target = Hunter_Projectile.TargetShip;
+
+                if (Hunter_Body != null && Hunter_Target != null)
                 {
-                    Hunter_Warning_Text.text = "HUNTER: " + string.Format("{0:N1}", Hunter_Projectile_Distance_From_Target) + "m";
-                    Hunter_Warning_Text.enabled = true;
-                }
-                else
-                {
-                    Hunter_Warning_Text.enabled = false;
+                    Hunter_Projectile_Distance_From_Target = Hunter_Target.InverseTransformPoint(Hunter_Body.position).magnitude;
+
+                    if (Hunter_Projectile_Distance_From_Target <= 30f)
+                    {
+                        Current_Hunter_Distance_Key = Mathf.RoundToInt(Hunter_Projectile_Distance_From_Target * 10f);
+                        if (Current_Hunter_Distance_Key != Previous_Hunter_Distance_Key)
+                        {
+                            Previous_Hunter_Distance_Key = Current_Hunter_Distance_Key;
+                            Hunter_Warning_Text.text = Hunter_Projectile_Distance_From_Target.ToString("'HUNTER: '0.0'm'");
+                        }
+                        Hunter_Warning_Visible = true;
+                    }
                 }
             }
-            else
-            {
-                Hunter_Warning_Text.enabled = false;
-            }
 
-            if (TargetShip.ShieldTimer > 0f && VanillaPlusHUDOptions.ModMenuOptions.ShieldTimerToggle == true)
+            Hunter_Warning_Text.enabled = Hunter_Warning_Visible;
+
+            Shield_Timer = TargetShip.ShieldTimer;
+            if (Shield_Timer > 0f && VanillaPlusHUDOptions.ModMenuOptions.ShieldTimerToggle == true)
             {
-                Shield_Timer_Text.text = string.Format("{0:N2}", TargetShip.ShieldTimer);
+                Current_Shield_Timer_Key = (int)(Shield_Timer * 100f);
+                if (Current_Shield_Timer_Key != Previous_Shield_Timer_Key)
+                {
+                    Previous_Shield_Timer_Key = Current_Shield_Timer_Key;
+                    Shield_Timer_Text.text = Shield_Timer.ToString("0.00");
+                }
                 Shield_Timer_Text.enabled = true;
             }
             else
@@ -5645,24 +6143,24 @@ namespace ClassLibrary1HUD
                 NgMusic.MusicPlayer.Instance.PlayPreviousSong(false); //the boolean passed here is whether or not to allow random song selection
             }
 
-            if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.BarrelRollKeyCode))
+            if (Input.GetKey(VanillaPlusHUDOptions.ModMenuOptions.BarrelRollKeyCode))
             {
                 TargetShip.PysSim.PerformBarrelRoll(TargetShip.PysSim.prevTurnInput);
             }
 
             if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.SideshiftLeftKeyCode))
             {
-                TargetShip.PysSim.StartSideshift(-1);
+                Cached_ShipSim.StartSideshift(-1);
             }
 
             if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.SideshiftRightKeyCode))
             {
-                TargetShip.PysSim.StartSideshift(1);
+                Cached_ShipSim.StartSideshift(1);
             }
 
             if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.SmartshiftKeyCode))
             {
-                TargetShip.PysSim.StartSideshift(Smartshift_Direction);
+                Cached_ShipSim.StartSideshift(Smartshift_Direction);
             }
 
             if (Input.GetKeyDown(VanillaPlusHUDOptions.ModMenuOptions.NameTag_And_ShieldBars_Visibility_Toggle_KeyCode))
@@ -5671,18 +6169,30 @@ namespace ClassLibrary1HUD
 
                 if (Visibility_Toggle_State == false)
                 {
-                    Eliminator_Hud.Close();
-                    Network_Name_Tags.Close();
-                    if (VanillaPlusHUDOptions.ModMenuOptions.VisibilityToggleAffectsRechargeSum == true)
+                    if (Eliminator_Hud != null)
+                    {
+                        Eliminator_Hud.Close();
+                    }
+                    if (Network_Name_Tags != null)
+                    {
+                        Network_Name_Tags.Close();
+                    }
+                    if (VanillaPlusHUDOptions.ModMenuOptions.VisibilityToggleAffectsRechargeSum == true && Recharge_Sum.Instance != null)
                     {
                         Recharge_Sum.Instance.Close();
                     }
                 }
                 else
                 {
-                    Eliminator_Hud.Open();
-                    Network_Name_Tags.Open();
-                    if (VanillaPlusHUDOptions.ModMenuOptions.VisibilityToggleAffectsRechargeSum == true)
+                    if (Eliminator_Hud != null)
+                    {
+                        Eliminator_Hud.Open();
+                    }
+                    if (Network_Name_Tags != null)
+                    {
+                        Network_Name_Tags.Open();
+                    }
+                    if (VanillaPlusHUDOptions.ModMenuOptions.VisibilityToggleAffectsRechargeSum == true && Recharge_Sum.Instance != null)
                     {
                         Recharge_Sum.Instance.Open();
                     }
@@ -5720,25 +6230,42 @@ namespace ClassLibrary1HUD
         public static readonly Vector2 Pipper_Left_Position = new Vector2(-115f, 139.5f);
         public static readonly Vector2 Pipper_Right_Position = new Vector2(115f, 139.5f);
 
+        public int Current_Visibility;
+        public int Previous_Visibility = -1;
+        public bool Show_Radar;
+        public float Pipper_Fill;
+        public RectTransform Pipper_Rect;
+        public const float Pipper_Empty_Fill_Threshold = 0.27f / 27f;
+
+        public Transform Camera_Transform;
+
         public override void Start()
         {
-            base.Start();
+            base.Start();            
 
             Overtake_Warning_Outline_Image = CustomComponents.GetById<Image>("OvertakeWarningOutline");
             Overtake_Warning_Background_Image = CustomComponents.GetById<Image>("OvertakeWarningBackground");
             Overtake_Warning_Pipper_Image = CustomComponents.GetById<Image>("OvertakeWarningPipper");
+            Pipper_Rect = Overtake_Warning_Pipper_Image.rectTransform;            
         }
 
         public override void Update()
         {
+            base.Update();     
+
+            Overtaking_Ship = null;
+
             if (TargetShip.CurrentPlace < Ships.Active.Count) //Not in last place
             {
                 Overtaking_Ship = Ships.FindShipInPlace(TargetShip.CurrentPlace + 1);
-                Longitudinal_Offset_Float = TargetShip.InverseTransformPoint(Overtaking_Ship.PhysicsPosition).magnitude;
             }
             else if (TargetShip.CurrentPlace == Ships.Active.Count && Ships.Active.Count != 1) //In last place
             {
                 Overtaking_Ship = Ships.FindShipInPlace(TargetShip.CurrentPlace - 1);
+            }
+
+            if (Overtaking_Ship != null)
+            {
                 Longitudinal_Offset_Float = TargetShip.InverseTransformPoint(Overtaking_Ship.PhysicsPosition).magnitude;
             }
             else //only 1 ship on the track
@@ -5747,24 +6274,30 @@ namespace ClassLibrary1HUD
                 Longitudinal_Offset_Float = 50f;
             }
 
-            Raw_Offset = TargetShip.ShipCameraTransform.InverseTransformPoint(Overtaking_Ship.PhysicsPosition);
+            if (Camera_Transform == null)
+            {
+                Camera_Transform = TargetShip.ShipCameraTransform;
+                return;
+            }
 
+            Raw_Offset = Camera_Transform.InverseTransformPoint(Overtaking_Ship.PhysicsPosition);
             Lateral_Offset_Float = Raw_Offset.x;
 
-            Overtake_Warning_Pipper_Image.rectTransform.anchoredPosition = Vector2.Lerp(Pipper_Left_Position, Pipper_Right_Position, ((Mathf.Clamp(Lateral_Offset_Float, -4f, 4f) + 4f) / 8f));
-            Overtake_Warning_Pipper_Image.fillAmount = ((1f - (Mathf.Clamp(Longitudinal_Offset_Float, 0f, 50f) * 0.02f)));
+            Pipper_Rect.anchoredPosition = Vector2.Lerp(Pipper_Left_Position, Pipper_Right_Position, ((Mathf.Clamp(Lateral_Offset_Float, -4f, 4f) + 4f) / 8f));
 
-            if (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarVisibility == 1 && Overtake_Warning_Pipper_Image.fillAmount < (0.27f/27f)) //The Overtake Warning Pipper Image is 27 px tall, <1/27 means that the pipper would appear completely empty anyway
+            Pipper_Fill = 1f - (Mathf.Clamp(Longitudinal_Offset_Float, 0f, 50f) * 0.02f);
+            Overtake_Warning_Pipper_Image.fillAmount = Pipper_Fill;
+
+            Current_Visibility = (VanillaPlusHUDOptions.ModMenuOptions.OvertakeRadarVisibility == 1 && Pipper_Fill < Pipper_Empty_Fill_Threshold) ? 0 : 1;
+
+            if (Current_Visibility != Previous_Visibility)
             {
-                Overtake_Warning_Background_Image.enabled = false;
-                Overtake_Warning_Outline_Image.enabled = false;
-                Overtake_Warning_Pipper_Image.enabled = false;
-            }
-            else
-            {
-                Overtake_Warning_Background_Image.enabled = true;
-                Overtake_Warning_Outline_Image.enabled = true;
-                Overtake_Warning_Pipper_Image.enabled = true;
+                Previous_Visibility = Current_Visibility;
+
+                Show_Radar = Current_Visibility == 1;
+                Overtake_Warning_Background_Image.enabled = Show_Radar;
+                Overtake_Warning_Outline_Image.enabled = Show_Radar;
+                Overtake_Warning_Pipper_Image.enabled = Show_Radar;
             }
         }
     }
@@ -5786,11 +6319,26 @@ namespace ClassLibrary1HUD
 
         public GmPrecision Precision_Gamemode_Instance;
 
-        public float Speedlap_Best_Time_Milliseconds;
-        public string Speedlap_Best_Time_Units;
+        public float Speedlap_Best_Time_Seconds;
+        public string Speedlap_Best_Time_Units;        
 
-        public float Speedlap_Time_Milliseconds;
-        public string Speedlap_Time_Units;
+        public float Current_Lap_Time;
+        public int Current_Lap_Centiseconds;
+        public int Previous_Lap_Centiseconds = -1;
+
+        public void Refresh_Best_Readout()
+        {
+            if (Speedlap_Best_Time_Seconds > 0f)
+            {
+                Speedlap_Best_Time_Units = FloatToTime.Convert(Speedlap_Best_Time_Seconds, "0:00.00");
+            }
+            else
+            {
+                Speedlap_Best_Time_Units = "–:––.––";
+            }
+
+            Speedlap_Best_Readout.text = Speedlap_Best_Time_Units;
+        }
 
         public void Retrieve_Precision_Best_Time_From_Disk()
         {
@@ -5808,11 +6356,11 @@ namespace ClassLibrary1HUD
             {
                 byte[] Byte_Array = File.ReadAllBytes(Precision_Save_Path);
                 
-                Speedlap_Best_Time_Milliseconds = BitConverter.ToSingle(Byte_Array, 1);
+                Speedlap_Best_Time_Seconds = BitConverter.ToSingle(Byte_Array, 1);
             }
             else
             {
-                Speedlap_Best_Time_Milliseconds = -1f;
+                Speedlap_Best_Time_Seconds = -1f;
             }
         }
 
@@ -5842,17 +6390,18 @@ namespace ClassLibrary1HUD
             {
                 byte[] Byte_Array = File.ReadAllBytes(Speed_Lap_Save_Path);
 
-                Speedlap_Best_Time_Milliseconds = BitConverter.ToSingle(Byte_Array, 0);
+                Speedlap_Best_Time_Seconds = BitConverter.ToSingle(Byte_Array, 0);
             }
             else
             {
-                Speedlap_Best_Time_Milliseconds = -1f;
+                Speedlap_Best_Time_Seconds = -1f;
             }
         }
 
         public void UpdateLapTime(float time)
         {
-            Speedlap_Best_Time_Milliseconds = time;
+            Speedlap_Best_Time_Seconds = time;
+            Refresh_Best_Readout();
         }
 
         public override void Start()
@@ -5867,70 +6416,71 @@ namespace ClassLibrary1HUD
             Speedlap_Best_Readout = CustomComponents.GetById<Text>("SpeedlapBestReadout");
             Speedlap_Time_Name = CustomComponents.GetById<Text>("SpeedlapTimeName");
             Speedlap_Time_Readout = CustomComponents.GetById<Text>("SpeedlapTimeReadout");
-
-            Speedlap_Best_Readout.text = "–:––.––";
+            
             Speedlap_Time_Readout.text = "–:––.––";
 
-            if (RaceManager.CurrentGamemode as GmPrecision != null)
+            if (RaceManager.CurrentGamemode is GmPrecision)
             {
                 Retrieve_Precision_Best_Time_From_Disk();
             }            
 
-            if (RaceManager.CurrentGamemode as GmSpeedLap != null)
+            if (RaceManager.CurrentGamemode is GmSpeedLap)
             {
                 Retrieve_Speed_Lap_Best_Time_From_Disk();
             }
 
+            Refresh_Best_Readout();            
+
             NgUiEvents.OnGamemodeUpdateBestTime += UpdateLapTime;
+
+            Precision_Gamemode_Instance = RaceManager.CurrentGamemode as GmPrecision;
         }
 
         public override void OnDestroy()
         {
             NgUiEvents.OnGamemodeUpdateBestTime -= UpdateLapTime;
+
+            base.OnDestroy();
         }
 
         public override void Update()
         {
-            base.Update();
+            base.Update();            
 
-            Precision_Gamemode_Instance = RaceManager.CurrentGamemode as GmPrecision;
+            Current_Lap_Time = TargetShip.CurrentLapTime;
+            Current_Lap_Centiseconds = (int)(Current_Lap_Time * 100f);
 
-            if (Speedlap_Best_Time_Milliseconds > 0f)
-            {                
-                Speedlap_Best_Time_Units = FloatToTime.Convert(Speedlap_Best_Time_Milliseconds, "0:00.00");
+            if (Current_Lap_Centiseconds != Previous_Lap_Centiseconds)
+            {
+                Previous_Lap_Centiseconds = Current_Lap_Centiseconds;
+                Speedlap_Time_Readout.text = FloatToTime.Convert(Current_Lap_Time, "0:00.00");
+            }            
+
+            if (Precision_Gamemode_Instance == null || Precision_Gamemode_Instance.AuthorTimes == null)
+            {
+                return;
+            }                        
+
+            if (Current_Lap_Time < Precision_Gamemode_Instance.AuthorTimes.PlatinumTarget)
+            {
+                Speedlap_Time_Readout.color = Position_Counter.Platinum_Color;
+            }
+            else if (Current_Lap_Time < Precision_Gamemode_Instance.AuthorTimes.GoldTarget)
+            {
+                Speedlap_Time_Readout.color = Position_Counter.Gold_Color;
+            }
+            else if (Current_Lap_Time < Precision_Gamemode_Instance.AuthorTimes.SilverTarget)
+            {
+                Speedlap_Time_Readout.color = Position_Counter.Silver_Color;
+            }
+            else if (Current_Lap_Time < Precision_Gamemode_Instance.AuthorTimes.BronzeTarget)
+            {
+                Speedlap_Time_Readout.color = Position_Counter.Bronze_Color;
             }
             else
             {
-                Speedlap_Best_Time_Units = "–:––.––";
+                Speedlap_Time_Readout.color = Color.white;
             }
-
-            Speedlap_Best_Readout.text = Speedlap_Best_Time_Units;
-
-            Speedlap_Time_Readout.text = FloatToTime.Convert(TargetShip.CurrentLapTime, "0:00.00");
-
-            if (Precision_Gamemode_Instance != null)
-            {
-                if (TargetShip.CurrentLapTime < Precision_Gamemode_Instance.AuthorTimes.PlatinumTarget)
-                {
-                    Speedlap_Time_Readout.color = Position_Counter.Platinum_Color;
-                }
-                else if (TargetShip.CurrentLapTime < Precision_Gamemode_Instance.AuthorTimes.GoldTarget)
-                {
-                    Speedlap_Time_Readout.color = Position_Counter.Gold_Color;
-                }
-                else if (TargetShip.CurrentLapTime < Precision_Gamemode_Instance.AuthorTimes.SilverTarget)
-                {
-                    Speedlap_Time_Readout.color = Position_Counter.Silver_Color;
-                }
-                else if (TargetShip.CurrentLapTime < Precision_Gamemode_Instance.AuthorTimes.BronzeTarget)
-                {
-                    Speedlap_Time_Readout.color = Position_Counter.Bronze_Color;
-                }
-                else
-                {
-                    Speedlap_Time_Readout.color = Color.white;
-                }
-            }            
         }
     }
 
@@ -5971,6 +6521,17 @@ namespace ClassLibrary1HUD
         public Vector4 Red_Diamond_Color;
         public Vector4 Blue_Diamond_Color;
         public Vector4 Diamond_Target_Color;
+        
+        public int Previous_Zone_Diamond_Index = -1;
+        public int Lit_Diamond_Index;
+        public int Current_Zone;
+        public int Previous_Zone = -1;
+        public int Current_Perfect_Zone_State;
+        public int Previous_Perfect_Zone_State = -1;
+        public int Current_Zone_Score_Key;
+        public int Previous_Zone_Score_Key = -1;
+        public GmSurvivalBackend Current_Survival_Backend;
+        public NgVirtual.ZonePalleteSettings.ZoneColors Current_ZonePallete_Colors;
 
         public override void Start()
         {
@@ -6013,12 +6574,33 @@ namespace ClassLibrary1HUD
             Zone_Name.text = "TOXIC";
             Zone_Score.text = "0";
 
-            Zone_Diamonds = new Image[] { Diamond_1, Diamond_2, Diamond_3, Diamond_4, Diamond_5, Diamond_6, Diamond_7, Diamond_8, Diamond_9, Diamond_10, Diamond_11, Diamond_12, Diamond_13, Diamond_14, Diamond_15 };
+            Zone_Diamonds = new Image[] { Diamond_1, Diamond_2, Diamond_3, Diamond_4, Diamond_5, Diamond_6, Diamond_7, Diamond_8, Diamond_9, Diamond_10, Diamond_11, Diamond_12, Diamond_13, Diamond_14, Diamond_15 };            
+        }
+
+        public override void OnDestroy()
+        {
+            NgUiEvents.OnZoneTitleUpdate -= ZoneTitle;
+            NgUiEvents.OnZoneProgressUpdate -= ZoneProgress;
+
+            base.OnDestroy();
         }
 
         public override void Update()
         {
             base.Update();
+
+            if (Current_Survival_Backend == null)
+            {
+                Current_Survival_Backend = GmSurvivalBackend.Instance;
+                return;
+            }            
+
+            Current_Zone_Score_Key = (int)(Current_Survival_Backend.zoneScore + 0.5f);
+            if (Current_Zone_Score_Key != Previous_Zone_Score_Key)
+            {
+                Previous_Zone_Score_Key = Current_Zone_Score_Key;
+                Zone_Score.text = Current_Zone_Score_Key.ToString("N0");
+            }
 
             Zone_Diamond_Index = (int)(Zone_Progress * 15f);
 
@@ -6027,62 +6609,59 @@ namespace ClassLibrary1HUD
                 Diamond_15.color = Blue_Diamond_Color;
             }
 
-            if (Zone_Progress <= 0.4f)
+            if (Zone_Diamond_Index != Previous_Zone_Diamond_Index)
             {
-                Diamond_Target_Color = Green_Diamond_Color;
-            }
-            else if (0.4f < Zone_Progress && Zone_Progress <= (11/15f))
-            {
-                Diamond_Target_Color = Red_Diamond_Color;
-            }
-            else if ((11 / 15f) < Zone_Progress && Zone_Progress <= 1f)
-            {
-                Diamond_Target_Color = Blue_Diamond_Color;
-            }
+                Previous_Zone_Diamond_Index = Zone_Diamond_Index;
 
-            if ((Zone_Diamond_Index - 1) < 0)
-            {
-                Diamond_1.color = Color.white;
-                Diamond_2.color = Color.white;
-                Diamond_3.color = Color.white;
-                Diamond_4.color = Color.white;
-                Diamond_5.color = Color.white;
-                Diamond_6.color = Color.white;
-                Diamond_7.color = Color.white;
-                Diamond_8.color = Color.white;
-                Diamond_9.color = Color.white;
-                Diamond_10.color = Color.white;
-                Diamond_11.color = Color.white;
-                Diamond_12.color = Color.white;
-                Diamond_13.color = Color.white;
-                Diamond_14.color = Color.white;
-                Diamond_15.color = Color.white;
-            }
-            else
-            {
-                Zone_Diamonds[Zone_Diamond_Index - 1].color = Diamond_Target_Color;
-            }
-
-            Zone_Number.text = GmSurvivalBackend.Instance.zone.ToString();
-            Zone_Score.text = GmSurvivalBackend.Instance.zoneScore.ToString("N0");
-
-            if (VanillaPlusHUDOptions.ModMenuOptions.UseZoneColorsToggle == true)
-            {
-                Zone_Number.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackIllumColor;
-
-                if (NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentColor.maxColorComponent > NgVirtual.ZonePalleteSettings.CurrentColors.TrackFogColor.maxColorComponent)
+                if (Zone_Diamond_Index < 1)
                 {
-                    Zone_Name.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentColor;
+                    for (int i = 0; i < Zone_Diamonds.Length; i++)
+                    {
+                        Zone_Diamonds[i].color = Color.white;
+                    }
                 }
                 else
                 {
-                    Zone_Name.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackFogColor;
+                    Lit_Diamond_Index = Zone_Diamond_Index - 1;
+
+                    if (Lit_Diamond_Index < 5)
+                    {
+                        Zone_Diamonds[Lit_Diamond_Index].color = Green_Diamond_Color;
+                    }
+                    else if (Lit_Diamond_Index < 10)
+                    {
+                        Zone_Diamonds[Lit_Diamond_Index].color = Red_Diamond_Color;
+                    }
+                    else
+                    {
+                        Zone_Diamonds[Lit_Diamond_Index].color = Blue_Diamond_Color;
+                    }
                 }
-                
-                Zone_Score.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentDetailsColor;
-                //Zone_Number.color = TargetShip.ZoneColorController.Colors.TrackIllumColor;
-                //Zone_Name.color = TargetShip.ZoneColorController.Colors.EnvironmentDetailsColor;
-                //Zone_Score.color = TargetShip.ZoneColorController.Colors.EqColor;
+            }
+
+            Current_Zone = Current_Survival_Backend.zone;
+            if (Current_Zone != Previous_Zone)
+            {
+                Previous_Zone = Current_Zone;
+                Zone_Number.text = Current_Zone.ToString();
+            }
+
+            if (VanillaPlusHUDOptions.ModMenuOptions.UseZoneColorsToggle == true)
+            {
+                Current_ZonePallete_Colors = NgVirtual.ZonePalleteSettings.CurrentColors;
+
+                Zone_Number.color = Current_ZonePallete_Colors.TrackIllumColor;
+
+                if (Current_ZonePallete_Colors.EnvironmentColor.maxColorComponent > Current_ZonePallete_Colors.TrackFogColor.maxColorComponent)
+                {
+                    Zone_Name.color = Current_ZonePallete_Colors.EnvironmentColor;
+                }
+                else
+                {
+                    Zone_Name.color = Current_ZonePallete_Colors.TrackFogColor;
+                }
+
+                Zone_Score.color = Current_ZonePallete_Colors.EnvironmentDetailsColor;
             }
             else
             {
@@ -6092,13 +6671,19 @@ namespace ClassLibrary1HUD
                 Zone_Score.color = Default_Zone_Score_Color;
             }
 
-            if (VanillaPlusHUDOptions.ModMenuOptions.PerfectZoneWarningToggle == true)
+            if ((VanillaPlusHUDOptions.ModMenuOptions.PerfectZoneWarningToggle == true && Current_Survival_Backend.perfectZone))
             {
-                Perfect_Zone.enabled = GmSurvivalBackend.Instance.perfectZone;
+                Current_Perfect_Zone_State = 1;
             }
             else
             {
-                Perfect_Zone.enabled = false;
+                Current_Perfect_Zone_State = 0;
+            }
+
+            if (Current_Perfect_Zone_State != Previous_Perfect_Zone_State)
+            {
+                Previous_Perfect_Zone_State = Current_Perfect_Zone_State;
+                Perfect_Zone.enabled = Current_Perfect_Zone_State == 1;
             }
         }
 
@@ -6128,8 +6713,7 @@ namespace ClassLibrary1HUD
 
         public Image Barrier_Warn_Left;
         public Image Barrier_Warn_Right;
-        public Image Barrier_Warn_Center;
-        public int Barrier_Warning_Side_Index;
+        public Image Barrier_Warn_Center;        
         public Image[] Barrier_Warning_Images;
 
         public Image Zone_Count_Background;
@@ -6159,8 +6743,7 @@ namespace ClassLibrary1HUD
 
         public float Buildup_Bar_Interpolation_Ratio;
         public float Stored_Shield_Bar_Interpolation_Ratio;
-        public float Stored_Zones_Bar_Interpolation_Ratio;
-        public float Buildup_Bar_Bleedthrough_Interpolation_Ratio;
+        public float Stored_Zones_Bar_Interpolation_Ratio;        
 
         public Vector4 Default_Buildup_Bar_Background_Color;
         public Vector4 Default_Buildup_Bar_Color;
@@ -6183,6 +6766,24 @@ namespace ClassLibrary1HUD
         public Vector2 Lowered_Barrier_Right_Warning_Starting_Position_Vector;
         public Vector2 Lowered_Barrier_Zone_Count_Starting_Position_Vector;
 
+        public int Current_Built_Zones;
+        public int Previous_Built_Zones = -1;
+        public int Current_Shield_Charge;
+        public int Current_Zone_Number;
+        public int Previous_Zone_Number = -1;
+        public float Current_Zone_Time;
+        public int Current_Zones_Full_State;
+        public int Previous_Zones_Full_State = -1;
+        public int Current_Target_Attainable_State;
+        public int Previous_Target_Attainable_State = -1;
+        public int Current_Use_Upsurge_Colors;
+        public int Previous_Use_Upsurge_Colors = -1;
+
+        public NgVirtual.ZonePalleteSettings.ZoneColors Current_UpsurgePallete_Colors;
+        public Coroutine[] Barrier_Warning_Coroutines = new Coroutine[3];
+
+        public float Cached_Delta_Time;
+
         public override void Start()
         {
             base.Start();         
@@ -6191,9 +6792,8 @@ namespace ClassLibrary1HUD
             Stored_Shield_Charge_Bar_Background = CustomComponents.GetById<Image>("StoredShieldChargeBarBackground");
             Stored_Zones_Bar_Background = CustomComponents.GetById<Image>("StoredZonesBarBackground");
             Default_Buildup_Bar_Background_Color = Upsurge_Zone_Buildup_Bar_Background.color;
-            Default_Shield_Charge_Background_Color = Stored_Shield_Charge_Bar_Background.color;
-            Default_Stored_Zones_Bar_Background_Color = Stored_Zones_Bar_Background.color;
             Default_Stored_Shield_Bar_Background_Color = Stored_Shield_Charge_Bar_Background.color;
+            Default_Stored_Zones_Bar_Background_Color = Stored_Zones_Bar_Background.color;            
 
             Upsurge_Zone_Buildup_Bar = CustomComponents.GetById<Image>("UpsurgeZoneBuildupBar");
             Stored_Shield_Charge_Bar = CustomComponents.GetById<Image>("StoredShieldChargeBar");
@@ -6255,125 +6855,162 @@ namespace ClassLibrary1HUD
                 Barrier_Warning_Images[1].rectTransform.anchoredPosition = Lowered_Barrier_Center_Warning_Starting_Position_Vector + Raised_Barrier_Warning_Adjust_Vector;
                 Barrier_Warning_Images[2].rectTransform.anchoredPosition = Lowered_Barrier_Right_Warning_Starting_Position_Vector + Raised_Barrier_Warning_Adjust_Vector;
             }
+
+            Upsurge_Gamemode_Instance = RaceManager.CurrentGamemode as GmUpsurge;
         }
 
         public override void OnDestroy()
         {
             NgPickups.Physical.Barrier.OnPlayerBarrierWarned -= BarrierWarning;
+
+            base.OnDestroy();
         }
 
         public override void Update()
         {
             base.Update();
 
-            Upsurge_Gamemode_Instance = RaceManager.CurrentGamemode as GmUpsurge;
+            Cached_Delta_Time = Time.deltaTime;
 
             if (Upsurge_Ship_Instance == null)
             {
-                foreach (UpsurgeShip upsurgeShip in Upsurge_Gamemode_Instance.Ships)
+                int shipCount = Upsurge_Gamemode_Instance.Ships.Count;
+
+                for (int i = 0; i < shipCount; i++)
                 {
+                    UpsurgeShip upsurgeShip = Upsurge_Gamemode_Instance.Ships[i];
+
                     if (upsurgeShip.TargetShip == TargetShip)
                     {
                         Upsurge_Ship_Instance = upsurgeShip;
+                        break;
                     }
+                }
+
+                if (Upsurge_Ship_Instance == null)
+                {
+                    return;
                 }
             }
 
-            Zone_Count.text = "+" + Upsurge_Ship_Instance.BuiltZones.ToString();
-            Shield_Charge.text = "+" + (Mathf.Clamp((Upsurge_Ship_Instance.BuiltZones * 20), 0, 100)).ToString();
-            Barrier_Zone_Count.text = Upsurge_Ship_Instance.CurrentZone.ToString();
+            Current_Built_Zones = Upsurge_Ship_Instance.BuiltZones;
+            Current_Zone_Number = Upsurge_Ship_Instance.CurrentZone;
+            Current_Zone_Time = Upsurge_Ship_Instance.ZoneTime;
 
-            Stored_Zones_Bar_Target_Fill_Amount = (Upsurge_Ship_Instance.BuiltZones / 10f);
-            Stored_Shield_Bar_Target_Fill_Amount = ((Mathf.Clamp((Upsurge_Ship_Instance.BuiltZones * 20), 0, 100)) / 100f);
-            Buildup_Bar_Target_Fill_Amount = (Upsurge_Ship_Instance.ZoneTime / 5f);
+            if (Current_Built_Zones != Previous_Built_Zones)
+            {
+                Previous_Built_Zones = Current_Built_Zones;
+
+                Current_Shield_Charge = Mathf.Clamp(Current_Built_Zones * 20, 0, 100);
+
+                Zone_Count.text = Current_Built_Zones.ToString("+0");
+                Shield_Charge.text = Current_Shield_Charge.ToString("+0");
+
+                Stored_Zones_Bar_Target_Fill_Amount = Current_Built_Zones / 10f;
+                Stored_Shield_Bar_Target_Fill_Amount = Current_Shield_Charge / 100f;
+            }
+
+            if (Current_Zone_Number != Previous_Zone_Number)
+            {
+                Previous_Zone_Number = Current_Zone_Number;
+                Barrier_Zone_Count.text = Current_Zone_Number.ToString();
+            }
+
+            Buildup_Bar_Target_Fill_Amount = Current_Zone_Time / 5f;
 
             if (Stored_Zones_Bar_Target_Fill_Amount > Stored_Zones_Bar_Previous_Fill_Amount)
             {
-                Stored_Zones_Bar_Interpolation_Ratio += Time.deltaTime;
+                Stored_Zones_Bar_Interpolation_Ratio += Cached_Delta_Time;
                 Stored_Zones_Bar.fillAmount = Mathf.Lerp(Stored_Zones_Bar_Previous_Fill_Amount, Stored_Zones_Bar_Target_Fill_Amount, Stored_Zones_Bar_Interpolation_Ratio);
             }
             else
             {
                 Stored_Zones_Bar_Interpolation_Ratio = 0f;
-                if ((Upsurge_Ship_Instance.BuiltZones / 10f) < Stored_Zones_Bar.fillAmount)
+                if (Stored_Zones_Bar_Target_Fill_Amount < Stored_Zones_Bar.fillAmount)
                 {
-                    Stored_Zones_Bar.fillAmount = (Upsurge_Ship_Instance.BuiltZones / 10f);
+                    Stored_Zones_Bar.fillAmount = Stored_Zones_Bar_Target_Fill_Amount;
                 }
             }
 
             if (Stored_Shield_Bar_Target_Fill_Amount > Stored_Shield_Bar_Previous_Fill_Amount)
             {
-                Stored_Shield_Bar_Interpolation_Ratio += Time.deltaTime;
+                Stored_Shield_Bar_Interpolation_Ratio += Cached_Delta_Time;
                 Stored_Shield_Charge_Bar.fillAmount = Mathf.Lerp(Stored_Shield_Bar_Previous_Fill_Amount, Stored_Shield_Bar_Target_Fill_Amount, Stored_Shield_Bar_Interpolation_Ratio);
             }
             else
             {
                 Stored_Shield_Bar_Interpolation_Ratio = 0f;
-                if (((Mathf.Clamp((Upsurge_Ship_Instance.BuiltZones * 20), 0, 100)) / 100f) < Stored_Shield_Charge_Bar.fillAmount)
+                if (Stored_Shield_Bar_Target_Fill_Amount < Stored_Shield_Charge_Bar.fillAmount)
                 {
-                    Stored_Shield_Charge_Bar.fillAmount = ((Mathf.Clamp((Upsurge_Ship_Instance.BuiltZones * 20), 0, 100)) / 100f);
+                    Stored_Shield_Charge_Bar.fillAmount = Stored_Shield_Bar_Target_Fill_Amount;
                 }
             }
 
             if (Buildup_Bar_Target_Fill_Amount > Buildup_Bar_Previous_Fill_Amount)
             {
-                Buildup_Bar_Interpolation_Ratio += Time.deltaTime;
+                Buildup_Bar_Interpolation_Ratio += Cached_Delta_Time;
                 Upsurge_Zone_Buildup_Bar.fillAmount = Mathf.Lerp(Buildup_Bar_Previous_Fill_Amount, Buildup_Bar_Target_Fill_Amount, Buildup_Bar_Interpolation_Ratio);
             }
             else
             {
-                if (Upsurge_Ship_Instance.ZoneTime == 0f)
+                if (Current_Zone_Time == 0f)
                 {
                     Upsurge_Zone_Buildup_Bar.fillAmount = 0f;
                 }
                 Buildup_Bar_Interpolation_Ratio = 0f;
-                Buildup_Bar_Bleedthrough_Interpolation_Ratio = 0f;
             }
 
             Stored_Zones_Bar_Previous_Fill_Amount = Stored_Zones_Bar.fillAmount;
             Stored_Shield_Bar_Previous_Fill_Amount = Stored_Shield_Charge_Bar.fillAmount;
             Buildup_Bar_Previous_Fill_Amount = Upsurge_Zone_Buildup_Bar.fillAmount;
 
-            if (Upsurge_Ship_Instance.BuiltZones == 10 && VanillaPlusHUDOptions.ModMenuOptions.ZonesFullWarningToggle == true)
+            Current_Zones_Full_State = (Current_Built_Zones == 10 && VanillaPlusHUDOptions.ModMenuOptions.ZonesFullWarningToggle == true) ? 1 : 0;
+            if (Current_Zones_Full_State != Previous_Zones_Full_State)
             {
-                Zones_Full_Warning.enabled = true;
-            }
-            else
-            {
-                Zones_Full_Warning.enabled = false;
+                Previous_Zones_Full_State = Current_Zones_Full_State;
+                Zones_Full_Warning.enabled = Current_Zones_Full_State == 1;
             }
 
-            if ((Upsurge_Ship_Instance.CurrentZone + Upsurge_Ship_Instance.BuiltZones) >= Upsurge_Ship_Instance.Target && VanillaPlusHUDOptions.ModMenuOptions.TargetAttainableWarningToggle == true)
+            Current_Target_Attainable_State = ((Current_Zone_Number + Current_Built_Zones) >= Upsurge_Ship_Instance.Target && VanillaPlusHUDOptions.ModMenuOptions.TargetAttainableWarningToggle == true) ? 1 : 0;
+            if (Current_Target_Attainable_State != Previous_Target_Attainable_State)
             {
-                Target_Attainable_Warning.enabled = true;
+                Previous_Target_Attainable_State = Current_Target_Attainable_State;
+                Target_Attainable_Warning.enabled = Current_Target_Attainable_State == 1;
             }
-            else
-            {
-                Target_Attainable_Warning.enabled = false;
-            }
-
+            
             if (VanillaPlusHUDOptions.ModMenuOptions.UseUpsurgeColorsToggle == true)
             {
-                Zone_Label_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackIllumColor;
-                Zone_Count_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackIllumColor;
-                Zone_Label.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackColor;
-                Zone_Count.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackColor;
-
-                Shield_Charge_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.EqBackgroundColor;
-                Shield_Label_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.EqBackgroundColor;
-                Shield_Charge.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentDetailsColor;
-                Shield_Label.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentDetailsColor;
-
-                Upsurge_Zone_Buildup_Bar_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackIllumColor; //Bottom bar, where shield/energy normally are
-                Upsurge_Zone_Buildup_Bar.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentColor;
-
-                Stored_Zones_Bar_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackColor; //Top bar
-                Stored_Zones_Bar.color = NgVirtual.ZonePalleteSettings.CurrentColors.TrackIllumColor;
-
-                Stored_Shield_Charge_Bar_Background.color = NgVirtual.ZonePalleteSettings.CurrentColors.EnvironmentDetailsColor;//Middle bar
-                Stored_Shield_Charge_Bar.color = NgVirtual.ZonePalleteSettings.CurrentColors.EqBackgroundColor;
+                Current_Use_Upsurge_Colors = 1;
             }
             else
+            {
+                Current_Use_Upsurge_Colors = 0;
+            }
+
+            if (Current_Use_Upsurge_Colors == 1)
+            {
+                Current_UpsurgePallete_Colors = NgVirtual.ZonePalleteSettings.CurrentColors;
+
+                Zone_Label_Background.color = Current_UpsurgePallete_Colors.TrackIllumColor;
+                Zone_Count_Background.color = Current_UpsurgePallete_Colors.TrackIllumColor;
+                Zone_Label.color = Current_UpsurgePallete_Colors.TrackColor;
+                Zone_Count.color = Current_UpsurgePallete_Colors.TrackColor;
+
+                Shield_Charge_Background.color = Current_UpsurgePallete_Colors.EqBackgroundColor;
+                Shield_Label_Background.color = Current_UpsurgePallete_Colors.EqBackgroundColor;
+                Shield_Charge.color = Current_UpsurgePallete_Colors.EnvironmentDetailsColor;
+                Shield_Label.color = Current_UpsurgePallete_Colors.EnvironmentDetailsColor;
+
+                Upsurge_Zone_Buildup_Bar_Background.color = Current_UpsurgePallete_Colors.TrackIllumColor; //Bottom bar, where shield/energy normally are
+                Upsurge_Zone_Buildup_Bar.color = Current_UpsurgePallete_Colors.EnvironmentColor;
+
+                Stored_Zones_Bar_Background.color = Current_UpsurgePallete_Colors.TrackColor; //Top bar
+                Stored_Zones_Bar.color = Current_UpsurgePallete_Colors.TrackIllumColor;
+
+                Stored_Shield_Charge_Bar_Background.color = Current_UpsurgePallete_Colors.EnvironmentDetailsColor; //Middle bar
+                Stored_Shield_Charge_Bar.color = Current_UpsurgePallete_Colors.EqBackgroundColor;
+            }
+            else if (Previous_Use_Upsurge_Colors != 0)
             {
                 //set back to initial default colors
                 Zone_Label_Background.color = Default_Zone_Label_Background_Color;
@@ -6395,6 +7032,8 @@ namespace ClassLibrary1HUD
                 Stored_Shield_Charge_Bar_Background.color = Default_Stored_Shield_Bar_Background_Color;//Middle bar
                 Stored_Shield_Charge_Bar.color = Default_Stored_Shield_Bar_Color;
             }
+
+            Previous_Use_Upsurge_Colors = Current_Use_Upsurge_Colors;
         }
 
         public void BarrierWarning(ShipController ship, NgPickups.Physical.Barrier barrier, int trackSide)
@@ -6404,132 +7043,41 @@ namespace ClassLibrary1HUD
                 trackSide *= -1;
             }
 
-            Barrier_Warning_Side_Index = trackSide + 1;
-            StartCoroutine(Barrier_Warning_Flasher());
+            int Barrier_Side = trackSide + 1;
+
+            if (Barrier_Warning_Coroutines[Barrier_Side] != null)
+            {
+                StopCoroutine(Barrier_Warning_Coroutines[Barrier_Side]);
+            }
+
+            Barrier_Warning_Coroutines[Barrier_Side] = StartCoroutine(Barrier_Warning_Flasher(Barrier_Side));
         }
 
-        IEnumerator Barrier_Warning_Flasher()
+        IEnumerator Barrier_Warning_Flasher(int Barrier_Side)
         {
-            int Barrier_Side = Barrier_Warning_Side_Index;
-            float Barrier_Warning_Start_Time = Time.time;
-            float Barrier_Warning_End_Time = Barrier_Warning_Start_Time + 2.375f;
+            const float Flash_Interval = 0.125f;
+            const float Warning_Duration = 2.375f;
 
-            float Barrier_Flash_On_1 = Barrier_Warning_Start_Time + 0.125f;
-            float Barrier_Flash_Off_1 = Barrier_Warning_Start_Time + 0.25f;
-            float Barrier_Flash_On_2 = Barrier_Warning_Start_Time + 0.375f;
-            float Barrier_Flash_Off_2 = Barrier_Warning_Start_Time + 0.5f;
-            float Barrier_Flash_On_3 = Barrier_Warning_Start_Time + 0.625f;
-            float Barrier_Flash_Off_3 = Barrier_Warning_Start_Time + 0.75f;
-            float Barrier_Flash_On_4 = Barrier_Warning_Start_Time + 0.875f;
-            float Barrier_Flash_Off_4 = Barrier_Warning_Start_Time + 1f;
-            float Barrier_Flash_On_5 = Barrier_Warning_Start_Time + 1.125f;
-            float Barrier_Flash_Off_5 = Barrier_Warning_Start_Time + 1.25f;
-            float Barrier_Flash_On_6 = Barrier_Warning_Start_Time + 1.375f;
-            float Barrier_Flash_Off_6 = Barrier_Warning_Start_Time + 1.5f;
-            float Barrier_Flash_On_7 = Barrier_Warning_Start_Time + 1.625f;
-            float Barrier_Flash_Off_7 = Barrier_Warning_Start_Time + 1.75f;
-            float Barrier_Flash_On_8 = Barrier_Warning_Start_Time + 1.875f;
-            float Barrier_Flash_Off_8 = Barrier_Warning_Start_Time + 2f;
-            float Barrier_Flash_On_9 = Barrier_Warning_Start_Time + 2.125f;
-            float Barrier_Flash_Off_9 = Barrier_Warning_Start_Time + 2.25f;
-            float Barrier_Flash_On_10 = Barrier_Warning_End_Time;            
+            Image Warning_Image = Barrier_Warning_Images[Barrier_Side];
+            float Elapsed_Time = 0f;
 
-            while (Time.time < Barrier_Warning_End_Time)
+            while (Elapsed_Time < Warning_Duration)
             {
-                //START
-                if (Barrier_Warning_Start_Time < Time.time && Time.time <= Barrier_Flash_On_1)
+                if (((int)(Elapsed_Time / Flash_Interval) % 2) == 0)
                 {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
+                    Warning_Image.color = Color.red;
                 }
-                if (Barrier_Flash_On_1 < Time.time && Time.time <= Barrier_Flash_Off_1)
+                else
                 {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
-                }
-                if (Barrier_Flash_Off_1 < Time.time && Time.time <= Barrier_Flash_On_2)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
-                }
-                if (Barrier_Flash_On_2 < Time.time && Time.time <= Barrier_Flash_Off_2)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
-                }
-                if (Barrier_Flash_Off_2 < Time.time && Time.time <= Barrier_Flash_On_3)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
-                }
-                if (Barrier_Flash_On_3 < Time.time && Time.time <= Barrier_Flash_Off_3)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
+                    Warning_Image.color = Color.white;
                 }
 
-                if (Barrier_Flash_Off_3 < Time.time && Time.time <= Barrier_Flash_On_4)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
-                }
-
-                if (Barrier_Flash_On_4 < Time.time && Time.time <= Barrier_Flash_Off_4)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
-                }
-
-                if (Barrier_Flash_Off_4 < Time.time && Time.time <= Barrier_Flash_On_5)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
-                }
-
-                if (Barrier_Flash_On_5 < Time.time && Time.time <= Barrier_Flash_Off_5)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
-                }
-
-                if (Barrier_Flash_Off_5 < Time.time && Time.time <= Barrier_Flash_On_6)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
-                }
-
-                if (Barrier_Flash_On_6 < Time.time && Time.time <= Barrier_Flash_Off_6)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
-                }
-
-                if (Barrier_Flash_Off_6 < Time.time && Time.time <= Barrier_Flash_On_7)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
-                }
-
-                if (Barrier_Flash_On_7 < Time.time && Time.time <= Barrier_Flash_Off_7)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
-                }
-
-                if (Barrier_Flash_Off_7 < Time.time && Time.time <= Barrier_Flash_On_8)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
-                }
-
-                if (Barrier_Flash_On_8 < Time.time && Time.time <= Barrier_Flash_Off_8)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
-                }
-
-                if (Barrier_Flash_Off_8 < Time.time && Time.time <= Barrier_Flash_On_9)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
-                }
-
-                if (Barrier_Flash_On_9 < Time.time && Time.time <= Barrier_Flash_Off_9)
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.white;
-                }
-
-                if (Barrier_Flash_Off_9 < Time.time && Time.time <= Barrier_Flash_On_10) //FINAL RED FLASH
-                {
-                    Barrier_Warning_Images[Barrier_Side].color = Color.red;
-                }
                 yield return null;
+                Elapsed_Time += Time.deltaTime;
             }
-            Barrier_Warning_Images[Barrier_Side].color = Color.white;
-        }    
+
+            Warning_Image.color = Color.white;
+        }
     }
 
     public class Stunt : ScriptableHud
@@ -6561,7 +7109,20 @@ namespace ClassLibrary1HUD
         public Image Uplift_Pip_3;
 
         public GmStunt Stunt_Gamemode_Instance;
-        public StuntPlayer Stunt_Player_Instance;        
+        public StuntPlayer Stunt_Player_Instance;
+
+        public int Current_Best_Score_Key;
+        public int Previous_Best_Score_Key = -1;
+        public int Current_Chain_Amount;
+        public int Previous_Chain_Amount = -1;
+        public float Current_Height;
+        public int Current_Height_Key;
+        public int Previous_Height_Key = -1;
+        public float Current_Shield;
+        public int Current_Uplift_Pips;
+        public int Previous_Uplift_Pips = -1;
+        public int Current_Hud_Show_Input;
+        public int Previous_Hud_Show_Input = -1;
 
         public override void Start()
         {
@@ -6600,95 +7161,133 @@ namespace ClassLibrary1HUD
         public override void OnDestroy()
         {
             NgRaceEvents.OnShipScoreChanged -= StuntScore;
+
+            base.OnDestroy();
         }
 
         public void StuntScore(ShipController ship, float oldScore, float newScore)
-        {                        
-            Stunt_Score_Readout.text = newScore.ToString("N0");
+        {
+            if (ship == TargetShip)
+            {
+                Stunt_Score_Readout.text = newScore.ToString("N0");
+            }
         }
 
         public override void Update()
         {
             base.Update();
 
-            Stunt_Gamemode_Instance = RaceManager.CurrentGamemode as GmStunt;
-
             if (Stunt_Player_Instance == null)
             {
-                foreach (StuntPlayer stuntPlayer in Stunt_Gamemode_Instance.Players)
+                Stunt_Gamemode_Instance = RaceManager.CurrentGamemode as GmStunt;
+
+                if (Stunt_Gamemode_Instance == null || Stunt_Gamemode_Instance.Players == null)
                 {
-                    if (stuntPlayer.R == TargetShip)
+                    return;
+                }
+
+                int playerCount = Stunt_Gamemode_Instance.Players.Count;
+
+                for (int i = 0; i < playerCount; i++)
+                {
+                    StuntPlayer stuntPlayer = Stunt_Gamemode_Instance.Players[i];
+
+                    if (stuntPlayer != null && stuntPlayer.R == TargetShip)
                     {
                         Stunt_Player_Instance = stuntPlayer;
+                        break;
                     }
+                }
+
+                if (Stunt_Player_Instance == null)
+                {
+                    return;
                 }
             }
 
-            Stunt_Score_Best_Readout.text = Stunt_Gamemode_Instance.BestScore.ToString("N0");
-            Stunt_Chain_Readout.text = "×" + Stunt_Player_Instance.ChainAmount.ToString();
-            if (Stunt_Player_Instance.ChainAmount < 1)
+            Current_Best_Score_Key = (int)(Stunt_Gamemode_Instance.BestScore + 0.5f);
+            if (Current_Best_Score_Key != Previous_Best_Score_Key)
             {
-                Stunt_Chain_Readout.enabled = false;
-            }
-            else
-            {
-                Stunt_Chain_Readout.enabled = true;
+                Previous_Best_Score_Key = Current_Best_Score_Key;
+                Stunt_Score_Best_Readout.text = Current_Best_Score_Key.ToString("N0");
             }
 
-            if (((TargetShip.InterpolatedSection.InverseTransformPoint(TargetShip.PhysicsPosition).y * 18f) - 6f) <= 0f)
+            Current_Chain_Amount = Stunt_Player_Instance.ChainAmount;
+            if (Current_Chain_Amount != Previous_Chain_Amount)
             {
-                Stunt_Height_Readout.text = "0m";
+                Previous_Chain_Amount = Current_Chain_Amount;
+                Stunt_Chain_Readout.text = "×" + Current_Chain_Amount.ToString();
+                Stunt_Chain_Readout.enabled = Current_Chain_Amount >= 1;
+            }
+
+            Current_Height = (TargetShip.InterpolatedSection.InverseTransformPoint(TargetShip.PhysicsPosition).y * 18f) - 6f;
+            if (Current_Height <= 0f)
+            {
+                Current_Height_Key = 0;
             }
             else
             {
-                Stunt_Height_Readout.text = string.Format("{0:N0}", ((TargetShip.InterpolatedSection.InverseTransformPoint(TargetShip.PhysicsPosition).y * 18f) - 6f)) + "m";
+                Current_Height_Key = (int)(Current_Height + 0.5f);
+            }
+
+            if (Current_Height_Key != Previous_Height_Key)
+            {
+                Previous_Height_Key = Current_Height_Key;
+                Stunt_Height_Readout.text = Current_Height_Key.ToString("0'm'");
             }
 
             Stunt_Chain_Bar.fillAmount = (Stunt_Player_Instance.ChainTimer / 3f);
             Roll_Input_Spam_Bar.fillAmount = Stunt_Player_Instance.RollInputCooldown;
-            Uplift_Bar.fillAmount = (TargetShip.ShieldIntegrity / 100f);
 
-            if (TargetShip.ShieldIntegrity >= (100f / 3f))
+            Current_Shield = TargetShip.ShieldIntegrity;
+            Uplift_Bar.fillAmount = (Current_Shield / 100f);
+
+            if (Current_Shield == 100f)
             {
-                Uplift_Pip_1.color = Lap_Time_Field.Lap_Diamond_Green;
+                Current_Uplift_Pips = 3;
+            }
+            else if (Current_Shield >= (200f / 3f))
+            {
+                Current_Uplift_Pips = 2;
+            }
+            else if (Current_Shield >= (100f / 3f))
+            {
+                Current_Uplift_Pips = 1;
             }
             else
             {
-                Uplift_Pip_1.color = Lap_Time_Field.Lap_Diamond_Red;
+                Current_Uplift_Pips = 0;
             }
 
-            if (TargetShip.ShieldIntegrity >= (200f / 3f))
+            if (Current_Uplift_Pips != Previous_Uplift_Pips)
             {
-                Uplift_Pip_2.color = Lap_Time_Field.Lap_Diamond_Green;
-            }
-            else
-            {
-                Uplift_Pip_2.color = Lap_Time_Field.Lap_Diamond_Red;
+                Previous_Uplift_Pips = Current_Uplift_Pips;
+
+                if (Current_Uplift_Pips >= 1) { Uplift_Pip_1.color = Lap_Time_Field.Lap_Diamond_Green; } else { Uplift_Pip_1.color = Lap_Time_Field.Lap_Diamond_Red; }
+                if (Current_Uplift_Pips >= 2) { Uplift_Pip_2.color = Lap_Time_Field.Lap_Diamond_Green; } else { Uplift_Pip_2.color = Lap_Time_Field.Lap_Diamond_Red; }
+                if (Current_Uplift_Pips >= 3) { Uplift_Pip_3.color = Lap_Time_Field.Lap_Diamond_Green; } else { Uplift_Pip_3.color = Lap_Time_Field.Lap_Diamond_Red; }
             }
 
-            if (TargetShip.ShieldIntegrity == 100f)
+            Current_Hud_Show_Input = Stunt_Player_Instance.HudShowInput ? 1 : 0;
+            if (Current_Hud_Show_Input != Previous_Hud_Show_Input)
             {
-                Uplift_Pip_3.color = Lap_Time_Field.Lap_Diamond_Green;
-            }
-            else
-            {
-                Uplift_Pip_3.color = Lap_Time_Field.Lap_Diamond_Red;
-            }
+                Previous_Hud_Show_Input = Current_Hud_Show_Input;
 
-            if (Stunt_Player_Instance.HudShowInput == true)
-            {
-                Stunt_Height_Diamond.color = Ballistic_NG_Orange;
-                Stunt_Height_Readout.color = Ballistic_NG_Orange;
-                Stunt_Chain_Readout.color = Ballistic_NG_Orange;
-                Stunt_Chain_Bar.color = Ballistic_NG_Orange;
+                if (Current_Hud_Show_Input == 1)
+                {
+                    Stunt_Height_Diamond.color = Ballistic_NG_Orange;
+                    Stunt_Height_Readout.color = Ballistic_NG_Orange;
+                    Stunt_Chain_Readout.color = Ballistic_NG_Orange;
+                    Stunt_Chain_Bar.color = Ballistic_NG_Orange;
+                }
+                else
+                {
+                    Stunt_Height_Diamond.color = Color.white;
+                    Stunt_Height_Readout.color = Color.white;
+                    Stunt_Chain_Readout.color = Color.white;
+                    Stunt_Chain_Bar.color = Color.white;
+                }
             }
-            else
-            {
-                Stunt_Height_Diamond.color = Color.white;
-                Stunt_Height_Readout.color = Color.white;
-                Stunt_Chain_Readout.color = Color.white;
-                Stunt_Chain_Bar.color = Color.white;
-            }        
         }
     }
 }

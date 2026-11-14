@@ -1,0 +1,16 @@
+Unity's legacy Input system has some colorful (read: confusing) names for keyboard keys. These are explained here. Fully capitalized names are Unity KeyCode aliases.
+CLEAR = Not present on most keyboards
+RETURN = Enter
+BACKQUOTE = Tilde (~)
+F13 - Not present on most keyboards
+F14 - Not present on most keyboards
+F15 - Not present on most keyboards
+MENU = (≡)
+_____________________________________
+
+
+Note for the following: In C#, the ordering of Enum members with duplicate values is unspecified behavior, hence the following discrepancy:
+_____________________________________
+RIGHTAPPLE = (⌘), Right Windows, Right Super/COMMAND/META/Search
+LEFTCOMMAND = LEFTAPPLE (⌘), Left Windows, Left Super/COMMAND/META/Search
+
